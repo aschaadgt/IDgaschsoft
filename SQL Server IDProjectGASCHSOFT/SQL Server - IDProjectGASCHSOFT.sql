@@ -53,3 +53,73 @@ CREATE TABLE Defectos (
     fechaResolucion DATE NULL -- Fecha en la que se resolvió el defecto (puede ser NULL)
 );
 GO
+-- Insertar datos nuevos *****************************************************
+
+
+-- Insertar nuevos usuarios en la tabla Usuarios
+INSERT INTO [IDProjectGASCHSOFT].[dbo].[Usuarios]
+    (idUsuario, nombre, apellido, correo, contrasena, fechaCreacion, rol, estado)
+VALUES
+    ('JPerez', 'Juan', 'Pérez', 'jperez@gaschsoft.com', 'contrasena1', GETDATE(), 'Desarrollador', 'Activo'),
+    ('MLopez', 'María', 'López', 'mlopez@gaschsoft.com', 'contrasena2', GETDATE(), 'Administrador', 'Activo'),
+    ('CRodriguez', 'Carlos', 'Rodríguez', 'crodriguez@gaschsoft.com', 'contrasena3', GETDATE(), 'Desarrollador', 'Activo'),
+    ('AGonzalez', 'Ana', 'González', 'agonzalez@gaschsoft.com', 'contrasena4', GETDATE(), 'Administrador', 'Activo'),
+    ('LHernandez', 'Luis', 'Hernández', 'lhernandez@gaschsoft.com', 'contrasena5', GETDATE(), 'Desarrollador', 'Activo'),
+    ('RMorales', 'Rosa', 'Morales', 'rmorales@gaschsoft.com', 'contrasena6', GETDATE(), 'Desarrollador', 'Activo');
+GO
+
+-- Insertar nuevos proyectos en la tabla Proyectos
+INSERT INTO [IDProjectGASCHSOFT].[dbo].[Proyectos]
+    (idUsuario, nombreProyecto, descripcion, fechaInicio, fechaFin, estado)
+VALUES
+    ('JPerez', 'Calculadora Básica', 'Desarrollo de una calculadora básica en C++.', GETDATE(), DATEADD(DAY, 7, GETDATE()), 'En progreso'),
+    ('MLopez', 'Juego del Ahorcado', 'Implementación del juego del ahorcado en Java.', GETDATE(), DATEADD(DAY, 10, GETDATE()), 'Activo'),
+    ('CRodriguez', 'Agenda de Contactos', 'Creación de una agenda de contactos en Python.', GETDATE(), DATEADD(DAY, 5, GETDATE()), 'Pendiente'),
+    ('AGonzalez', 'Sistema de Gestión de Notas', 'Aplicación para gestionar notas académicas en PHP.', GETDATE(), DATEADD(DAY, 14, GETDATE()), 'En progreso'),
+    ('LHernandez', 'Conversor de Monedas', 'Programa para convertir monedas usando tasas actuales en JavaScript.', GETDATE(), DATEADD(DAY, 3, GETDATE()), 'Activo'),
+    ('RMorales', 'Aplicación de Tareas', 'Desarrollo de una aplicación para gestionar tareas diarias en Ruby.', GETDATE(), DATEADD(DAY, 7, GETDATE()), 'En progreso');
+GO
+
+-- Declarar una tabla variable para capturar los idPrueba y el nombre de la prueba
+DECLARE @PruebasNuevas TABLE (
+    idPrueba INT,
+    nombrePrueba NVARCHAR(255)
+);
+
+-- Insertar nuevas pruebas y capturar idPrueba
+INSERT INTO [IDProjectGASCHSOFT].[dbo].[Pruebas]
+    (idProyecto, nombrePrueba, descripcion, fechaEjecucion, resultado)
+OUTPUT INSERTED.idPrueba, INSERTED.nombrePrueba INTO @PruebasNuevas (idPrueba, nombrePrueba)
+SELECT
+    P.idProyecto,
+    CASE P.nombreProyecto
+        WHEN 'Calculadora Básica' THEN 'Prueba de operaciones aritméticas'
+        WHEN 'Juego del Ahorcado' THEN 'Prueba de lógica del juego'
+        WHEN 'Agenda de Contactos' THEN 'Prueba de creación de contactos'
+        WHEN 'Sistema de Gestión de Notas' THEN 'Prueba de cálculo de promedio'
+        WHEN 'Conversor de Monedas' THEN 'Prueba de tasas de cambio'
+        WHEN 'Aplicación de Tareas' THEN 'Prueba de gestión de tareas'
+        ELSE 'Prueba general'
+    END AS nombrePrueba,
+    'Descripción de la prueba para ' + P.nombreProyecto AS descripcion,
+    GETDATE() AS fechaEjecucion,
+    'En progreso' AS resultado
+FROM [IDProjectGASCHSOFT].[dbo].[Proyectos] P;
+
+-- PASO 3: Insertar nuevos defectos
+
+INSERT INTO [IDProjectGASCHSOFT].[dbo].[Defectos]
+    (idPrueba, descripcion, prioridad, estado, fechaCreacion, fechaResolucion)
+SELECT
+    P.idPrueba,
+    'Descripción del defecto encontrado en ' + P.nombrePrueba,
+    'Alta',
+    'Abierto',
+    GETDATE(),
+    NULL
+FROM @PruebasNuevas P
+WHERE P.nombrePrueba LIKE 'Prueba%';
+
+-- Verificar los registros insertados
+SELECT * FROM [IDProjectGASCHSOFT].[dbo].[Pruebas];
+SELECT * FROM [IDProjectGASCHSOFT].[dbo].[Defectos];
