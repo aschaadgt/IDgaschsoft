@@ -6,7 +6,7 @@ function App() {
 
   // Llamar a la API cuando el componente se monta
   useEffect(() => {
-    axios.get('http://localhost:3000/api/proyectos')
+    axios.get('/api/proyectos')  // Cambia 'http://localhost:3000/api/proyectos' a '/api/proyectos'
       .then(response => {
         console.log("Datos recibidos de la API:", response.data); // Mostrar los datos en la consola del navegador
         setProyectos(response.data); // Actualiza el estado con los proyectos recibidos
