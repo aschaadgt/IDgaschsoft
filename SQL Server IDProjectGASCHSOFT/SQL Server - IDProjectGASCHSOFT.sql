@@ -54,8 +54,6 @@ CREATE TABLE Defectos (
 );
 GO
 -- Insertar datos nuevos *****************************************************
-
-
 -- Insertar nuevos usuarios en la tabla Usuarios
 INSERT INTO [IDProjectGASCHSOFT].[dbo].[Usuarios]
     (idUsuario, nombre, apellido, correo, contrasena, fechaCreacion, rol, estado)
