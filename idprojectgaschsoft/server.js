@@ -11,18 +11,37 @@ app.use(cors());  // Añade cors al middleware
 // Configuración de middlewares
 app.use(express.json());
 
-// Ruta GET para obtener todos los proyectos
+// Función para formatear la fecha a DD/MM/AAAA
+const formatearFecha = (fechaISO) => {
+    if (!fechaISO) return null;
+    const fecha = new Date(fechaISO);
+    const dia = fecha.getDate().toString().padStart(2, '0');
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+    const año = fecha.getFullYear();
+    return `${dia}/${mes}/${año}`;
+};
+
+// Ruta GET para obtener todos los proyectos con fechas formateadas en DD/MM/AAAA
 app.get('/api/proyectos', async (req, res) => {
     try {
-        const pool = await poolPromise; // Obtiene la conexión desde poolPromise
+        const pool = await poolPromise;
         const result = await pool.request().query('SELECT * FROM Proyectos'); // Consulta a la tabla Proyectos
-        res.json(result.recordset); // Devuelve los datos en formato JSON
+
+        // Mapear los resultados para formatear las fechas antes de enviarlas al frontend
+        const proyectosFormateados = result.recordset.map(proyecto => ({
+            ...proyecto,
+            fechaInicio: formatearFecha(proyecto.fechaInicio),
+            fechaFin: formatearFecha(proyecto.fechaFin)
+        }));
+
+        // Devuelve los proyectos con fechas formateadas
+        res.json(proyectosFormateados);
     } catch (err) {
         res.status(500).send({ message: err.message }); // Manejo de errores
     }
 });
-//==========================================================================================================================================================
-// Ruta POST para crear un nuevo proyecto
+
+// Ruta POST para crear un nuevo proyecto con formato de fechas
 app.post('/api/proyectos', async (req, res) => {
     try {
         const { idUsuario, nombreProyecto, descripcion, fechaInicio, fechaFin, estado } = req.body;
@@ -48,13 +67,7 @@ app.post('/api/proyectos', async (req, res) => {
     }
 });
 
-/* Ruta POST para crear un nuevo proyecto (prueba básica)
-app.post('/api/proyectos', (req, res) => {
-    // Respuesta básica para probar la ruta POST
-    res.status(200).send('POST request to /api/proyectos received!');
-});*/
-
-// Ruta PUT para actualizar un proyecto existente
+// Ruta PUT para actualizar un proyecto existente con formato de fechas
 app.put('/api/proyectos/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -84,15 +97,34 @@ app.put('/api/proyectos/:id', async (req, res) => {
 app.delete('/api/proyectos/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        
-        const pool = await poolPromise;
 
-        // Primero, elimina los defectos relacionados con las pruebas del proyecto
+        const pool = await poolPromise;
+        
+        // Verificación de pruebas y defectos antes de eliminar el proyecto (descomentable si se desea validar).
+        /*
+        const pruebasPendientes = await pool.request()
+            .input('id', sql.Int, id)
+            .query('SELECT COUNT(*) AS pendientes FROM Pruebas WHERE idProyecto = @id AND resultado <> \'Completado\'');
+
+        if (pruebasPendientes.recordset[0].pendientes > 0) {
+            return res.status(400).send({ message: 'No se puede eliminar el proyecto ya que tiene pruebas no completadas.' });
+        }
+
+        const defectosPendientes = await pool.request()
+            .input('id', sql.Int, id)
+            .query('SELECT COUNT(*) AS pendientes FROM Defectos WHERE idPrueba IN (SELECT idPrueba FROM Pruebas WHERE idProyecto = @id) AND estado <> \'Resuelto\'');
+
+        if (defectosPendientes.recordset[0].pendientes > 0) {
+            return res.status(400).send({ message: 'No se puede eliminar el proyecto ya que tiene defectos no resueltos.' });
+        }
+        */
+        
+        // Elimina los defectos relacionados con las pruebas del proyecto
         await pool.request()
             .input('id', sql.Int, id)
             .query('DELETE FROM Defectos WHERE idPrueba IN (SELECT idPrueba FROM Pruebas WHERE idProyecto = @id)');
 
-        // Luego, elimina las pruebas relacionadas con el proyecto
+        // Elimina las pruebas relacionadas con el proyecto
         await pool.request()
             .input('id', sql.Int, id)
             .query('DELETE FROM Pruebas WHERE idProyecto = @id');
@@ -111,19 +143,24 @@ app.delete('/api/proyectos/:id', async (req, res) => {
         res.status(500).send({ message: err.message });
     }
 });
-//==========================================================================================================================================================
-// Ruta GET para obtener todas las pruebas
+
+// Ruta GET para obtener todas las pruebas con fechas formateadas
 app.get('/api/pruebas', async (req, res) => {
     try {
-        const pool = await poolPromise; // Obtiene la conexión desde poolPromise
-        const result = await pool.request().query('SELECT * FROM Pruebas'); // Consulta a la tabla Pruebas
-        res.json(result.recordset); // Devuelve los datos en formato JSON
+        const pool = await poolPromise;
+        const result = await pool.request().query('SELECT * FROM Pruebas'); 
+
+        const pruebasFormateadas = result.recordset.map(prueba => ({
+            ...prueba,
+            fechaEjecucion: formatearFecha(prueba.fechaEjecucion)
+        }));
+
+        res.json(pruebasFormateadas);
     } catch (err) {
-        res.status(500).send({ message: err.message }); // Manejo de errores
+        res.status(500).send({ message: err.message });
     }
 });
-
-// Ruta GET para obtener todas las pruebas de un proyecto
+// Ruta GET para obtener todas las pruebas de un proyecto con formato de fechas
 app.get('/api/proyectos/:id/pruebas', async (req, res) => {
     try {
         const { id } = req.params; // ID del proyecto
@@ -133,13 +170,19 @@ app.get('/api/proyectos/:id/pruebas', async (req, res) => {
             .input('idProyecto', sql.Int, id)
             .query('SELECT * FROM Pruebas WHERE idProyecto = @idProyecto');
 
-        res.json(result.recordset);
+        // Formatear las fechas antes de enviarlas al frontend
+        const pruebasFormateadas = result.recordset.map(prueba => ({
+            ...prueba,
+            fechaEjecucion: formatearFecha(prueba.fechaEjecucion)
+        }));
+
+        res.json(pruebasFormateadas);
     } catch (err) {
         res.status(500).send({ message: err.message });
     }
 });
 
-//Ruta POST para crear una nueva prueba en un proyecto
+// Ruta POST para crear una nueva prueba en un proyecto con formato de fechas
 app.post('/api/proyectos/:id/pruebas', async (req, res) => {
     try {
         const { id } = req.params; // ID del proyecto
@@ -180,14 +223,7 @@ app.post('/api/proyectos/:id/pruebas', async (req, res) => {
     }
 });
 
-/*/ Ruta POST para crear una nueva prueba en un proyecto (prueba básica)
-app.post('/api/proyectos/:id/pruebas', (req, res) => {
-    // Respuesta básica para probar la ruta POST
-    res.status(200).send(`POST request to /api/proyectos/${req.params.id}/pruebas received!`);
-});*/
-
-
-// Ruta PUT para actualizar una prueba existente
+// Ruta PUT para actualizar una prueba existente con formato de fechas
 app.put('/api/pruebas/:id', async (req, res) => {
     try {
         const { id } = req.params; // ID de la prueba
@@ -224,12 +260,12 @@ app.delete('/api/pruebas/:idPrueba', async (req, res) => {
             .input('idPrueba', sql.Int, idPrueba)
             .query('SELECT resultado FROM Pruebas WHERE idPrueba = @idPrueba');
          
-        // Si se desea habilitar que el sistema identifique los estados de las pruebas y defectos se debe descomentar esta parte.
-        /*
         if (resultadoPrueba.recordset.length === 0) {
             return res.status(404).send({ message: 'Prueba no encontrada.' });
         }
 
+        // Si se desea habilitar que el sistema identifique los estados de las pruebas y defectos se debe descomentar esta parte.
+        /*
         if (resultadoPrueba.recordset[0].resultado !== 'Completado') {
             return res.status(400).send({ message: 'No se puede eliminar una prueba que no esté en estado "Completado".' });
         }
