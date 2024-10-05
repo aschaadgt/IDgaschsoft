@@ -1,38 +1,203 @@
-.App {
-  text-align: center;
+@import '~react-resizable/css/styles.css';
+
+.container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Bloquea la selección de texto en la sección de carpetas */
+.sidebar {
+  background-color: #ffffff;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  user-select: none; /* No permite la selección de texto */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.sidebar-item {
+  padding: 10px;
+  font-size: 1.2rem;
+  cursor: default; /* Siempre mantener el puntero como una flecha */
+  border-radius: 10px; /* Bordes redondeados */
+  transition: background-color 0.3s ease; /* Transición al cambiar el color */
+  user-select: none; /* No permite la selección de texto */
+}
+
+.sidebar-item:hover {
+  background-color: #f5f5f5; /* Color al pasar el mouse */
+}
+
+.sidebar-item.selected {
+  background-color: #d6d6d6; /* Color gris opaco para la carpeta seleccionada */
+}
+
+/* Bloquea la selección de texto en la lista de proyectos */
+.project-list {
+  flex: 1; /* Ajuste automático del tamaño */
+  padding: 20px;
+  background-color: #fff;
+  border-right: 1px solid #ddd;
+  overflow-y: auto;
+  overflow-x: hidden;
+  user-select: none; /* No permite la selección de texto */
+}
+
+.project-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.project-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.project-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+.project-list::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.search-bar {
+  margin-bottom: 15px;
+  position: sticky;  /* Permite que el campo de búsqueda quede fijo */
+  top: 0;            /* Lo mantiene siempre visible en la parte superior */
+  z-index: 1;        /* Asegura que la barra esté por encima de otros elementos */
+  background-color: #ffffff; /* Asegura que el fondo del campo de búsqueda sea sólido */
+  border-bottom: 1px solid #ddd; /* Línea divisoria justo debajo del campo de búsqueda */
+  padding-bottom: 10px; /* Espacio para que la línea no quede pegada al campo */
+}
+
+.search-bar input {
+  width: 355px;        /* Ancho del campo de búsqueda */
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 10px;  /* Añade esquinas redondeadas al campo de búsqueda */
+  border: 1px solid #ddd; /* Define el borde del campo de búsqueda */
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Sombra para dar un efecto suave */
+  margin-left: auto;  /* Alinea el campo de búsqueda hacia la derecha */
+  margin-right: auto; /* Centra el campo de búsqueda */
+  display: block;     /* Asegura que el campo ocupe el espacio asignado */
+}
+
+.project-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.project-list li {
+  padding: 15px 10px;
+  border-bottom: 1px solid #ddd;
+  cursor: default; /* Siempre mantener el puntero como una flecha */
+  border-radius: 10px; /* Bordes redondeados */
+  transition: background-color 0.3s ease; /* Transición al cambiar el color */
+  user-select: none; /* No permite la selección de texto */
+}
+
+.project-list li:hover {
+  background-color: #f5f5f5; /* Color al pasar el mouse */
+}
+
+.project-list li.selected {
+  background-color: #d6d6d6; /* Color gris opaco para el proyecto seleccionado */
+}
+
+/* Permite la selección de texto solo en el cuerpo del proyecto */
+.project-details {
+  flex: 2; /* Ajuste automático del tamaño */
+  padding: 20px;
+  background-color: #fafafa;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  border-left: 1px solid #ddd;
+  overflow: hidden;
+  user-select: text; /* Permite la selección de texto */
+}
+
+.project-details header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  user-select: none; /* No permite la selección de texto en los botones */
+}
+
+.project-details .header-left {
+  display: flex;
+  align-items: center;
+}
+
+.project-details .header-left button {
+  margin-right: 10px;
+}
+
+.project-details button {
+  padding: 10px 20px;
+  background-color: #007bff;
   color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 10px;
+  user-select: none; /* No permite la selección de texto en los botones */
 }
 
-.App-link {
-  color: #61dafb;
+.project-details button:hover {
+  background-color: #0056b3;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Botón Nuevo Proyecto - Color Verde */
+.project-details .new-project {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 10px;
+  user-select: none; /* No permite la selección de texto en el botón */
+}
+
+.project-details .new-project:hover {
+  background-color: #218838;
+}
+
+.project-body {
+  margin-top: 20px;
+  user-select: text; /* Permite la selección de texto en el cuerpo */
+}
+
+.empty-state {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #aaa;
+}
+
+.resizer {
+  width: 5px;
+  cursor: ew-resize;
+  background-color: transparent;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+/* Resizer entre la sección izquierda y la del medio */
+.resizer-left {
+  right: 0;
+}
+
+/* Resizer entre la lista de proyectos y la sección de detalles */
+.resizer-between {
+  left: 0;
+  right: -2.5px;
 }
