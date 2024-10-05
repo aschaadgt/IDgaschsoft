@@ -7,6 +7,7 @@ import 'react-resizable/css/styles.css';
 const App = () => {
     const [proyectos, setProyectos] = useState([]);
     const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
+    const [busqueda, setBusqueda] = useState(""); // Estado para almacenar el término de búsqueda
 
     useEffect(() => {
         const obtenerProyectos = async () => {
@@ -24,6 +25,24 @@ const App = () => {
     const seleccionarProyecto = (proyecto) => {
         setProyectoSeleccionado(proyecto);
     };
+
+    // Función para eliminar proyecto
+    const eliminarProyecto = async () => {
+        if (proyectoSeleccionado) {
+            try {
+                await axios.delete(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`);
+                setProyectos(proyectos.filter(proyecto => proyecto.idProyecto !== proyectoSeleccionado.idProyecto));
+                setProyectoSeleccionado(null);
+            } catch (error) {
+                console.error('Error al eliminar el proyecto:', error);
+            }
+        }
+    };
+
+    // Filtrar proyectos según el término de búsqueda
+    const proyectosFiltrados = proyectos.filter(proyecto =>
+        proyecto.nombreProyecto.toLowerCase().includes(busqueda.toLowerCase())
+    );
 
     return (
         <div className="container">
@@ -51,14 +70,20 @@ const App = () => {
             {/* Sección central - Lista de proyectos */}
             <section className="project-list">
                 <div className="search-bar">
-                    <input type="text" placeholder="Buscar en todas los proyectos" />
+                    <input
+                        type="text"
+                        placeholder="Buscar en todas los proyectos"
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)} // Actualizamos el estado al escribir
+                    />
                 </div>
                 <ul>
-                    {proyectos.map((proyecto) => (
+                    {proyectosFiltrados.map((proyecto) => (
                         <li
                             key={proyecto.idProyecto}
                             className={proyectoSeleccionado && proyectoSeleccionado.idProyecto === proyecto.idProyecto ? 'selected' : ''}
-                            onClick={() => seleccionarProyecto(proyecto)}>
+                            onClick={() => seleccionarProyecto(proyecto)}
+                        >
                             <h3>{proyecto.nombreProyecto}</h3>
                             <p>{proyecto.descripcion.slice(0, 50)}...</p>
                         </li>
@@ -75,7 +100,7 @@ const App = () => {
                     <>
                         <header>
                             <div className="header-left">
-                                <button>Eliminar</button>
+                                <button className="delete-project" onClick={eliminarProyecto}>Eliminar</button>
                                 <button>Pruebas</button>
                             </div>
                             <button className="new-project">+ Nuevo Proyecto</button>

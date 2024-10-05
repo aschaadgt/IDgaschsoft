@@ -7,13 +7,11 @@
   position: relative;
 }
 
-/* Bloquea la selección de texto en la sección de carpetas */
 .sidebar {
   background-color: #ffffff;
   padding: 20px;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  user-select: none; /* No permite la selección de texto */
 }
 
 .sidebar ul {
@@ -27,7 +25,6 @@
   cursor: default; /* Siempre mantener el puntero como una flecha */
   border-radius: 10px; /* Bordes redondeados */
   transition: background-color 0.3s ease; /* Transición al cambiar el color */
-  user-select: none; /* No permite la selección de texto */
 }
 
 .sidebar-item:hover {
@@ -38,7 +35,6 @@
   background-color: #d6d6d6; /* Color gris opaco para la carpeta seleccionada */
 }
 
-/* Bloquea la selección de texto en la lista de proyectos */
 .project-list {
   flex: 1; /* Ajuste automático del tamaño */
   padding: 20px;
@@ -46,7 +42,6 @@
   border-right: 1px solid #ddd;
   overflow-y: auto;
   overflow-x: hidden;
-  user-select: none; /* No permite la selección de texto */
 }
 
 .project-list::-webkit-scrollbar {
@@ -69,8 +64,8 @@
 .search-bar {
   margin-bottom: 15px;
   position: sticky;  /* Permite que el campo de búsqueda quede fijo */
-  top: 0;            /* Lo mantiene siempre visible en la parte superior */
-  z-index: 1;        /* Asegura que la barra esté por encima de otros elementos */
+  top: 0;
+  z-index: 1;  /* Asegura que la barra esté por encima de otros elementos */
   background-color: #ffffff; /* Asegura que el fondo del campo de búsqueda sea sólido */
   border-bottom: 1px solid #ddd; /* Línea divisoria justo debajo del campo de búsqueda */
   padding-bottom: 10px; /* Espacio para que la línea no quede pegada al campo */
@@ -99,7 +94,6 @@
   cursor: default; /* Siempre mantener el puntero como una flecha */
   border-radius: 10px; /* Bordes redondeados */
   transition: background-color 0.3s ease; /* Transición al cambiar el color */
-  user-select: none; /* No permite la selección de texto */
 }
 
 .project-list li:hover {
@@ -110,7 +104,6 @@
   background-color: #d6d6d6; /* Color gris opaco para el proyecto seleccionado */
 }
 
-/* Permite la selección de texto solo en el cuerpo del proyecto */
 .project-details {
   flex: 2; /* Ajuste automático del tamaño */
   padding: 20px;
@@ -120,14 +113,12 @@
   justify-content: flex-start;
   border-left: 1px solid #ddd;
   overflow: hidden;
-  user-select: text; /* Permite la selección de texto */
 }
 
 .project-details header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  user-select: none; /* No permite la selección de texto en los botones */
 }
 
 .project-details .header-left {
@@ -139,6 +130,21 @@
   margin-right: 10px;
 }
 
+/* Botón Eliminar - Color Rojo */
+.project-details .delete-project {
+  padding: 10px 20px;
+  background-color: #dc3545; /* Rojo */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.project-details .delete-project:hover {
+  background-color: #c82333; /* Rojo más oscuro al pasar el ratón */
+}
+
 .project-details button {
   padding: 10px 20px;
   background-color: #007bff;
@@ -147,7 +153,6 @@
   border-radius: 5px;
   cursor: pointer;
   margin-left: 10px;
-  user-select: none; /* No permite la selección de texto en los botones */
 }
 
 .project-details button:hover {
@@ -163,7 +168,6 @@
   border-radius: 5px;
   cursor: pointer;
   margin-left: 10px;
-  user-select: none; /* No permite la selección de texto en el botón */
 }
 
 .project-details .new-project:hover {
@@ -172,7 +176,6 @@
 
 .project-body {
   margin-top: 20px;
-  user-select: text; /* Permite la selección de texto en el cuerpo */
 }
 
 .empty-state {
