@@ -14,6 +14,11 @@ const App = () => {
             try {
                 const response = await axios.get('http://localhost:3001/api/proyectos');
                 setProyectos(response.data);
+
+                // Seleccionamos el primer proyecto automáticamente si hay proyectos
+                if (response.data.length > 0) {
+                    setProyectoSeleccionado(response.data[0]);
+                }
             } catch (error) {
                 console.error('Error al obtener los proyectos:', error);
             }
@@ -31,8 +36,17 @@ const App = () => {
         if (proyectoSeleccionado) {
             try {
                 await axios.delete(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`);
-                setProyectos(proyectos.filter(proyecto => proyecto.idProyecto !== proyectoSeleccionado.idProyecto));
-                setProyectoSeleccionado(null);
+                const nuevosProyectos = proyectos.filter(proyecto => proyecto.idProyecto !== proyectoSeleccionado.idProyecto);
+                setProyectos(nuevosProyectos);
+
+                // Seleccionamos el proyecto siguiente o anterior
+                if (nuevosProyectos.length > 0) {
+                    const index = proyectos.findIndex(proyecto => proyecto.idProyecto === proyectoSeleccionado.idProyecto);
+                    const nuevoSeleccionado = nuevosProyectos[index] || nuevosProyectos[index - 1];
+                    setProyectoSeleccionado(nuevoSeleccionado);
+                } else {
+                    setProyectoSeleccionado(null);
+                }
             } catch (error) {
                 console.error('Error al eliminar el proyecto:', error);
             }
@@ -72,23 +86,29 @@ const App = () => {
                 <div className="search-bar">
                     <input
                         type="text"
-                        placeholder="Buscar en todas los proyectos"
+                        placeholder="Buscar en todos los proyectos"
                         value={busqueda}
                         onChange={(e) => setBusqueda(e.target.value)} // Actualizamos el estado al escribir
                     />
                 </div>
-                <ul>
-                    {proyectosFiltrados.map((proyecto) => (
-                        <li
-                            key={proyecto.idProyecto}
-                            className={proyectoSeleccionado && proyectoSeleccionado.idProyecto === proyecto.idProyecto ? 'selected' : ''}
-                            onClick={() => seleccionarProyecto(proyecto)}
-                        >
-                            <h3>{proyecto.nombreProyecto}</h3>
-                            <p>{proyecto.descripcion.slice(0, 50)}...</p>
-                        </li>
-                    ))}
-                </ul>
+                <div className="project-items">
+                    <ul>
+                        {proyectosFiltrados.length > 0 ? (
+                            proyectosFiltrados.map((proyecto) => (
+                                <li
+                                    key={proyecto.idProyecto}
+                                    className={proyectoSeleccionado && proyectoSeleccionado.idProyecto === proyecto.idProyecto ? 'selected' : ''}
+                                    onClick={() => seleccionarProyecto(proyecto)}
+                                >
+                                    <h3>{proyecto.nombreProyecto}</h3>
+                                    <p>{proyecto.descripcion.slice(0, 50)}...</p>
+                                </li>
+                            ))
+                        ) : (
+                            <p>No hay proyectos disponibles</p>
+                        )}
+                    </ul>
+                </div>
             </section>
 
             {/* Resizer entre la lista de proyectos y el cuerpo del proyecto */}
@@ -96,28 +116,26 @@ const App = () => {
 
             {/* Sección derecha - Detalles del proyecto */}
             <section className="project-details">
-                {proyectoSeleccionado ? (
-                    <>
-                        <header>
-                            <div className="header-left">
-                                <button className="delete-project" onClick={eliminarProyecto}>Eliminar</button>
-                                <button>Pruebas</button>
-                            </div>
-                            <button className="new-project">+ Nuevo Proyecto</button>
-                        </header>
-                        <div className="project-body">
+                <header>
+                    <div className="header-left">
+                        <button className="delete-project" onClick={eliminarProyecto} disabled={!proyectoSeleccionado}>Eliminar</button>
+                        <button disabled={!proyectoSeleccionado}>Pruebas</button>
+                    </div>
+                    <button className="new-project">+ Nuevo Proyecto</button>
+                </header>
+                <div className="project-body">
+                    {proyectoSeleccionado ? (
+                        <>
                             <h1>{proyectoSeleccionado.nombreProyecto}</h1>
                             <p>{proyectoSeleccionado.descripcion}</p>
                             <p><strong>Fecha de Inicio:</strong> {proyectoSeleccionado.fechaInicio}</p>
                             <p><strong>Fecha de Fin:</strong> {proyectoSeleccionado.fechaFin}</p>
                             <p><strong>Estado:</strong> {proyectoSeleccionado.estado}</p>
-                        </div>
-                    </>
-                ) : (
-                    <div className="empty-state">
-                        <p>Seleccione un proyecto para ver los detalles</p>
-                    </div>
-                )}
+                        </>
+                    ) : (
+                        <p>No hay proyectos seleccionados. Crea uno nuevo para comenzar.</p>
+                    )}
+                </div>
             </section>
         </div>
     );
