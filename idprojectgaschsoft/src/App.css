@@ -10,8 +10,10 @@
 .sidebar {
   background-color: #ffffff;
   padding: 20px;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 0 0px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  border-right: 1px solid #ddd; /* Esta línea es la que divide las carpetas y el listado de proyectos */
+
 }
 
 .sidebar ul {
@@ -37,44 +39,50 @@
 
 .project-list {
   flex: 1;
-  padding: 13px 0 0 13px; /* Eliminamos el padding inferior */
+  padding: 11px 0 0 0; /* Eliminamos el padding-left */
   background-color: #fff;
-  border-right: 1px solid #ddd;
+  border-right: 1px solid #ddd; /* Esta línea es la que divide las carpetas y el listado de proyectos */
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
+/* Contenedor de la barra de búsqueda */
 .search-bar {
-  margin-bottom: opx;
+  margin-bottom: 0px;
   position: sticky;
   top: 0;
   z-index: 1;
-  background-color: #ffffff;
   border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
+  padding: 10px 11px; /* 10px arriba y abajo, 10px izquierda y derecha */
+  box-sizing: border-box;
 }
 
+/* Campo de búsqueda (input) */
 .search-bar input {
-  width: 355px;
-  padding: 10px;
+  width: 100%; /* Ocupa todo el ancho disponible */
+  padding: 10px; /* Padding interno del input */
   font-size: 1rem;
   border-radius: 10px;
   border: 1px solid #ddd;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-  margin-left: auto;
-  margin-right: auto;
   display: block;
+  box-sizing: border-box; /* Incluye padding y borde en el ancho total */
+  margin: 0; /* Eliminamos márgenes */
 }
 
 .project-items {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  /* Asegúrate de no tener padding-bottom aquí */
+  padding-left: 11px; /* Añadimos el padding-left aquí */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
 }
 
-/* Estilos del Scrollbar */
+.project-items:hover {
+  scrollbar-color: #888 transparent;
+}
+
 .project-items::-webkit-scrollbar {
   width: 8px;
 }
@@ -94,34 +102,31 @@
   opacity: 1;
 }
 
-/* Ocultar scrollbar buttons (flechas) */
 .project-items::-webkit-scrollbar-button {
-  display: none;
-  width: 0;
-  height: 0;
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  background: none !important;
 }
 
 .project-items scrollbarbutton {
-  display: none;
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  background: none !important;
 }
 
 .project-items::-ms-scrollbar-button {
-  display: none;
-}
-
-/* Ajustes para Firefox */
-.project-items {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
-
-.project-items:hover {
-  scrollbar-color: #888 transparent;
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  background: none !important;
 }
 
 .project-items ul {
   list-style-type: none;
   padding: 0;
+  margin: 0; /* Aseguramos que no haya margen */
 }
 
 .project-items li {
@@ -147,7 +152,6 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  border-left: 1px solid #ddd;
   overflow: hidden;
 }
 
