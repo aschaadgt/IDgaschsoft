@@ -1,5 +1,10 @@
 @import '~react-resizable/css/styles.css';
 
+/* Bloquear la selección de texto en toda la página */
+* {
+  user-select: none; /* Previene la selección de texto */
+}
+
 .container {
   display: flex;
   height: 100vh;
@@ -12,8 +17,7 @@
   padding: 20px;
   box-shadow: 0px 0 0px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  border-right: 1px solid #ddd; /* Esta línea es la que divide las carpetas y el listado de proyectos */
-
+  border-right: 1px solid #ddd;
 }
 
 .sidebar ul {
@@ -39,9 +43,9 @@
 
 .project-list {
   flex: 1;
-  padding: 11px 0 0 0; /* Eliminamos el padding-left */
+  padding: 11px 0 0 0;
   background-color: #fff;
-  border-right: 1px solid #ddd; /* Esta línea es la que divide las carpetas y el listado de proyectos */
+  border-right: 1px solid #ddd;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -54,27 +58,27 @@
   top: 0;
   z-index: 1;
   border-bottom: 1px solid #ddd;
-  padding: 10px 11px; /* 10px arriba y abajo, 10px izquierda y derecha */
+  padding: 10px 11px;
   box-sizing: border-box;
 }
 
 /* Campo de búsqueda (input) */
 .search-bar input {
-  width: 100%; /* Ocupa todo el ancho disponible */
-  padding: 10px; /* Padding interno del input */
+  width: 100%;
+  padding: 10px;
   font-size: 1rem;
   border-radius: 10px;
   border: 1px solid #ddd;
   display: block;
-  box-sizing: border-box; /* Incluye padding y borde en el ancho total */
-  margin: 0; /* Eliminamos márgenes */
+  box-sizing: border-box;
+  margin: 0;
 }
 
 .project-items {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-left: 11px; /* Añadimos el padding-left aquí */
+  padding-left: 11px;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
 }
@@ -102,31 +106,10 @@
   opacity: 1;
 }
 
-.project-items::-webkit-scrollbar-button {
-  display: none !important;
-  height: 0 !important;
-  width: 0 !important;
-  background: none !important;
-}
-
-.project-items scrollbarbutton {
-  display: none !important;
-  height: 0 !important;
-  width: 0 !important;
-  background: none !important;
-}
-
-.project-items::-ms-scrollbar-button {
-  display: none !important;
-  height: 0 !important;
-  width: 0 !important;
-  background: none !important;
-}
-
 .project-items ul {
   list-style-type: none;
   padding: 0;
-  margin: 0; /* Aseguramos que no haya margen */
+  margin: 0;
 }
 
 .project-items li {
@@ -145,7 +128,9 @@
   background-color: #d6d6d6;
 }
 
+/* Permitir la selección de texto en el contenido del proyecto, incluyendo subtítulos */
 .project-details {
+  user-select: none; /* Por defecto, no seleccionable */
   flex: 2;
   padding: 20px;
   background-color: #fafafa;
@@ -153,6 +138,16 @@
   flex-direction: column;
   justify-content: flex-start;
   overflow: hidden;
+}
+
+/* Permitir selección en los párrafos, encabezados y subtítulos del cuerpo del proyecto */
+.project-details p,
+.project-details h1,
+.project-details h2,
+.project-details h3,
+.project-details strong,
+.project-details span {
+  user-select: text; /* Solo los elementos de texto son seleccionables */
 }
 
 .project-details header {
@@ -227,6 +222,7 @@
   top: 0;
   bottom: 0;
   z-index: 1;
+  border: none;
 }
 
 .resizer-left {
@@ -237,3 +233,4 @@
   left: 0;
   right: -2.5px;
 }
+  
