@@ -8,10 +8,17 @@ const App = () => {
     const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
     const [busqueda, setBusqueda] = useState(""); // Estado para almacenar el término de búsqueda
 
-    // Función simplificada para mostrar la fecha ya formateada desde el backend
-    const mostrarFecha = (fecha) => {
-        if (!fecha) return "Fecha no proporcionada"; // Manejo de fechas nulas
-        return fecha; // Ya viene formateada desde el backend
+    // Función para formatear fecha en DD/MM/AAAA
+    const formatearFecha = (fecha) => {
+        if (!fecha) return "Fecha no disponible"; // Manejo de fechas nulas
+        const date = new Date(fecha);
+        if (!isNaN(date.getTime())) {
+            const dia = ("0" + date.getDate()).slice(-2);
+            const mes = ("0" + (date.getMonth() + 1)).slice(-2);
+            const anio = date.getFullYear();
+            return `${dia}/${mes}/${anio}`;
+        }
+        return "Fecha no disponible"; // Manejo de fechas inválidas
     };
 
     useEffect(() => {
@@ -34,6 +41,8 @@ const App = () => {
 
     const seleccionarProyecto = (proyecto) => {
         setProyectoSeleccionado(proyecto);
+        console.log("Fecha de inicio seleccionada:", proyecto.fechaInicio);
+        console.log("Fecha de fin seleccionada:", proyecto.fechaFin); // Agregamos un log para fechaFin
     };
 
     // Función para actualizar el proyecto en el backend mediante PUT
@@ -146,7 +155,7 @@ const App = () => {
                             >
                                 {proyectoSeleccionado.descripcion}
                             </p>
-                            <p><strong>Fecha de Inicio:</strong> {mostrarFecha(proyectoSeleccionado.fechaInicio)}</p>
+                            <p><strong>Fecha de Inicio:</strong> {formatearFecha(proyectoSeleccionado.fechaInicio)}</p>
                             <p>
                                 <strong>Fecha de Fin: </strong>
                                 <span
@@ -155,7 +164,7 @@ const App = () => {
                                     onBlur={(e) => actualizarProyecto('fechaFin', e.target.innerText)}
                                     style={{ border: 'none', outline: 'none', display: 'inline' }}
                                 >
-                                    {mostrarFecha(proyectoSeleccionado.fechaFin)}
+                                    {formatearFecha(proyectoSeleccionado.fechaFin)}
                                 </span>
                             </p>
                             <p>
@@ -182,3 +191,4 @@ const App = () => {
 };
 
 export default App;
+/** */
