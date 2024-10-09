@@ -1,5 +1,10 @@
 @import '~react-resizable/css/styles.css';
 
+/* Bloquear la selección de texto en toda la página */
+* {
+  user-select: none; /* Previene la selección de texto */
+}
+
 .container {
   display: flex;
   height: 100vh;
@@ -10,8 +15,9 @@
 .sidebar {
   background-color: #ffffff;
   padding: 20px;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 0 0px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  border-right: 1px solid #ddd;
 }
 
 .sidebar ul {
@@ -22,97 +28,126 @@
 .sidebar-item {
   padding: 10px;
   font-size: 1.2rem;
-  cursor: default; /* Siempre mantener el puntero como una flecha */
-  border-radius: 10px; /* Bordes redondeados */
-  transition: background-color 0.3s ease; /* Transición al cambiar el color */
+  cursor: default;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
 }
 
 .sidebar-item:hover {
-  background-color: #f5f5f5; /* Color al pasar el mouse */
+  background-color: #f5f5f5;
 }
 
 .sidebar-item.selected {
-  background-color: #d6d6d6; /* Color gris opaco para la carpeta seleccionada */
+  background-color: #d6d6d6;
 }
 
 .project-list {
-  flex: 1; /* Ajuste automático del tamaño */
-  padding: 20px;
+  flex: 1;
+  padding: 11px 0 0 0;
   background-color: #fff;
   border-right: 1px solid #ddd;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.project-list::-webkit-scrollbar {
+/* Contenedor de la barra de búsqueda */
+.search-bar {
+  margin-bottom: 0px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 11px;
+  box-sizing: border-box;
+}
+
+/* Campo de búsqueda (input) */
+.search-bar input {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  display: block;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.project-items {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-left: 11px;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.project-items:hover {
+  scrollbar-color: #888 transparent;
+}
+
+.project-items::-webkit-scrollbar {
   width: 8px;
 }
 
-.project-list::-webkit-scrollbar-track {
+.project-items::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.project-list::-webkit-scrollbar-thumb {
+.project-items::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 5px;
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
-.project-list::-webkit-scrollbar-thumb:hover {
-  background: #555;
+.project-items:hover::-webkit-scrollbar-thumb {
+  opacity: 1;
 }
 
-.search-bar {
-  margin-bottom: 15px;
-  position: sticky;  /* Permite que el campo de búsqueda quede fijo */
-  top: 0;
-  z-index: 1;  /* Asegura que la barra esté por encima de otros elementos */
-  background-color: #ffffff; /* Asegura que el fondo del campo de búsqueda sea sólido */
-  border-bottom: 1px solid #ddd; /* Línea divisoria justo debajo del campo de búsqueda */
-  padding-bottom: 10px; /* Espacio para que la línea no quede pegada al campo */
-}
-
-.search-bar input {
-  width: 355px;        /* Ancho del campo de búsqueda */
-  padding: 10px;
-  font-size: 1rem;
-  border-radius: 10px;  /* Añade esquinas redondeadas al campo de búsqueda */
-  border: 1px solid #ddd; /* Define el borde del campo de búsqueda */
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Sombra para dar un efecto suave */
-  margin-left: auto;  /* Alinea el campo de búsqueda hacia la derecha */
-  margin-right: auto; /* Centra el campo de búsqueda */
-  display: block;     /* Asegura que el campo ocupe el espacio asignado */
-}
-
-.project-list ul {
+.project-items ul {
   list-style-type: none;
   padding: 0;
+  margin: 0;
 }
 
-.project-list li {
+.project-items li {
   padding: 15px 10px;
   border-bottom: 1px solid #ddd;
-  cursor: default; /* Siempre mantener el puntero como una flecha */
-  border-radius: 10px; /* Bordes redondeados */
-  transition: background-color 0.3s ease; /* Transición al cambiar el color */
+  cursor: default;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
 }
 
-.project-list li:hover {
-  background-color: #f5f5f5; /* Color al pasar el mouse */
+.project-items li:hover {
+  background-color: #f5f5f5;
 }
 
-.project-list li.selected {
-  background-color: #d6d6d6; /* Color gris opaco para el proyecto seleccionado */
+.project-items li.selected {
+  background-color: #d6d6d6;
 }
 
+/* Permitir la selección de texto en el contenido del proyecto, incluyendo subtítulos */
 .project-details {
-  flex: 2; /* Ajuste automático del tamaño */
+  user-select: none; /* Por defecto, no seleccionable */
+  flex: 2;
   padding: 20px;
   background-color: #fafafa;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  border-left: 1px solid #ddd;
   overflow: hidden;
+}
+
+/* Permitir selección en los párrafos, encabezados y subtítulos del cuerpo del proyecto */
+.project-details p,
+.project-details h1,
+.project-details h2,
+.project-details h3,
+.project-details strong,
+.project-details span {
+  user-select: text; /* Solo los elementos de texto son seleccionables */
 }
 
 .project-details header {
@@ -130,19 +165,17 @@
   margin-right: 10px;
 }
 
-/* Botón Eliminar - Color Rojo */
 .project-details .delete-project {
   padding: 10px 20px;
-  background-color: #dc3545; /* Rojo */
+  background-color: #dc3545;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-left: 10px;
 }
 
 .project-details .delete-project:hover {
-  background-color: #c82333; /* Rojo más oscuro al pasar el ratón */
+  background-color: #c82333;
 }
 
 .project-details button {
@@ -152,14 +185,12 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-left: 10px;
 }
 
 .project-details button:hover {
   background-color: #0056b3;
 }
 
-/* Botón Nuevo Proyecto - Color Verde */
 .project-details .new-project {
   padding: 10px 20px;
   background-color: #28a745;
@@ -167,7 +198,6 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-left: 10px;
 }
 
 .project-details .new-project:hover {
@@ -192,15 +222,16 @@
   top: 0;
   bottom: 0;
   z-index: 1;
+  border: none;
 }
 
-/* Resizer entre la sección izquierda y la del medio */
 .resizer-left {
   right: 0;
 }
 
-/* Resizer entre la lista de proyectos y la sección de detalles */
 .resizer-between {
   left: 0;
   right: -2.5px;
 }
+/**/
+/** Hola Mundo Diño*/

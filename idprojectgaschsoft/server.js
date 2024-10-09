@@ -11,33 +11,39 @@ app.use(cors());  // Añade cors al middleware
 // Configuración de middlewares
 app.use(express.json());
 
-// Función para formatear la fecha a DD/MM/AAAA
-const formatearFecha = (fechaISO) => {
-    if (!fechaISO) return null;
-    const fecha = new Date(fechaISO);
-    const dia = fecha.getDate().toString().padStart(2, '0');
-    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
-    const año = fecha.getFullYear();
-    return `${dia}/${mes}/${año}`;
-};
+// Eliminar el formateo de fechas en el backend
 
-// Ruta GET para obtener todos los proyectos con fechas formateadas en DD/MM/AAAA
+// Ruta GET para obtener todos los proyectos SIN formatear las fechas
 app.get('/api/proyectos', async (req, res) => {
     try {
         const pool = await poolPromise;
         const result = await pool.request().query('SELECT * FROM Proyectos'); // Consulta a la tabla Proyectos
 
-        // Mapear los resultados para formatear las fechas antes de enviarlas al frontend
-        const proyectosFormateados = result.recordset.map(proyecto => ({
-            ...proyecto,
-            fechaInicio: formatearFecha(proyecto.fechaInicio),
-            fechaFin: formatearFecha(proyecto.fechaFin)
-        }));
-
-        // Devuelve los proyectos con fechas formateadas
-        res.json(proyectosFormateados);
+        // No formateamos las fechas aquí
+        res.json(result.recordset);
     } catch (err) {
         res.status(500).send({ message: err.message }); // Manejo de errores
+    }
+});
+
+// Hacer lo mismo para la ruta GET de un proyecto específico
+app.get('/api/proyectos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('idProyecto', sql.Int, id)
+            .query('SELECT * FROM Proyectos WHERE idProyecto = @idProyecto');
+
+        if (result.recordset.length === 0) {
+            return res.status(404).send({ message: `Proyecto con ID ${id} no fue encontrado.` });
+        }
+
+        // No formateamos las fechas aquí
+        res.json(result.recordset[0]); // Devuelve el proyecto en formato JSON
+    } catch (err) {
+        res.status(500).send({ message: err.message });
     }
 });
 
@@ -143,7 +149,7 @@ app.delete('/api/proyectos/:id', async (req, res) => {
         res.status(500).send({ message: err.message });
     }
 });
-
+//===================================================================================
 // Ruta GET para obtener todas las pruebas con fechas formateadas
 app.get('/api/pruebas', async (req, res) => {
     try {
@@ -306,3 +312,4 @@ app.delete('/api/pruebas/:idPrueba', async (req, res) => {
 app.listen(port, () => {
     console.log(`Servidor ejecutándose en http://localhost:${port}`);
 });
+/**/
