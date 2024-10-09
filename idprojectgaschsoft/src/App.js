@@ -44,10 +44,27 @@ const App = () => {
   };
 
   // Función para actualizar el proyecto en el backend mediante PUT
-  const actualizarProyecto = async (campo, valor) => {
+  // Función para actualizar el proyecto en el backend mediante PUT
+const actualizarProyecto = async (campo, valor) => {
     if (proyectoSeleccionado) {
-      const proyectoActualizado = { ...proyectoSeleccionado, [campo]: valor };
-
+      let proyectoActualizado = { ...proyectoSeleccionado };
+  
+      if (campo === 'fechaFin') {
+        const partes = valor.split('/');
+        if (partes.length === 3) {
+          const dia = partes[0];
+          const mes = partes[1];
+          const anio = partes[2];
+          const fechaInvertida = `${mes}/${dia}/${anio}`; // Invertir día y mes
+          proyectoActualizado[campo] = fechaInvertida;
+        } else {
+          alert('Por favor, ingresa una fecha válida en formato DD/MM/AAAA.');
+          return;
+        }
+      } else {
+        proyectoActualizado[campo] = valor;
+      }
+  
       try {
         await axios.put(
           `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`,
@@ -66,6 +83,7 @@ const App = () => {
       }
     }
   };
+  
 
   // Función para eliminar proyecto
   const eliminarProyecto = async () => {
@@ -79,12 +97,12 @@ const App = () => {
         );
         setProyectos(nuevosProyectos);
 
-        // Seleccionar el proyecto siguiente o anterior
+        // Seleccionar el proyecto anterior o siguiente
         if (nuevosProyectos.length > 0) {
           const index = proyectos.findIndex(
             (proyecto) => proyecto.idProyecto === proyectoSeleccionado.idProyecto
           );
-          const nuevoSeleccionado = nuevosProyectos[index] || nuevosProyectos[index - 1];
+          const nuevoSeleccionado = nuevosProyectos[index - 1] || nuevosProyectos[index];
           setProyectoSeleccionado(nuevoSeleccionado);
         } else {
           setProyectoSeleccionado(null);
@@ -244,3 +262,4 @@ const App = () => {
 };
 
 export default App;
+/** */
