@@ -154,4 +154,4 @@ SET estado = CASE idProyecto
     WHEN 90 THEN 'PENDIENTE'
     WHEN 91 THEN 'IN PROGRESS'
 END
-WHERE idProyecto IN (92, 93, 94, 95, 96, 97, 98, 99, 100, 101);
+WHERE idProyecto IN (127, 128, 129, 130, 131, 132, 133, 134, 135, 136);

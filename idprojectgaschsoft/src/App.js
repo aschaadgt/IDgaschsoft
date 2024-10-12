@@ -1,3 +1,4 @@
+// App.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
@@ -7,6 +8,11 @@ const App = () => {
   const [proyectos, setProyectos] = useState([]);
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
   const [busqueda, setBusqueda] = useState('');
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [nuevoProyecto, setNuevoProyecto] = useState({
+    nombreProyecto: '',
+    descripcion: '',
+  });
 
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
@@ -43,12 +49,50 @@ const App = () => {
     setProyectoSeleccionado(proyecto);
   };
 
+  // Función para mostrar el modal
+  const abrirModal = () => {
+    setMostrarModal(true);
+  };
+
+  // Función para cerrar el modal
+  const cerrarModal = () => {
+    setMostrarModal(false);
+    setNuevoProyecto({ nombreProyecto: '', descripcion: '' });
+  };
+
+  // Función para manejar los cambios en el formulario del modal
+  const manejarCambio = (e) => {
+    const { name, value } = e.target;
+    setNuevoProyecto({ ...nuevoProyecto, [name]: value });
+  };
+
+  // Función para crear un nuevo proyecto
+  const crearProyecto = async () => {
+    try {
+      const nuevoProyectoDatos = {
+        idUsuario: 'ASchaad',
+        nombreProyecto: nuevoProyecto.nombreProyecto,
+        descripcion: nuevoProyecto.descripcion,
+        fechaInicio: new Date().toISOString().split('T')[0],
+        fechaFin: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString().split('T')[0],
+        estado: 'PENDIENTE',
+      };
+
+      const response = await axios.post('http://localhost:3001/api/proyectos', nuevoProyectoDatos);
+      if (response.status === 201) {
+        setProyectos([...proyectos, { ...nuevoProyectoDatos, idProyecto: response.data.idProyecto }]);
+        cerrarModal();
+      }
+    } catch (error) {
+      console.error('Error al crear el proyecto:', error);
+    }
+  };
+
   // Función para actualizar el proyecto en el backend mediante PUT
-  // Función para actualizar el proyecto en el backend mediante PUT
-const actualizarProyecto = async (campo, valor) => {
+  const actualizarProyecto = async (campo, valor) => {
     if (proyectoSeleccionado) {
       let proyectoActualizado = { ...proyectoSeleccionado };
-  
+
       if (campo === 'fechaFin') {
         const partes = valor.split('/');
         if (partes.length === 3) {
@@ -64,7 +108,7 @@ const actualizarProyecto = async (campo, valor) => {
       } else {
         proyectoActualizado[campo] = valor;
       }
-  
+
       try {
         await axios.put(
           `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`,
@@ -83,7 +127,6 @@ const actualizarProyecto = async (campo, valor) => {
       }
     }
   };
-  
 
   // Función para eliminar proyecto
   const eliminarProyecto = async () => {
@@ -197,7 +240,7 @@ const actualizarProyecto = async (campo, valor) => {
             </button>
             <button disabled={!proyectoSeleccionado}>Pruebas</button>
           </div>
-          <button className="new-project">+ Nuevo Proyecto</button>
+          <button className="new-project" onClick={abrirModal}>+ Nuevo Proyecto</button>
         </header>
         <div className="project-body">
           {proyectoSeleccionado ? (
@@ -219,8 +262,7 @@ const actualizarProyecto = async (campo, valor) => {
                 {proyectoSeleccionado.descripcion}
               </p>
               <p>
-                <strong>Fecha de Inicio:</strong>{' '}
-                {formatearFecha(proyectoSeleccionado.fechaInicio)}
+                <strong>Fecha de Inicio:</strong> {formatearFecha(proyectoSeleccionado.fechaInicio)}
               </p>
               <p>
                 <strong>Fecha de Fin: </strong>
@@ -257,9 +299,36 @@ const actualizarProyecto = async (campo, valor) => {
           )}
         </div>
       </section>
+
+      {/* Modal para crear un nuevo proyecto */}
+      {mostrarModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Crear Nuevo Proyecto</h2>
+            <div className="modal-body">
+              <label>Nombre del Proyecto:</label>
+              <input
+                type="text"
+                name="nombreProyecto"
+                value={nuevoProyecto.nombreProyecto}
+                onChange={manejarCambio}
+              />
+              <label>Descripción:</label>
+              <textarea
+                name="descripcion"
+                value={nuevoProyecto.descripcion}
+                onChange={manejarCambio}
+              />
+            </div>
+            <div className="modal-footer">
+              <button onClick={cerrarModal}>Cancelar</button>
+              <button onClick={crearProyecto}>Crear</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default App;
-/** */
