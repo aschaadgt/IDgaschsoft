@@ -366,7 +366,7 @@ app.post('/api/defectos', async (req, res) => {
     }
 });
 
-// Ruta PUT para actualizar un defecto existente
+// Ruta PUT para actualizar un defecto existente eee
 app.put('/api/defectos/:id', async (req, res) => {
     try {
         const { id } = req.params;
