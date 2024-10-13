@@ -281,7 +281,7 @@ const crearProyecto = async () => {
             </button>
             <button disabled={!proyectoSeleccionado}>Pruebas</button>
           </div>
-          <button className="new-project" onClick={abrirModal}>+ Nuevo Proyecto</button>
+          <button className="new-project" onClick={abrirModal}>+ Crear Proyecto</button>
         </header>
         <div className="project-body">
           {proyectoSeleccionado ? (
@@ -343,30 +343,30 @@ const crearProyecto = async () => {
 
       {/* Modal para crear un nuevo proyecto */}
       {mostrarModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>Crear Nuevo Proyecto</h2>
-            <div className="modal-body">
-              <label>Nombre del Proyecto:</label>
-              <input
-                type="text"
-                name="nombreProyecto"
-                value={nuevoProyecto.nombreProyecto}
-                onChange={manejarCambio}
-              />
-              <label>Descripción:</label>
-              <textarea
-                name="descripcion"
-                value={nuevoProyecto.descripcion}
-                onChange={manejarCambio}
-              />
-            </div>
-            <div className="modal-footer">
-              <button onClick={cerrarModal}>Cancelar</button>
-              <button onClick={crearProyecto}>Crear</button>
-            </div>
-          </div>
-        </div>
+  <div className="modal-overlay">
+    <div className="modal">
+      <h2>+ Crear Proyecto</h2>
+      <div className="modal-body">
+        <input
+          type="text"
+          name="nombreProyecto"
+          placeholder="Nombre del Proyecto" // Añadir el placeholder
+          value={nuevoProyecto.nombreProyecto}
+          onChange={manejarCambio}
+        />
+        <textarea
+          name="descripcion"
+          placeholder="Descripción" // Añadir el placeholder
+          value={nuevoProyecto.descripcion}
+          onChange={manejarCambio}
+        />
+      </div>
+      <div className="modal-footer">
+        <button onClick={cerrarModal}>Cancelar</button>
+        <button onClick={crearProyecto}>Crear</button>
+      </div>
+    </div>
+  </div>
       )}
     </div>
   );
