@@ -14,7 +14,8 @@
     "react-input-mask": "^2.0.4",
     "react-resizable": "^3.0.5",
     "react-scripts": "^5.0.1",
-    "web-vitals": "^4.2.3"
+    "web-vitals": "^4.2.3",
+    "webpack-dev-server": "^5.1.0"
   },
   "scripts": {
     "start": "set NODE_OPTIONS=--openssl-legacy-provider && react-scripts start",
@@ -40,5 +41,8 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:3001"
+  "proxy": "http://localhost:3001",
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+  }
 }

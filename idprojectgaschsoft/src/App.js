@@ -17,26 +17,19 @@ const App = () => {
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
     if (!fecha) return 'Fecha no disponible';
-    const partes = fecha.split('-');
-    if (partes.length === 3) {
-      const anio = parseInt(partes[0], 10);
-      const mes = parseInt(partes[1], 10) - 1; // Mes en JavaScript es 0-11
-      const dia = parseInt(partes[2], 10);
-      const date = new Date(anio, mes, dia);
-      const diaFormateado = ('0' + date.getDate()).slice(-2);
-      const mesFormateado = ('0' + (date.getMonth() + 1)).slice(-2);
-      const anioFormateado = date.getFullYear();
-      return `${diaFormateado}/${mesFormateado}/${anioFormateado}`;
+    
+    // Aseguramos que la fecha esté en formato UTC para evitar desfases
+    const date = new Date(fecha);
+    date.setHours(date.getHours() + date.getTimezoneOffset() / 60);
+  
+    if (!isNaN(date.getTime())) {
+      const dia = ('0' + date.getDate()).slice(-2);
+      const mes = ('0' + (date.getMonth() + 1)).slice(-2);
+      const anio = date.getFullYear();
+      return `${dia}/${mes}/${anio}`;
     }
+    
     return 'Fecha no disponible';
-  };
-
-  // Nueva función para formatear fecha a YYYY-MM-DD en zona horaria local
-  const formatearFechaISO = (date) => {
-    const anio = date.getFullYear();
-    const mes = ('0' + (date.getMonth() + 1)).slice(-2);
-    const dia = ('0' + date.getDate()).slice(-2);
-    return `${anio}-${mes}-${dia}`;
   };
 
   useEffect(() => {
@@ -77,65 +70,55 @@ const App = () => {
     const { name, value } = e.target;
     setNuevoProyecto({ ...nuevoProyecto, [name]: value });
   };
+  
+  // Crear la fecha actual en formato YYYY-MM-DD, asegurando que no haya desfase de zona horaria
+const obtenerFechaAjustada = (fecha) => {
+  fecha.setHours(0, 0, 0, 0); // Establece la hora a medianoche para evitar problemas de zona horaria
+  const year = fecha.getFullYear();
+  const month = ('0' + (fecha.getMonth() + 1)).slice(-2);
+  const day = ('0' + fecha.getDate()).slice(-2);
+  return `${year}-${month}-${day}`;
+};
 
-  // Función para crear un nuevo proyecto
-  const crearProyecto = async () => {
-    try {
-      const fechaInicio = new Date();
-      const fechaFin = new Date();
-      fechaFin.setDate(fechaFin.getDate() + 7);
+// Función para crear un nuevo proyecto
+const crearProyecto = async () => {
+  try {
+    const fechaInicio = obtenerFechaAjustada(new Date()); // Fecha de inicio ajustada sin desfase
+    const fechaFin = obtenerFechaAjustada(new Date(new Date().setDate(new Date().getDate() + 7))); // Fecha de fin 7 días después
 
-      const nuevoProyectoDatos = {
-        idUsuario: 'ASchaad',
-        nombreProyecto: nuevoProyecto.nombreProyecto,
-        descripcion: nuevoProyecto.descripcion,
-        fechaInicio: formatearFechaISO(fechaInicio),
-        fechaFin: formatearFechaISO(fechaFin),
-        estado: 'PENDIENTE',
-      };
+    const nuevoProyectoDatos = {
+      idUsuario: 'ASchaad', // Corregir en cuanto tengamos el login creado y la sesión guarde el usuario con el que se logueó
+      nombreProyecto: nuevoProyecto.nombreProyecto,
+      descripcion: nuevoProyecto.descripcion,
+      fechaInicio,
+      fechaFin,
+      estado: 'PENDIENTE',
+    };
 
-      const response = await axios.post(
-        'http://localhost:3001/api/proyectos',
-        nuevoProyectoDatos
-      );
-      console.log('Respuesta al crear proyecto:', response.data);
-
-      if (response.status === 201) {
-        const proyectoCreado = response.data; // Usar el proyecto devuelto por el backend
-
-        if (!proyectoCreado.idProyecto) {
-          console.error('El proyecto creado no contiene idProyecto');
-          alert('Error al crear el proyecto: idProyecto no recibido.');
-          return;
-        }
-
-        setProyectos((prevProyectos) => [...prevProyectos, proyectoCreado]);
-        setProyectoSeleccionado(proyectoCreado); // Seleccionar automáticamente el proyecto creado
-        cerrarModal();
-      } else {
-        console.error('Error al crear el proyecto, código de estado:', response.status);
-        alert('Error al crear el proyecto.');
-      }
-    } catch (error) {
-      console.error('Error al crear el proyecto:', error);
-      alert('Ocurrió un error al crear el proyecto.');
+    const response = await axios.post('http://localhost:3001/api/proyectos', nuevoProyectoDatos);
+    if (response.status === 201) {
+      setProyectos([...proyectos, { ...nuevoProyectoDatos, idProyecto: response.data.idProyecto }]);
+      cerrarModal();
     }
-  };
+  } catch (error) {
+    console.error('Error al crear el proyecto:', error);
+  }
+};
+
 
   // Función para actualizar el proyecto en el backend mediante PUT
   const actualizarProyecto = async (campo, valor) => {
-    if (proyectoSeleccionado && proyectoSeleccionado.idProyecto) {
+    if (proyectoSeleccionado) {
       let proyectoActualizado = { ...proyectoSeleccionado };
 
       if (campo === 'fechaFin') {
         const partes = valor.split('/');
         if (partes.length === 3) {
-          const dia = parseInt(partes[0], 10);
-          const mes = parseInt(partes[1], 10) - 1; // Mes en JavaScript es 0-11
-          const anio = parseInt(partes[2], 10);
-          const fecha = new Date(anio, mes, dia);
-          const fechaISO = formatearFechaISO(fecha);
-          proyectoActualizado[campo] = fechaISO;
+          const dia = partes[0];
+          const mes = partes[1];
+          const anio = partes[2];
+          const fechaInvertida = `${mes}/${dia}/${anio}`; // Invertir día y mes
+          proyectoActualizado[campo] = fechaInvertida;
         } else {
           alert('Por favor, ingresa una fecha válida en formato DD/MM/AAAA.');
           return;
@@ -150,8 +133,8 @@ const App = () => {
           proyectoActualizado
         );
         setProyectoSeleccionado(proyectoActualizado);
-        setProyectos((prevProyectos) =>
-          prevProyectos.map((proyecto) =>
+        setProyectos(
+          proyectos.map((proyecto) =>
             proyecto.idProyecto === proyectoActualizado.idProyecto
               ? proyectoActualizado
               : proyecto
@@ -180,7 +163,7 @@ const App = () => {
           const index = proyectos.findIndex(
             (proyecto) => proyecto.idProyecto === proyectoSeleccionado.idProyecto
           );
-          const nuevoSeleccionado = nuevosProyectos[index - 1] || nuevosProyectos[0];
+          const nuevoSeleccionado = nuevosProyectos[index - 1] || nuevosProyectos[index];
           setProyectoSeleccionado(nuevoSeleccionado);
         } else {
           setProyectoSeleccionado(null);
@@ -275,9 +258,7 @@ const App = () => {
             </button>
             <button disabled={!proyectoSeleccionado}>Pruebas</button>
           </div>
-          <button className="new-project" onClick={abrirModal}>
-            + Nuevo Proyecto
-          </button>
+          <button className="new-project" onClick={abrirModal}>+ Nuevo Proyecto</button>
         </header>
         <div className="project-body">
           {proyectoSeleccionado ? (
@@ -285,9 +266,7 @@ const App = () => {
               <h1
                 contentEditable
                 suppressContentEditableWarning
-                onBlur={(e) =>
-                  actualizarProyecto('nombreProyecto', e.target.innerText)
-                }
+                onBlur={(e) => actualizarProyecto('nombreProyecto', e.target.innerText)}
                 style={{ border: 'none', outline: 'none' }}
               >
                 {proyectoSeleccionado.nombreProyecto}
@@ -301,8 +280,7 @@ const App = () => {
                 {proyectoSeleccionado.descripcion}
               </p>
               <p>
-                <strong>Fecha de Inicio:</strong>{' '}
-                {formatearFecha(proyectoSeleccionado.fechaInicio)}
+                <strong>Fecha de Inicio:</strong> {formatearFecha(proyectoSeleccionado.fechaInicio)}
               </p>
               <p>
                 <strong>Fecha de Fin: </strong>
