@@ -58,16 +58,16 @@ GO
 INSERT INTO [IDProjectGASCHSOFT].[dbo].[Proyectos]
     (idUsuario, nombreProyecto, descripcion, fechaInicio, fechaFin, estado)
 VALUES
-    ('JPerez', 'Calculadora Básica', 'Desarrollo de una calculadora básica en C++.', '2024-10-01', DATEADD(DAY, 7, '2024-10-01'), 'En progreso'),
-    ('MLopez', 'Juego del Ahorcado', 'Implementación del juego del ahorcado en Java.', '2024-10-01', DATEADD(DAY, 10, '2024-10-01'), 'Activo'),
-    ('CRodriguez', 'Agenda de Contactos', 'Creación de una agenda de contactos en Python.', '2024-10-01', DATEADD(DAY, 5, '2024-10-01'), 'Pendiente'),
-    ('AGonzalez', 'Sistema de Gestión de Notas', 'Aplicación para gestionar notas académicas en PHP.', '2024-10-01', DATEADD(DAY, 14, '2024-10-01'), 'En progreso'),
-    ('LHernandez', 'Conversor de Monedas', 'Programa para convertir monedas usando tasas actuales en JavaScript.', '2024-10-01', DATEADD(DAY, 3, '2024-10-01'), 'Activo'),
-    ('RMorales', 'Aplicación de Tareas', 'Desarrollo de una aplicación para gestionar tareas diarias en Ruby.', '2024-10-01', DATEADD(DAY, 7, '2024-10-01'), 'En progreso'),
-    ('JPerez', 'Sistema de Login', 'Desarrollo de un sistema de autenticación de usuarios.', '2024-10-02', DATEADD(DAY, 10, '2024-10-02'), 'En progreso'),
-    ('MLopez', 'Aplicación de Chat', 'Implementación de una aplicación de chat en tiempo real.', '2024-10-02', DATEADD(DAY, 12, '2024-10-02'), 'Activo'),
-    ('CRodriguez', 'Blog Personal', 'Creación de un blog personal para publicar artículos.', '2024-10-02', DATEADD(DAY, 8, '2024-10-02'), 'Pendiente'),
-    ('AGonzalez', 'Galería de Fotos', 'Desarrollo de una galería de fotos para compartir imágenes.', '2024-10-02', DATEADD(DAY, 15, '2024-10-02'), 'En progreso');
+    ('JPerez', 'Calculadora Básica', 'Desarrollo de una calculadora básica en C++.', '2024-10-01', DATEADD(DAY, 7, '2024-10-01'), 'CANCELADO'),
+    ('MLopez', 'Juego del Ahorcado', 'Implementación del juego del ahorcado en Java.', '2024-10-01', DATEADD(DAY, 10, '2024-10-01'), 'CANCELADO'),
+    ('CRodriguez', 'Agenda de Contactos', 'Creación de una agenda de contactos en Python.', '2024-10-01', DATEADD(DAY, 5, '2024-10-01'), 'CANCELADO'),
+    ('AGonzalez', 'Sistema de Gestión de Notas', 'Aplicación para gestionar notas académicas en PHP.', '2024-10-01', DATEADD(DAY, 14, '2024-10-01'), 'CANCELADO'),
+    ('LHernandez', 'Conversor de Monedas', 'Programa para convertir monedas usando tasas actuales en JavaScript.', '2024-10-01', DATEADD(DAY, 3, '2024-10-01'), 'CANCELADO'),
+    ('RMorales', 'Aplicación de Tareas', 'Desarrollo de una aplicación para gestionar tareas diarias en Ruby.', '2024-10-01', DATEADD(DAY, 7, '2024-10-01'), 'CANCELADO'),
+    ('JPerez', 'Sistema de Login', 'Desarrollo de un sistema de autenticación de usuarios.', '2024-10-02', DATEADD(DAY, 10, '2024-10-02'), 'CANCELADO'),
+    ('MLopez', 'Aplicación de Chat', 'Implementación de una aplicación de chat en tiempo real.', '2024-10-02', DATEADD(DAY, 12, '2024-10-02'), 'CANCELADO'),
+    ('CRodriguez', 'Blog Personal', 'Creación de un blog personal para publicar artículos.', '2024-10-02', DATEADD(DAY, 8, '2024-10-02'), 'CANCELADO'),
+    ('AGonzalez', 'Galería de Fotos', 'Desarrollo de una galería de fotos para compartir imágenes.', '2024-10-02', DATEADD(DAY, 15, '2024-10-02'), 'CANCELADO');
 -- No GO aquí
 
 -- Declarar una tabla variable para capturar todos los idProyecto y nombreProyecto
@@ -154,4 +154,4 @@ SET estado = CASE idProyecto
     WHEN 90 THEN 'PENDIENTE'
     WHEN 91 THEN 'IN PROGRESS'
 END
-WHERE idProyecto IN (82, 83, 84, 85, 86, 87, 88, 89, 90, 91);
+WHERE idProyecto IN (127, 128, 129, 130, 131, 132, 133, 134, 135, 136);
