@@ -97,7 +97,28 @@ const crearProyecto = async () => {
 
     const response = await axios.post('http://localhost:3001/api/proyectos', nuevoProyectoDatos);
     if (response.status === 201) {
-      setProyectos([...proyectos, { ...nuevoProyectoDatos, idProyecto: response.data.idProyecto }]);
+      // Actualizar la lista de proyectos obteniendo de nuevo todos los proyectos del backend
+      const responseProyectos = await axios.get('http://localhost:3001/api/proyectos');
+      setProyectos(responseProyectos.data);
+
+      // Seleccionar el proyecto recién creado (usamos el último proyecto de la lista)
+      const nuevoProyectoCreado = responseProyectos.data.find(
+        (proyecto) => proyecto.nombreProyecto === nuevoProyectoDatos.nombreProyecto &&
+                      proyecto.descripcion === nuevoProyectoDatos.descripcion
+      );
+
+      if (nuevoProyectoCreado) {
+        setProyectoSeleccionado(nuevoProyectoCreado);
+
+        // Espera breve para asegurarse de que el proyecto está renderizado, luego hacer scroll
+        setTimeout(() => {
+          const proyectoElement = document.getElementById(`proyecto-${nuevoProyectoCreado.idProyecto}`);
+          if (proyectoElement) {
+            proyectoElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+      }
+
       cerrarModal();
     }
   } catch (error) {
@@ -224,24 +245,26 @@ const crearProyecto = async () => {
             />
           </div>
           <div className="project-items">
-            <ul>
-              {proyectosFiltrados.map((proyecto) => (
-                <li
-                  key={proyecto.idProyecto}
-                  className={
-                    proyectoSeleccionado &&
-                    proyectoSeleccionado.idProyecto === proyecto.idProyecto
-                      ? 'selected'
-                      : ''
-                  }
-                  onClick={() => seleccionarProyecto(proyecto)}
-                >
-                  <h3>{proyecto.nombreProyecto}</h3>
-                  <p>{proyecto.descripcion.slice(0, 50)}...</p>
-                </li>
-              ))}
-            </ul>
-          </div>
+  <ul>
+    {proyectosFiltrados.map((proyecto) => (
+      <li
+        key={proyecto.idProyecto} // Asegurarse de que cada proyecto tenga un `key` único
+        id={`proyecto-${proyecto.idProyecto}`} // Para poder hacer scroll hacia este elemento
+        className={
+          proyectoSeleccionado &&
+          proyectoSeleccionado.idProyecto === proyecto.idProyecto
+            ? 'selected'
+            : ''
+        }
+        onClick={() => seleccionarProyecto(proyecto)}
+      >
+        <h3>{proyecto.nombreProyecto}</h3>
+        <p>{proyecto.descripcion.slice(0, 50)}...</p>
+      </li>
+    ))}
+  </ul>
+</div>
+
         </section>
       </ResizableBox>
 
