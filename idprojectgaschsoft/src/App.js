@@ -50,6 +50,32 @@ const App = () => {
     obtenerProyectos();
   }, []);
 
+  useEffect(() => {
+    // Manejar la navegación con las flechas del teclado
+    const manejarTeclas = (e) => {
+      if (proyectos.length === 0) return;
+
+      const indexSeleccionado = proyectos.findIndex(
+        (proyecto) => proyecto.idProyecto === proyectoSeleccionado?.idProyecto
+      );
+
+      if (e.key === 'ArrowUp' && indexSeleccionado > 0) {
+        const nuevoSeleccionado = proyectos[indexSeleccionado - 1];
+        setProyectoSeleccionado(nuevoSeleccionado);
+        document.getElementById(`proyecto-${nuevoSeleccionado.idProyecto}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else if (e.key === 'ArrowDown' && indexSeleccionado < proyectos.length - 1) {
+        const nuevoSeleccionado = proyectos[indexSeleccionado + 1];
+        setProyectoSeleccionado(nuevoSeleccionado);
+        document.getElementById(`proyecto-${nuevoSeleccionado.idProyecto}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    };
+
+    window.addEventListener('keydown', manejarTeclas);
+    return () => {
+      window.removeEventListener('keydown', manejarTeclas);
+    };
+  }, [proyectos, proyectoSeleccionado]);
+
   const seleccionarProyecto = (proyecto) => {
     setProyectoSeleccionado(proyecto);
   };
@@ -72,60 +98,59 @@ const App = () => {
   };
   
   // Crear la fecha actual en formato YYYY-MM-DD, asegurando que no haya desfase de zona horaria
-const obtenerFechaAjustada = (fecha) => {
-  fecha.setHours(0, 0, 0, 0); // Establece la hora a medianoche para evitar problemas de zona horaria
-  const year = fecha.getFullYear();
-  const month = ('0' + (fecha.getMonth() + 1)).slice(-2);
-  const day = ('0' + fecha.getDate()).slice(-2);
-  return `${year}-${month}-${day}`;
-};
+  const obtenerFechaAjustada = (fecha) => {
+    fecha.setHours(0, 0, 0, 0); // Establece la hora a medianoche para evitar problemas de zona horaria
+    const year = fecha.getFullYear();
+    const month = ('0' + (fecha.getMonth() + 1)).slice(-2);
+    const day = ('0' + fecha.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
+  };
 
-// Función para crear un nuevo proyecto
-const crearProyecto = async () => {
-  try {
-    const fechaInicio = obtenerFechaAjustada(new Date()); // Fecha de inicio ajustada sin desfase
-    const fechaFin = obtenerFechaAjustada(new Date(new Date().setDate(new Date().getDate() + 7))); // Fecha de fin 7 días después
+  // Función para crear un nuevo proyecto
+  const crearProyecto = async () => {
+    try {
+      const fechaInicio = obtenerFechaAjustada(new Date()); // Fecha de inicio ajustada sin desfase
+      const fechaFin = obtenerFechaAjustada(new Date(new Date().setDate(new Date().getDate() + 7))); // Fecha de fin 7 días después
 
-    const nuevoProyectoDatos = {
-      idUsuario: 'ASchaad', // Corregir en cuanto tengamos el login creado y la sesión guarde el usuario con el que se logueó
-      nombreProyecto: nuevoProyecto.nombreProyecto,
-      descripcion: nuevoProyecto.descripcion,
-      fechaInicio,
-      fechaFin,
-      estado: 'PENDIENTE',
-    };
+      const nuevoProyectoDatos = {
+        idUsuario: 'ASchaad', // Corregir en cuanto tengamos el login creado y la sesión guarde el usuario con el que se logueó
+        nombreProyecto: nuevoProyecto.nombreProyecto,
+        descripcion: nuevoProyecto.descripcion,
+        fechaInicio,
+        fechaFin,
+        estado: 'PENDIENTE',
+      };
 
-    const response = await axios.post('http://localhost:3001/api/proyectos', nuevoProyectoDatos);
-    if (response.status === 201) {
-      // Actualizar la lista de proyectos obteniendo de nuevo todos los proyectos del backend
-      const responseProyectos = await axios.get('http://localhost:3001/api/proyectos');
-      setProyectos(responseProyectos.data);
+      const response = await axios.post('http://localhost:3001/api/proyectos', nuevoProyectoDatos);
+      if (response.status === 201) {
+        // Actualizar la lista de proyectos obteniendo de nuevo todos los proyectos del backend
+        const responseProyectos = await axios.get('http://localhost:3001/api/proyectos');
+        setProyectos(responseProyectos.data);
 
-      // Seleccionar el proyecto recién creado (usamos el último proyecto de la lista)
-      const nuevoProyectoCreado = responseProyectos.data.find(
-        (proyecto) => proyecto.nombreProyecto === nuevoProyectoDatos.nombreProyecto &&
-                      proyecto.descripcion === nuevoProyectoDatos.descripcion
-      );
+        // Seleccionar el proyecto recién creado (usamos el último proyecto de la lista)
+        const nuevoProyectoCreado = responseProyectos.data.find(
+          (proyecto) => proyecto.nombreProyecto === nuevoProyectoDatos.nombreProyecto &&
+                        proyecto.descripcion === nuevoProyectoDatos.descripcion
+        );
 
-      if (nuevoProyectoCreado) {
-        setProyectoSeleccionado(nuevoProyectoCreado);
+        if (nuevoProyectoCreado) {
+          setProyectoSeleccionado(nuevoProyectoCreado);
 
-        // Espera breve para asegurarse de que el proyecto está renderizado, luego hacer scroll
-        setTimeout(() => {
-          const proyectoElement = document.getElementById(`proyecto-${nuevoProyectoCreado.idProyecto}`);
-          if (proyectoElement) {
-            proyectoElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 100);
+          // Espera breve para asegurarse de que el proyecto está renderizado, luego hacer scroll
+          setTimeout(() => {
+            const proyectoElement = document.getElementById(`proyecto-${nuevoProyectoCreado.idProyecto}`);
+            if (proyectoElement) {
+              proyectoElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 100);
+        }
+
+        cerrarModal();
       }
-
-      cerrarModal();
+    } catch (error) {
+      console.error('Error al crear el proyecto:', error);
     }
-  } catch (error) {
-    console.error('Error al crear el proyecto:', error);
-  }
-};
-
+  };
 
   // Función para actualizar el proyecto en el backend mediante PUT
   const actualizarProyecto = async (campo, valor) => {
@@ -245,26 +270,25 @@ const crearProyecto = async () => {
             />
           </div>
           <div className="project-items">
-  <ul>
-    {proyectosFiltrados.map((proyecto) => (
-      <li
-        key={proyecto.idProyecto} // Asegurarse de que cada proyecto tenga un `key` único
-        id={`proyecto-${proyecto.idProyecto}`} // Para poder hacer scroll hacia este elemento
-        className={
-          proyectoSeleccionado &&
-          proyectoSeleccionado.idProyecto === proyecto.idProyecto
-            ? 'selected'
-            : ''
-        }
-        onClick={() => seleccionarProyecto(proyecto)}
-      >
-        <h3>{proyecto.nombreProyecto}</h3>
-        <p>{proyecto.descripcion.slice(0, 50)}...</p>
-      </li>
-    ))}
-  </ul>
-</div>
-
+            <ul>
+              {proyectosFiltrados.map((proyecto) => (
+                <li
+                  key={proyecto.idProyecto} // Asegurarse de que cada proyecto tenga un `key` único
+                  id={`proyecto-${proyecto.idProyecto}`} // Para poder hacer scroll hacia este elemento
+                  className={
+                    proyectoSeleccionado &&
+                    proyectoSeleccionado.idProyecto === proyecto.idProyecto
+                      ? 'selected'
+                      : ''
+                  }
+                  onClick={() => seleccionarProyecto(proyecto)}
+                >
+                  <h3>{proyecto.nombreProyecto}</h3>
+                  <p>{proyecto.descripcion.slice(0, 50)}...</p>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       </ResizableBox>
 
