@@ -11,8 +11,7 @@ app.use(cors());  // Añade cors al middleware
 // Configuración de middlewares
 app.use(express.json());
 
-// Eliminar el formateo de fechas en el backend
-
+//=========================================================================================||
 // Ruta GET para obtener todos los proyectos SIN formatear las fechas
 app.get('/api/proyectos', async (req, res) => {
     try {
@@ -50,54 +49,49 @@ app.get('/api/proyectos/:id', async (req, res) => {
 // Ruta POST para crear un nuevo proyecto con formato de fechas
 app.post('/api/proyectos', async (req, res) => {
     try {
-        const { idUsuario, nombreProyecto, descripcion, fechaInicio, fechaFin, estado } = req.body;
-
-        // Verifica si se han proporcionado todos los campos requeridos
-        if (!idUsuario || !nombreProyecto || !descripcion || !fechaInicio || !fechaFin || !estado) {
-            return res.status(400).send({ message: 'Por favor, llena todos los campos requeridos.' });
-        }
-
-        const pool = await poolPromise;
-        await pool.request()
-            .input('idUsuario', sql.NVarChar, idUsuario)
-            .input('nombreProyecto', sql.NVarChar, nombreProyecto)
-            .input('descripcion', sql.NVarChar, descripcion)
-            .input('fechaInicio', sql.DateTime, fechaInicio)
-            .input('fechaFin', sql.DateTime, fechaFin)
-            .input('estado', sql.NVarChar, estado)
-            .query('INSERT INTO Proyectos (idUsuario, nombreProyecto, descripcion, fechaInicio, fechaFin, estado) VALUES (@idUsuario, @nombreProyecto, @descripcion, @fechaInicio, @fechaFin, @estado)');
-
-        res.status(201).send({ message: 'Proyecto creado exitosamente.' });
+      const { idUsuario, nombreProyecto, descripcion, fechaInicio, fechaFin, estado } = req.body;
+      // Verifica si se han proporcionado todos los campos requeridos
+      if (!idUsuario || !nombreProyecto || !descripcion || !fechaInicio || !fechaFin || !estado) {
+        return res.status(400).send({ message: 'Por favor, llena todos los campos requeridos.' });
+      }
+      // Inserta el proyecto en la base de datos
+      const pool = await poolPromise;
+      await pool.request()
+        .input('idUsuario', sql.NVarChar, idUsuario)
+        .input('nombreProyecto', sql.NVarChar, nombreProyecto)
+        .input('descripcion', sql.NVarChar, descripcion)
+        .input('fechaInicio', sql.Date, fechaInicio) // Manejo de la fecha de inicio
+        .input('fechaFin', sql.Date, fechaFin)       // Manejo de la fecha de fin
+        .input('estado', sql.NVarChar, estado)
+        .query('INSERT INTO Proyectos (idUsuario, nombreProyecto, descripcion, fechaInicio, fechaFin, estado) VALUES (@idUsuario, @nombreProyecto, @descripcion, @fechaInicio, @fechaFin, @estado)');
+      res.status(201).send({ message: 'Proyecto creado exitosamente.' });
     } catch (err) {
-        res.status(500).send({ message: err.message });
+      res.status(500).send({ message: err.message });
     }
-});
+  });
 
 // Ruta PUT para actualizar un proyecto existente con formato de fechas
 app.put('/api/proyectos/:id', async (req, res) => {
     try {
-        const { id } = req.params;
-        const { nombreProyecto, descripcion, fechaInicio, fechaFin, estado } = req.body;
-
-        const pool = await poolPromise;
-        const result = await pool.request()
-            .input('nombreProyecto', sql.NVarChar, nombreProyecto)
-            .input('descripcion', sql.NVarChar, descripcion)
-            .input('fechaInicio', sql.DateTime, fechaInicio)
-            .input('fechaFin', sql.DateTime, fechaFin)
-            .input('estado', sql.NVarChar, estado)
-            .input('id', sql.Int, id)
-            .query('UPDATE Proyectos SET nombreProyecto = @nombreProyecto, descripcion = @descripcion, fechaInicio = @fechaInicio, fechaFin = @fechaFin, estado = @estado WHERE idProyecto = @id');
-
-        if (result.rowsAffected[0] === 0) {
-            return res.status(404).send({ message: 'Proyecto no encontrado.' });
-        }
-
-        res.send({ message: 'Proyecto actualizado exitosamente.' });
+      const { id } = req.params;
+      const { nombreProyecto, descripcion, fechaInicio, fechaFin, estado } = req.body;
+      const pool = await poolPromise;
+      const result = await pool.request()
+        .input('nombreProyecto', sql.NVarChar, nombreProyecto)
+        .input('descripcion', sql.NVarChar, descripcion)
+        .input('fechaInicio', sql.Date, fechaInicio) // Manejo de la fecha de inicio
+        .input('fechaFin', sql.Date, fechaFin)       // Manejo de la fecha de fin
+        .input('estado', sql.NVarChar, estado)
+        .input('id', sql.Int, id)
+        .query('UPDATE Proyectos SET nombreProyecto = @nombreProyecto, descripcion = @descripcion, fechaInicio = @fechaInicio, fechaFin = @fechaFin, estado = @estado WHERE idProyecto = @id');
+      if (result.rowsAffected[0] === 0) {
+        return res.status(404).send({ message: 'Proyecto no encontrado.' });
+      }
+      res.send({ message: 'Proyecto actualizado exitosamente.' });
     } catch (err) {
-        res.status(500).send({ message: err.message });
+      res.status(500).send({ message: err.message });
     }
-});
+  });
 
 // Ruta DELETE para eliminar un proyecto y sus pruebas/defectos relacionados
 app.delete('/api/proyectos/:id', async (req, res) => {
@@ -149,7 +143,7 @@ app.delete('/api/proyectos/:id', async (req, res) => {
         res.status(500).send({ message: err.message });
     }
 });
-//===================================================================================
+//=========================================================================================||
 // Ruta GET para obtener todas las pruebas con fechas formateadas
 app.get('/api/pruebas', async (req, res) => {
     try {
@@ -305,7 +299,7 @@ app.delete('/api/pruebas/:idPrueba', async (req, res) => {
         res.status(500).send({ message: err.message });
     }
 });
-//===================================================================================
+//=========================================================================================||
 // Ruta GET para obtener todos los defectos
 app.get('/api/defectos', async (req, res) => {
     try {
@@ -408,8 +402,8 @@ app.delete('/api/defectos/:id', async (req, res) => {
         res.status(500).send({ message: err.message });
     }
 });
+//=========================================================================================||
 //==========================================================================================================================================================
-
 // Inicia el servidor
 app.listen(port, () => {
     console.log(`Servidor ejecutándose en http://localhost:${port}`);

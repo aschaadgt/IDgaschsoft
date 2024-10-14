@@ -17,13 +17,18 @@ const App = () => {
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
     if (!fecha) return 'Fecha no disponible';
+    
+    // Aseguramos que la fecha esté en formato UTC para evitar desfases
     const date = new Date(fecha);
+    date.setHours(date.getHours() + date.getTimezoneOffset() / 60);
+  
     if (!isNaN(date.getTime())) {
       const dia = ('0' + date.getDate()).slice(-2);
       const mes = ('0' + (date.getMonth() + 1)).slice(-2);
       const anio = date.getFullYear();
       return `${dia}/${mes}/${anio}`;
     }
+    
     return 'Fecha no disponible';
   };
 
@@ -45,6 +50,32 @@ const App = () => {
     obtenerProyectos();
   }, []);
 
+  useEffect(() => {
+    // Manejar la navegación con las flechas del teclado
+    const manejarTeclas = (e) => {
+      if (proyectos.length === 0) return;
+
+      const indexSeleccionado = proyectos.findIndex(
+        (proyecto) => proyecto.idProyecto === proyectoSeleccionado?.idProyecto
+      );
+
+      if (e.key === 'ArrowUp' && indexSeleccionado > 0) {
+        const nuevoSeleccionado = proyectos[indexSeleccionado - 1];
+        setProyectoSeleccionado(nuevoSeleccionado);
+        document.getElementById(`proyecto-${nuevoSeleccionado.idProyecto}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else if (e.key === 'ArrowDown' && indexSeleccionado < proyectos.length - 1) {
+        const nuevoSeleccionado = proyectos[indexSeleccionado + 1];
+        setProyectoSeleccionado(nuevoSeleccionado);
+        document.getElementById(`proyecto-${nuevoSeleccionado.idProyecto}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    };
+
+    window.addEventListener('keydown', manejarTeclas);
+    return () => {
+      window.removeEventListener('keydown', manejarTeclas);
+    };
+  }, [proyectos, proyectoSeleccionado]);
+
   const seleccionarProyecto = (proyecto) => {
     setProyectoSeleccionado(proyecto);
   };
@@ -65,22 +96,55 @@ const App = () => {
     const { name, value } = e.target;
     setNuevoProyecto({ ...nuevoProyecto, [name]: value });
   };
+  
+  // Crear la fecha actual en formato YYYY-MM-DD, asegurando que no haya desfase de zona horaria
+  const obtenerFechaAjustada = (fecha) => {
+    fecha.setHours(0, 0, 0, 0); // Establece la hora a medianoche para evitar problemas de zona horaria
+    const year = fecha.getFullYear();
+    const month = ('0' + (fecha.getMonth() + 1)).slice(-2);
+    const day = ('0' + fecha.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
+  };
 
   // Función para crear un nuevo proyecto
   const crearProyecto = async () => {
     try {
+      const fechaInicio = obtenerFechaAjustada(new Date()); // Fecha de inicio ajustada sin desfase
+      const fechaFin = obtenerFechaAjustada(new Date(new Date().setDate(new Date().getDate() + 7))); // Fecha de fin 7 días después
+
       const nuevoProyectoDatos = {
-        idUsuario: 'ASchaad',
+        idUsuario: 'ASchaad', // Corregir en cuanto tengamos el login creado y la sesión guarde el usuario con el que se logueó
         nombreProyecto: nuevoProyecto.nombreProyecto,
         descripcion: nuevoProyecto.descripcion,
-        fechaInicio: new Date().toISOString().split('T')[0],
-        fechaFin: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString().split('T')[0],
+        fechaInicio,
+        fechaFin,
         estado: 'PENDIENTE',
       };
 
       const response = await axios.post('http://localhost:3001/api/proyectos', nuevoProyectoDatos);
       if (response.status === 201) {
-        setProyectos([...proyectos, { ...nuevoProyectoDatos, idProyecto: response.data.idProyecto }]);
+        // Actualizar la lista de proyectos obteniendo de nuevo todos los proyectos del backend
+        const responseProyectos = await axios.get('http://localhost:3001/api/proyectos');
+        setProyectos(responseProyectos.data);
+
+        // Seleccionar el proyecto recién creado (usamos el último proyecto de la lista)
+        const nuevoProyectoCreado = responseProyectos.data.find(
+          (proyecto) => proyecto.nombreProyecto === nuevoProyectoDatos.nombreProyecto &&
+                        proyecto.descripcion === nuevoProyectoDatos.descripcion
+        );
+
+        if (nuevoProyectoCreado) {
+          setProyectoSeleccionado(nuevoProyectoCreado);
+
+          // Espera breve para asegurarse de que el proyecto está renderizado, luego hacer scroll
+          setTimeout(() => {
+            const proyectoElement = document.getElementById(`proyecto-${nuevoProyectoCreado.idProyecto}`);
+            if (proyectoElement) {
+              proyectoElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 100);
+        }
+
         cerrarModal();
       }
     } catch (error) {
@@ -209,7 +273,8 @@ const App = () => {
             <ul>
               {proyectosFiltrados.map((proyecto) => (
                 <li
-                  key={proyecto.idProyecto}
+                  key={proyecto.idProyecto} // Asegurarse de que cada proyecto tenga un `key` único
+                  id={`proyecto-${proyecto.idProyecto}`} // Para poder hacer scroll hacia este elemento
                   className={
                     proyectoSeleccionado &&
                     proyectoSeleccionado.idProyecto === proyecto.idProyecto
@@ -240,7 +305,7 @@ const App = () => {
             </button>
             <button disabled={!proyectoSeleccionado}>Pruebas</button>
           </div>
-          <button className="new-project" onClick={abrirModal}>+ Nuevo Proyecto</button>
+          <button className="new-project" onClick={abrirModal}>+ Crear Proyecto</button>
         </header>
         <div className="project-body">
           {proyectoSeleccionado ? (
@@ -287,10 +352,10 @@ const App = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  <option value="PENDIENTE">PENDIENTE</option>
-                  <option value="IN PROGRESS">IN PROGRESS</option>
-                  <option value="CANCELADO">CANCELADO</option>
-                  <option value="FINALIZADO">FINALIZADO</option>
+                  <option value="PENDIENTE">🔲 PENDIENTE</option>
+                  <option value="IN PROGRESS">🟪 IN PROGRESS</option>
+                  <option value="CANCELADO">🟩 CANCELADO</option>
+                  <option value="FINALIZADO">✅ FINALIZADO</option>
                 </select>
               </p>
             </>
@@ -302,31 +367,35 @@ const App = () => {
 
       {/* Modal para crear un nuevo proyecto */}
       {mostrarModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>Crear Nuevo Proyecto</h2>
-            <div className="modal-body">
-              <label>Nombre del Proyecto:</label>
-              <input
-                type="text"
-                name="nombreProyecto"
-                value={nuevoProyecto.nombreProyecto}
-                onChange={manejarCambio}
-              />
-              <label>Descripción:</label>
-              <textarea
-                name="descripcion"
-                value={nuevoProyecto.descripcion}
-                onChange={manejarCambio}
-              />
-            </div>
-            <div className="modal-footer">
-              <button onClick={cerrarModal}>Cancelar</button>
-              <button onClick={crearProyecto}>Crear</button>
-            </div>
-          </div>
-        </div>
-      )}
+  <div className="modal-overlay">
+    <div className="modal">
+      <div className="modal-header">
+        <h2>Crear Nuevo Proyecto</h2>
+        <button className="close-button" onClick={cerrarModal}>
+          &times;
+        </button>
+      </div>
+      <div className="modal-body">
+        <input
+          type="text"
+          name="nombreProyecto"
+          placeholder="Nombre del Proyecto" // Añadir el placeholder
+          value={nuevoProyecto.nombreProyecto}
+          onChange={manejarCambio}
+        />
+        <textarea
+          name="descripcion"
+          placeholder="Descripción" // Añadir el placeholder
+          value={nuevoProyecto.descripcion}
+          onChange={manejarCambio}
+        />
+      </div>
+      <div className="modal-footer">
+        <button onClick={crearProyecto}>+ Crear</button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };
