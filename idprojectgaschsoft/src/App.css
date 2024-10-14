@@ -212,8 +212,10 @@
 
 /* Hacer el fondo del ResizableBox transparente */
 .transparent-sidebar {
+
   background-color: transparent;
 }
+
 
 /* Asegurar que la línea divisoria sea visible */
 .resizable-sidebar,
@@ -275,7 +277,7 @@
   position: relative;
   z-index: 1;
 }
-/**/
+
 /* Estilos para el modal */
 .modal-overlay {
   position: fixed;
@@ -338,7 +340,7 @@
 }
 
 .modal-footer button:last-child {
-  background-color: #007bff;
+  background-color: #28a745;
   color: #ffffff;
 }
 
@@ -357,4 +359,34 @@
   font-family: Arial, Helvetica, sans-serif; /* Aplicar la misma fuente al textarea */
 }
 
+/* Estilo para el contenedor modal */
+.modal {
+  position: relative; /* Asegura que los elementos internos se posicionen correctamente dentro del modal */
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Estilo para la cabecera del modal */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Estilo para el botón de cerrar el modal (X) */
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #757575;
+}
+
+.close-button:hover {
+  color: #000000; /* Cambia a rojo al pasar el cursor */
+}
 /**/

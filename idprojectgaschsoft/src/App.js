@@ -281,7 +281,7 @@ const crearProyecto = async () => {
             </button>
             <button disabled={!proyectoSeleccionado}>Pruebas</button>
           </div>
-          <button className="new-project" onClick={abrirModal}>+ Creat Proyecto</button>
+          <button className="new-project" onClick={abrirModal}>+ Crear Proyecto</button>
         </header>
         <div className="project-body">
           {proyectoSeleccionado ? (
@@ -328,10 +328,10 @@ const crearProyecto = async () => {
                     cursor: 'pointer',
                   }}
                 >
-                  <option value="PENDIENTE">PENDIENTE</option>
-                  <option value="IN PROGRESS">IN PROGRESS</option>
-                  <option value="CANCELADO">CANCELADO</option>
-                  <option value="FINALIZADO">FINALIZADO</option>
+                  <option value="PENDIENTE">🔲 PENDIENTE</option>
+                  <option value="IN PROGRESS">🟪 IN PROGRESS</option>
+                  <option value="CANCELADO">🟩 CANCELADO</option>
+                  <option value="FINALIZADO">✅ FINALIZADO</option>
                 </select>
               </p>
             </>
@@ -345,7 +345,12 @@ const crearProyecto = async () => {
       {mostrarModal && (
   <div className="modal-overlay">
     <div className="modal">
-      <h2>Crear Nuevo Proyecto</h2>
+      <div className="modal-header">
+        <h2>Crear Nuevo Proyecto</h2>
+        <button className="close-button" onClick={cerrarModal}>
+          &times;
+        </button>
+      </div>
       <div className="modal-body">
         <input
           type="text"
@@ -362,12 +367,11 @@ const crearProyecto = async () => {
         />
       </div>
       <div className="modal-footer">
-        <button onClick={cerrarModal}>Cancelar</button>
-        <button onClick={crearProyecto}>Crear</button>
+        <button onClick={crearProyecto}>+ Crear</button>
       </div>
     </div>
   </div>
-      )}
+)}
     </div>
   );
 };
