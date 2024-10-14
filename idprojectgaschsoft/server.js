@@ -300,9 +300,110 @@ app.delete('/api/pruebas/:idPrueba', async (req, res) => {
     }
 });
 //=========================================================================================||
+// Ruta GET para obtener todos los defectos
+app.get('/api/defectos', async (req, res) => {
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request().query('SELECT * FROM Defectos'); // Consulta a la tabla Defectos
 
+        res.json(result.recordset); // Devolvemos todos los defectos en formato JSON
+    } catch (err) {
+        res.status(500).send({ message: err.message }); // Manejo de errores
+    }
+});
+
+// Ruta GET para obtener un defecto específico por su ID
+app.get('/api/defectos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('idDefecto', sql.Int, id)
+            .query('SELECT * FROM Defectos WHERE idDefecto = @idDefecto');
+
+        if (result.recordset.length === 0) {
+            return res.status(404).send({ message: `Defecto con ID ${id} no fue encontrado.` });
+        }
+
+        res.json(result.recordset[0]); // Devolvemos el defecto específico
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
+});
+
+// Ruta POST para crear un nuevo defecto
+app.post('/api/defectos', async (req, res) => {
+    try {
+        const { idPrueba, descripcion, prioridad, estado, fechaCreacion, fechaResolucion } = req.body;
+
+        // Verifica si se han proporcionado todos los campos requeridos
+        if (!idPrueba || !descripcion || !prioridad || !estado || !fechaCreacion) {
+            return res.status(400).send({ message: 'Por favor, llena todos los campos requeridos.' });
+        }
+
+        const pool = await poolPromise;
+        await pool.request()
+            .input('idPrueba', sql.Int, idPrueba)
+            .input('descripcion', sql.NVarChar, descripcion)
+            .input('prioridad', sql.NVarChar, prioridad)
+            .input('estado', sql.NVarChar, estado)
+            .input('fechaCreacion', sql.DateTime, fechaCreacion)
+            .input('fechaResolucion', sql.DateTime, fechaResolucion || null) // Campo opcional
+            .query('INSERT INTO Defectos (idPrueba, descripcion, prioridad, estado, fechaCreacion, fechaResolucion) VALUES (@idPrueba, @descripcion, @prioridad, @estado, @fechaCreacion, @fechaResolucion)');
+
+        res.status(201).send({ message: 'Defecto creado exitosamente.' });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
+});
+
+// Ruta PUT para actualizar un defecto existente eee
+app.put('/api/defectos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { descripcion, prioridad, estado, fechaResolucion } = req.body;
+
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('descripcion', sql.NVarChar, descripcion)
+            .input('prioridad', sql.NVarChar, prioridad)
+            .input('estado', sql.NVarChar, estado)
+            .input('fechaResolucion', sql.DateTime, fechaResolucion || null)
+            .input('idDefecto', sql.Int, id)
+            .query('UPDATE Defectos SET descripcion = @descripcion, prioridad = @prioridad, estado = @estado, fechaResolucion = @fechaResolucion WHERE idDefecto = @idDefecto');
+
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).send({ message: 'Defecto no encontrado.' });
+        }
+
+        res.send({ message: 'Defecto actualizado exitosamente.' });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
+});
+
+// Ruta DELETE para eliminar un defecto
+app.delete('/api/defectos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('idDefecto', sql.Int, id)
+            .query('DELETE FROM Defectos WHERE idDefecto = @idDefecto');
+
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).send({ message: 'Defecto no encontrado.' });
+        }
+
+        res.send({ message: 'Defecto eliminado exitosamente.' });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
+});
+//=========================================================================================||
 //==========================================================================================================================================================
-
 // Inicia el servidor
 app.listen(port, () => {
     console.log(`Servidor ejecutándose en http://localhost:${port}`);
