@@ -11,8 +11,7 @@ app.use(cors());  // Añade cors al middleware
 // Configuración de middlewares
 app.use(express.json());
 
-// Eliminar el formateo de fechas en el backend
-
+//=========================================================================================||
 // Ruta GET para obtener todos los proyectos SIN formatear las fechas
 app.get('/api/proyectos', async (req, res) => {
     try {
@@ -144,7 +143,7 @@ app.delete('/api/proyectos/:id', async (req, res) => {
         res.status(500).send({ message: err.message });
     }
 });
-//===================================================================================
+//=========================================================================================||
 // Ruta GET para obtener todas las pruebas con fechas formateadas
 app.get('/api/pruebas', async (req, res) => {
     try {
@@ -300,6 +299,7 @@ app.delete('/api/pruebas/:idPrueba', async (req, res) => {
         res.status(500).send({ message: err.message });
     }
 });
+//=========================================================================================||
 
 //==========================================================================================================================================================
 

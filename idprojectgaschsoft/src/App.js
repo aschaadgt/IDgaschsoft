@@ -281,7 +281,7 @@ const crearProyecto = async () => {
             </button>
             <button disabled={!proyectoSeleccionado}>Pruebas</button>
           </div>
-          <button className="new-project" onClick={abrirModal}>+ Crear Proyecto</button>
+          <button className="new-project" onClick={abrirModal}>+ Creat Proyecto</button>
         </header>
         <div className="project-body">
           {proyectoSeleccionado ? (
@@ -345,7 +345,7 @@ const crearProyecto = async () => {
       {mostrarModal && (
   <div className="modal-overlay">
     <div className="modal">
-      <h2>+ Crear Proyecto</h2>
+      <h2>Crear Nuevo Proyecto</h2>
       <div className="modal-body">
         <input
           type="text"
