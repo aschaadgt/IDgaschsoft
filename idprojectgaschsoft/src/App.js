@@ -239,22 +239,40 @@ const seleccionarProyecto = async (proyecto) => {
   };
 
   // Eliminar un proyecto
-  const eliminarProyecto = async () => {
-    if (proyectoSeleccionado) {
-      try {
-        await axios.delete(
-          `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`
+const eliminarProyecto = async () => {
+  if (proyectoSeleccionado) {
+    try {
+      await axios.delete(
+        `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`
+      );
+      const nuevosProyectos = proyectos.filter(
+        (proyecto) => proyecto.idProyecto !== proyectoSeleccionado.idProyecto
+      );
+      
+      if (nuevosProyectos.length > 0) {
+        // Encuentra la posición del proyecto eliminado
+        const indexSeleccionado = proyectos.findIndex(
+          (proyecto) => proyecto.idProyecto === proyectoSeleccionado.idProyecto
         );
-        const nuevosProyectos = proyectos.filter(
-          (proyecto) => proyecto.idProyecto !== proyectoSeleccionado.idProyecto
-        );
-        setProyectos(nuevosProyectos);
-        setProyectoSeleccionado(nuevosProyectos[0] || null);
-      } catch (error) {
-        console.error('Error al eliminar el proyecto:', error);
+        
+        // Selecciona el proyecto anterior, si existe. Si no, selecciona el siguiente.
+        const nuevoSeleccionado = nuevosProyectos[indexSeleccionado - 1] || nuevosProyectos[0];
+        setProyectoSeleccionado(nuevoSeleccionado);
+        
+        // Carga el código del nuevo proyecto seleccionado
+        seleccionarProyecto(nuevoSeleccionado);
+      } else {
+        // Si no quedan proyectos, limpiamos la selección
+        setProyectoSeleccionado(null);
+        setContenidoCodigo('');
       }
+      
+      setProyectos(nuevosProyectos);
+    } catch (error) {
+      console.error('Error al eliminar el proyecto:', error);
     }
-  };
+  }
+};
 
   // Guardar el código automáticamente
   const guardarCodigoAutomáticamente = async (nuevoCodigo) => {
