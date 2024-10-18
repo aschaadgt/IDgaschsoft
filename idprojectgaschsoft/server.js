@@ -42,135 +42,137 @@ const formatearFecha = (fecha) => {
 // C R U D   P R O Y E C T O S / A R C H I V O S
 // Ruta GET para obtener todos los proyectos SIN formatear las fechas
 app.get('/api/proyectos', async (req, res) => {
-    try {
-        const pool = await poolPromise;
-        const result = await pool.request().query('SELECT * FROM Proyectos'); // Consulta a la tabla Proyectos
+  try {
+      const pool = await poolPromise;
+      const result = await pool.request().query('SELECT * FROM Proyectos'); // Consulta a la tabla Proyectos
 
-        // No formateamos las fechas aquí
-        res.json(result.recordset);
-    } catch (err) {
-        res.status(500).send({ message: err.message }); // Manejo de errores
-    }
+      // No formateamos las fechas aquí
+      res.json(result.recordset);
+  } catch (err) {
+      res.status(500).send({ message: err.message }); // Manejo de errores
+  }
 });
 
 // Ruta GET para obtener un proyecto específico
 app.get('/api/proyectos/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+      const { id } = req.params;
 
-        const pool = await poolPromise;
-        const result = await pool.request()
-            .input('idProyecto', sql.Int, id)
-            .query('SELECT * FROM Proyectos WHERE idProyecto = @idProyecto');
+      const pool = await poolPromise;
+      const result = await pool.request()
+          .input('idProyecto', sql.Int, id)
+          .query('SELECT * FROM Proyectos WHERE idProyecto = @idProyecto');
 
-        if (result.recordset.length === 0) {
-            return res.status(404).send({ message: `Proyecto con ID ${id} no fue encontrado.` });
-        }
+      if (result.recordset.length === 0) {
+          return res.status(404).send({ message: `Proyecto con ID ${id} no fue encontrado.` });
+      }
 
-        // No formateamos las fechas aquí
-        res.json(result.recordset[0]); // Devuelve el proyecto en formato JSON
-    } catch (err) {
-        res.status(500).send({ message: err.message });
-    }
+      // No formateamos las fechas aquí
+      res.json(result.recordset[0]); // Devuelve el proyecto en formato JSON
+  } catch (err) {
+      res.status(500).send({ message: err.message });
+  }
 });
 
 // Ruta POST para crear un nuevo proyecto con creación automática de archivo de código
 app.post('/api/proyectos', async (req, res) => {
-    try {
-      const { idUsuario, nombreProyecto, descripcion, fechaInicio, fechaFin, estado } = req.body;
-      
-      // Verifica si se han proporcionado todos los campos requeridos
-      if (!idUsuario || !nombreProyecto || !descripcion || !fechaInicio || !fechaFin || !estado) {
-        return res.status(400).send({ message: 'Por favor, llena todos los campos requeridos.' });
-      }
-
-      const pool = await poolPromise;
-      await pool.request()
-        .input('idUsuario', sql.NVarChar, idUsuario)
-        .input('nombreProyecto', sql.NVarChar, nombreProyecto)
-        .input('descripcion', sql.NVarChar, descripcion)
-        .input('fechaInicio', sql.Date, fechaInicio)
-        .input('fechaFin', sql.Date, fechaFin)
-        .input('estado', sql.NVarChar, estado)
-        .query('INSERT INTO Proyectos (idUsuario, nombreProyecto, descripcion, fechaInicio, fechaFin, estado) VALUES (@idUsuario, @nombreProyecto, @descripcion, @fechaInicio, @fechaFin, @estado)');
-
-      // Obtener el ID del proyecto recién creado
-      const nuevoProyecto = await pool.request()
-        .input('nombreProyecto', sql.NVarChar, nombreProyecto)
-        .input('descripcion', sql.NVarChar, descripcion)
-        .query('SELECT idProyecto FROM Proyectos WHERE nombreProyecto = @nombreProyecto AND descripcion = @descripcion ORDER BY idProyecto DESC');
-
-      const idProyecto = nuevoProyecto.recordset[0].idProyecto;
-
-      // Crear el archivo de código para el nuevo proyecto
-      const filePath = path.join(codigoDir, `proyecto_${idProyecto}.txt`);
-      fs.writeFileSync(filePath, '', 'utf-8'); // Crear archivo vacío
-
-      res.status(201).send({ message: 'Proyecto creado exitosamente.', idProyecto });
-    } catch (err) {
-      res.status(500).send({ message: err.message });
+  try {
+    const { idUsuario, nombreProyecto, descripcion, fechaInicio, fechaFin, estado, lenguaje } = req.body;
+    
+    // Verifica si se han proporcionado todos los campos requeridos
+    if (!idUsuario || !nombreProyecto || !descripcion || !fechaInicio || !fechaFin || !estado || !lenguaje) {
+      return res.status(400).send({ message: 'Por favor, llena todos los campos requeridos.' });
     }
-  });
+
+    const pool = await poolPromise;
+    await pool.request()
+      .input('idUsuario', sql.NVarChar, idUsuario)
+      .input('nombreProyecto', sql.NVarChar, nombreProyecto)
+      .input('descripcion', sql.NVarChar, descripcion)
+      .input('fechaInicio', sql.Date, fechaInicio)
+      .input('fechaFin', sql.Date, fechaFin)
+      .input('estado', sql.NVarChar, estado)
+      .input('lenguaje', sql.NVarChar, lenguaje)
+      .query('INSERT INTO Proyectos (idUsuario, nombreProyecto, descripcion, fechaInicio, fechaFin, estado, lenguaje) VALUES (@idUsuario, @nombreProyecto, @descripcion, @fechaInicio, @fechaFin, @estado, @lenguaje)');
+
+    // Obtener el ID del proyecto recién creado
+    const nuevoProyecto = await pool.request()
+      .input('nombreProyecto', sql.NVarChar, nombreProyecto)
+      .input('descripcion', sql.NVarChar, descripcion)
+      .query('SELECT idProyecto FROM Proyectos WHERE nombreProyecto = @nombreProyecto AND descripcion = @descripcion ORDER BY idProyecto DESC');
+
+    const idProyecto = nuevoProyecto.recordset[0].idProyecto;
+
+    // Crear el archivo de código para el nuevo proyecto
+    const filePath = path.join(codigoDir, `proyecto_${idProyecto}.txt`);
+    fs.writeFileSync(filePath, '', 'utf-8'); // Crear archivo vacío
+
+    res.status(201).send({ message: 'Proyecto creado exitosamente.', idProyecto });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+});
 
 // Ruta PUT para actualizar un proyecto existente con formato de fechas
 app.put('/api/proyectos/:id', async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { nombreProyecto, descripcion, fechaInicio, fechaFin, estado } = req.body;
-      const pool = await poolPromise;
-      const result = await pool.request()
-        .input('nombreProyecto', sql.NVarChar, nombreProyecto)
-        .input('descripcion', sql.NVarChar, descripcion)
-        .input('fechaInicio', sql.Date, fechaInicio) // Manejo de la fecha de inicio
-        .input('fechaFin', sql.Date, fechaFin)       // Manejo de la fecha de fin
-        .input('estado', sql.NVarChar, estado)
-        .input('id', sql.Int, id)
-        .query('UPDATE Proyectos SET nombreProyecto = @nombreProyecto, descripcion = @descripcion, fechaInicio = @fechaInicio, fechaFin = @fechaFin, estado = @estado WHERE idProyecto = @id');
-      if (result.rowsAffected[0] === 0) {
-        return res.status(404).send({ message: 'Proyecto no encontrado.' });
-      }
-      res.send({ message: 'Proyecto actualizado exitosamente.' });
-    } catch (err) {
-      res.status(500).send({ message: err.message });
+  try {
+    const { id } = req.params;
+    const { nombreProyecto, descripcion, fechaInicio, fechaFin, estado, lenguaje } = req.body;
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('nombreProyecto', sql.NVarChar, nombreProyecto)
+      .input('descripcion', sql.NVarChar, descripcion)
+      .input('fechaInicio', sql.Date, fechaInicio) // Manejo de la fecha de inicio
+      .input('fechaFin', sql.Date, fechaFin)       // Manejo de la fecha de fin
+      .input('estado', sql.NVarChar, estado)
+      .input('lenguaje', sql.NVarChar, lenguaje)
+      .input('id', sql.Int, id)
+      .query('UPDATE Proyectos SET nombreProyecto = @nombreProyecto, descripcion = @descripcion, fechaInicio = @fechaInicio, fechaFin = @fechaFin, estado = @estado, lenguaje = @lenguaje WHERE idProyecto = @id');
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).send({ message: 'Proyecto no encontrado.' });
     }
-  });
+    res.send({ message: 'Proyecto actualizado exitosamente.' });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+});
 
 // Ruta DELETE para eliminar un proyecto y su archivo de código
 app.delete('/api/proyectos/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+      const { id } = req.params;
 
-        const pool = await poolPromise;
-        
-        // Elimina los defectos relacionados con las pruebas del proyecto
-        await pool.request()
-            .input('id', sql.Int, id)
-            .query('DELETE FROM Defectos WHERE idPrueba IN (SELECT idPrueba FROM Pruebas WHERE idProyecto = @id)');
+      const pool = await poolPromise;
+      
+      // Elimina los defectos relacionados con las pruebas del proyecto
+      await pool.request()
+          .input('id', sql.Int, id)
+          .query('DELETE FROM Defectos WHERE idPrueba IN (SELECT idPrueba FROM Pruebas WHERE idProyecto = @id)');
 
-        // Elimina las pruebas relacionadas con el proyecto
-        await pool.request()
-            .input('id', sql.Int, id)
-            .query('DELETE FROM Pruebas WHERE idProyecto = @id');
+      // Elimina las pruebas relacionadas con el proyecto
+      await pool.request()
+          .input('id', sql.Int, id)
+          .query('DELETE FROM Pruebas WHERE idProyecto = @id');
 
-        // Finalmente, elimina el proyecto
-        const result = await pool.request()
-            .input('id', sql.Int, id)
-            .query('DELETE FROM Proyectos WHERE idProyecto = @id');
+      // Finalmente, elimina el proyecto
+      const result = await pool.request()
+          .input('id', sql.Int, id)
+          .query('DELETE FROM Proyectos WHERE idProyecto = @id');
 
-        if (result.rowsAffected[0] === 0) {
-            return res.status(404).send({ message: 'Proyecto no encontrado.' });
-        }
+      if (result.rowsAffected[0] === 0) {
+          return res.status(404).send({ message: 'Proyecto no encontrado.' });
+      }
 
-        // Elimina el archivo de código asociado
-        const filePath = path.join(codigoDir, `proyecto_${id}.txt`);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+      // Elimina el archivo de código asociado
+      const filePath = path.join(codigoDir, `proyecto_${id}.txt`);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
 
-        res.send({ message: 'Proyecto, sus datos relacionados y su archivo de código eliminados exitosamente.' });
-    } catch (err) {
-        res.status(500).send({ message: err.message });
-    }
+      res.send({ message: 'Proyecto, sus datos relacionados y su archivo de código eliminados exitosamente.' });
+  } catch (err) {
+      res.status(500).send({ message: err.message });
+  }
 });
 //=========================================================================================||
 // C R U D   P R U E B A S

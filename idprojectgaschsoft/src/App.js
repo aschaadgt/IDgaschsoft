@@ -11,12 +11,21 @@ import 'ace-builds/src-noconflict/mode-python';
 import 'ace-builds/src-noconflict/mode-java';
 import 'ace-builds/src-noconflict/mode-c_cpp';
 import 'ace-builds/src-noconflict/mode-php';
+import 'ace-builds/src-noconflict/mode-csharp';
+import 'ace-builds/src-noconflict/mode-html';
+import 'ace-builds/src-noconflict/mode-sql';
+import 'ace-builds/src-noconflict/mode-ruby';
 
 // Importar los temas del editor
 import 'ace-builds/src-noconflict/theme-monokai';
 import 'ace-builds/src-noconflict/theme-github';
+import 'ace-builds/src-noconflict/theme-dracula';
+import 'ace-builds/src-noconflict/theme-solarized_light';
+import 'ace-builds/src-noconflict/theme-tomorrow_night';
+
 
 import ace from 'ace-builds/src-noconflict/ace';
+
 
 // Configura la ruta base para los archivos de ace-builds
 ace.config.set('basePath', '/ace');
@@ -25,7 +34,7 @@ const App = () => {
   const [proyectos, setProyectos] = useState([]);
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
   const [busqueda, setBusqueda] = useState('');
-  const [archivoCodigo, setArchivoCodigo] = useState('');
+  //const [archivoCodigo, setArchivoCodigo] = useState('');
   const [contenidoCodigo, setContenidoCodigo] = useState('');
   const [lenguaje, setLenguaje] = useState('javascript');
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -33,6 +42,10 @@ const App = () => {
     nombreProyecto: '',
     descripcion: '',
   });
+
+  const lenguajes = ['javascript', 'python', 'java', 'c_cpp', 'php', 'csharp', 'html', 'sql', 'ruby']; // lista de lenguajes
+  const nombresLenguajes = ['J.Script', 'Python', 'Java', 'C++', 'PHP', 'C#', 'HTML', 'SQL', 'Ruby']; // nombres visibles de los lenguajes
+
 
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
@@ -67,7 +80,7 @@ const App = () => {
     obtenerProyectos();
   }, []);
 
-  // Guardar el código automáticamente después de 1 segundo de inactividad
+  // Guardar el código automáticamente después de 0.5 segundos de inactividad
   useEffect(() => {
     if (proyectoSeleccionado) {
       const timer = setTimeout(async () => {
@@ -79,7 +92,7 @@ const App = () => {
         } catch (error) {
           console.error('Error al guardar el código:', error);
         }
-      }, 1000);
+      }, 500); //500 milisengundos
 
       return () => clearTimeout(timer); // Cancela el temporizador si el usuario sigue escribiendo
     }
@@ -133,11 +146,11 @@ const seleccionarProyecto = async (proyecto) => {
   try {
     const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
     setContenidoCodigo(response.data.contenido);
+    setLenguaje(proyecto.lenguaje || 'javascript'); // Actualiza el lenguaje al cargar un proyecto
   } catch (error) {
     console.error('Error al cargar el código del proyecto:', error);
   }
 };
-
 
   // Abrir el modal para crear un nuevo proyecto
   const abrirModal = () => {
@@ -177,6 +190,7 @@ const seleccionarProyecto = async (proyecto) => {
         fechaInicio,
         fechaFin,
         estado: 'PENDIENTE',
+        lenguaje: 'javascript',
       };
 
       const response = await axios.post('http://localhost:3001/api/proyectos', nuevoProyectoDatos);
@@ -204,6 +218,8 @@ const seleccionarProyecto = async (proyecto) => {
   const actualizarProyecto = async (campo, valor) => {
     if (proyectoSeleccionado) {
       let proyectoActualizado = { ...proyectoSeleccionado };
+      
+      // Validación especial para la fecha de fin
       if (campo === 'fechaFin') {
         const partes = valor.split('/');
         if (partes.length === 3) {
@@ -218,7 +234,7 @@ const seleccionarProyecto = async (proyecto) => {
       } else {
         proyectoActualizado[campo] = valor;
       }
-
+  
       try {
         await axios.put(
           `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`,
@@ -237,6 +253,7 @@ const seleccionarProyecto = async (proyecto) => {
       }
     }
   };
+  
 
   // Eliminar un proyecto
 const eliminarProyecto = async () => {
@@ -415,25 +432,44 @@ const eliminarProyecto = async () => {
                   <option value="FINALIZADO">✅ FINALIZADO</option>
                 </select>
               </p>
+                  {/* Barra de lenguajes */}
+<div className="tabs">
+  {nombresLenguajes.map((nombre, index) => (
+    <label key={index} className={`tab ${lenguaje === lenguajes[index] ? 'selected' : ''}`}>
+      <input
+        type="radio"
+        name="tabs"
+        checked={lenguaje === lenguajes[index]}
+        onChange={() => {
+          setLenguaje(lenguajes[index]); // Cambia el lenguaje en la UI
+          actualizarProyecto('lenguaje', lenguajes[index]); // Actualiza el lenguaje en la base de datos
+        }}
+      />
+      {nombre}
+    </label>
+  ))}
+  <span className="slider"></span>
+</div>
+
 
               {/* Editor de código */}
               <AceEditor
-                mode={lenguaje}
-                theme="monokai"
-                name="editorCodigo"
-                value={contenidoCodigo}
-                onChange={guardarCodigoAutomáticamente}
-                fontSize={14}
-                width="100%"
-                height="400px"
-                setOptions={{
-                  enableBasicAutocompletion: true,
-                  enableLiveAutocompletion: true,
-                  enableSnippets: true,
-                  showLineNumbers: true,
-                  tabSize: 4,
-                }}
-              />
+  mode={lenguaje}
+  theme="dracula" //github monokai dracula solarized_light tomorrow_night
+  name="editorCodigo"
+  value={contenidoCodigo}
+  onChange={guardarCodigoAutomáticamente}
+  fontSize={14}
+  width="100%"
+  height="450px"
+  setOptions={{
+    enableBasicAutocompletion: true,
+    enableLiveAutocompletion: true,
+    enableSnippets: true,
+    showLineNumbers: true,
+    tabSize: 4,
+  }}
+/>
             </>
           ) : (
             <p>No hay proyectos seleccionados. Crea uno nuevo para comenzar.</p>
@@ -476,3 +512,4 @@ const eliminarProyecto = async () => {
 };
 
 export default App;
+//484

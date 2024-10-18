@@ -135,6 +135,8 @@
   flex-direction: column;
   justify-content: flex-start;
   overflow: hidden;
+  flex-grow: 1;
+  height: 100%;
 }
 
 .project-details p,
@@ -201,7 +203,28 @@
 }
 
 .project-body {
-  margin-top: 20px;
+  margin-top: 5px;
+  overflow: auto; /* Agrega scroll si el contenido supera la altura */
+}
+
+/* Reducir márgenes entre elementos */
+.project-body h1,
+.project-body p,
+.project-body select,
+.project-body span,
+.project-body .tabs {
+  margin: 7px 0px; /* Reduce el margen superior e inferior a 5px */
+  padding: 0; /* Elimina cualquier padding adicional */
+}
+
+.project-body h1 {
+  font-size: 1.6rem; /* Ajusta el tamaño del título */
+}
+
+.project-body p,
+.project-body select,
+.project-body span {
+  font-size: 1rem; /* Asegura un tamaño consistente para el texto */
 }
 
 .empty-state {
@@ -389,4 +412,54 @@
 .close-button:hover {
   color: #000000; /* Cambia a rojo al pasar el cursor */
 }
+
+/*Barra de lenguaje*/
+.tabs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.tab {
+  width: 40px;
+  height: 13px; /* Aumenta ligeramente la altura para centrar el texto */
+  padding: 0.5rem;
+  cursor: pointer;
+  z-index: 2;
+  display: inline-block;
+  text-align: center;
+  line-height: 13px; /* Igual al valor de la altura para centrar verticalmente el texto */
+  background-color:white; /*Color de cada capsula*/
+  border-radius: 25px;
+  margin: 0 5px;
+  transition: background-color 0.3s ease;
+  font-size: 12px; /* Cambia este valor para ajustar el tamaño de la fuente */
+
+}
+
+.tab.selected {
+  background-color: #007bff; /*Color de capsula seleccionada */
+  color: white; /*Color de letra de capsula seleccionada */
+}
+
+.tabs .slider {
+  width: 600px;
+  height: 40px;
+  position: absolute;
+  background-color: white; /*Color de capsula grande*/
+  z-index: 0;
+  border-radius: 25px;
+  transition: 0.3s ease;
+  transform: translateX(0);
+  box-shadow: 4px 4px 4px rgba(0.1, 0.1, 0.1, 0.1); /* Sombra suave */
+  /*border: 1px solid #888888; /* Borde alrededor de la cápsula */
+}
+
+input[type="radio"] {
+  display: none;
+}
+/* ===================== */
+
 /**/
