@@ -43,9 +43,9 @@ const App = () => {
     descripcion: '',
   });
 
+  // Estados locales para los campos editables
   const lenguajes = ['javascript', 'python', 'java', 'c_cpp', 'php', 'csharp', 'html', 'sql', 'ruby']; // lista de lenguajes
   const nombresLenguajes = ['J.Script', 'Python', 'Java', 'C++', 'PHP', 'C#', 'HTML', 'SQL', 'Ruby']; // nombres visibles de los lenguajes
-
 
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
@@ -312,7 +312,7 @@ const eliminarProyecto = async () => {
     <div className="container">
       <ResizableBox
         className="resizable-sidebar"
-        width={300}
+        width={250} //Espacio izquierda entre borde izquierdo y limite de carpeta de proyectos
         height={Infinity}
         axis="x"
         minConstraints={[200, Infinity]}
@@ -359,7 +359,7 @@ const eliminarProyecto = async () => {
                   onClick={() => seleccionarProyecto(proyecto)}
                 >
                   <h3>{proyecto.nombreProyecto}</h3>
-                  <p>{proyecto.descripcion.slice(0, 50)}...</p>
+                  <p>{proyecto.descripcion.slice(0, 50)}</p>
                 </li>
               ))}
             </ul>

@@ -448,12 +448,12 @@
   width: 600px;
   height: 40px;
   position: absolute;
-  background-color: white; /*Color de capsula grande*/
+  background-color: #282a36; /*Color de capsula grande*/
   z-index: 0;
   border-radius: 25px;
   transition: 0.3s ease;
   transform: translateX(0);
-  box-shadow: 4px 4px 4px rgba(0.1, 0.1, 0.1, 0.1); /* Sombra suave */
+  /*box-shadow: 4px 4px 4px rgba(0.1, 0.1, 0.1, 0.1); /* Sombra suave */
   /*border: 1px solid #888888; /* Borde alrededor de la cápsula */
 }
 
