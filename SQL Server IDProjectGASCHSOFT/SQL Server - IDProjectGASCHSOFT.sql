@@ -30,7 +30,6 @@ CREATE TABLE Proyectos (
     estado NVARCHAR(50) -- Estado del proyecto (Activo, Inactivo, Completado, etc.)
 );
 GO
-
 -- Crear tabla Pruebas
 CREATE TABLE Pruebas (
     idPrueba INT PRIMARY KEY IDENTITY(1,1), -- Identificador único de la prueba
@@ -155,3 +154,23 @@ SET estado = CASE idProyecto
     WHEN 91 THEN 'IN PROGRESS'
 END
 WHERE idProyecto IN (127, 128, 129, 130, 131, 132, 133, 134, 135, 136);
+--Actualizar tabla de proyectos
+ALTER TABLE Proyectos
+ADD lenguaje NVARCHAR(50) NULL;
+
+-- Actualizar los lenguajes de cada proyecto
+UPDATE Proyectos SET lenguaje = 'c_cpp' WHERE idProyecto = 150;
+UPDATE Proyectos SET lenguaje = 'java' WHERE idProyecto = 151;
+UPDATE Proyectos SET lenguaje = 'python' WHERE idProyecto = 152;
+UPDATE Proyectos SET lenguaje = 'php' WHERE idProyecto = 153;
+UPDATE Proyectos SET lenguaje = 'javascript' WHERE idProyecto = 154;
+UPDATE Proyectos SET lenguaje = 'c_cpp' WHERE idProyecto = 155;
+UPDATE Proyectos SET lenguaje = 'csharp' WHERE idProyecto = 156;
+UPDATE Proyectos SET lenguaje = 'c_cpp' WHERE idProyecto = 157;
+UPDATE Proyectos SET lenguaje = 'python' WHERE idProyecto = 158;
+UPDATE Proyectos SET lenguaje = 'c_cpp' WHERE idProyecto = 159;
+UPDATE Proyectos SET lenguaje = 'html' WHERE idProyecto = 160;
+UPDATE Proyectos SET lenguaje = 'csharp' WHERE idProyecto = 161;
+UPDATE Proyectos SET lenguaje = 'java' WHERE idProyecto = 189;
+UPDATE Proyectos SET lenguaje = 'ruby' WHERE idProyecto = 190;
+UPDATE Proyectos SET lenguaje = 'sql' WHERE idProyecto = 220;

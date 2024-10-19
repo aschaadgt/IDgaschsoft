@@ -3,22 +3,54 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 import { ResizableBox } from 'react-resizable';
+import AceEditor from 'react-ace'; // Para incluir el editor de código dentro de la sección de detalles del proyecto.
+
+// Importar los lenguajes que vamos a usar en el editor de código
+import 'ace-builds/src-noconflict/mode-javascript';
+import 'ace-builds/src-noconflict/mode-python';
+import 'ace-builds/src-noconflict/mode-java';
+import 'ace-builds/src-noconflict/mode-c_cpp';
+import 'ace-builds/src-noconflict/mode-php';
+import 'ace-builds/src-noconflict/mode-csharp';
+import 'ace-builds/src-noconflict/mode-html';
+import 'ace-builds/src-noconflict/mode-sql';
+import 'ace-builds/src-noconflict/mode-ruby';
+
+// Importar los temas del editor
+import 'ace-builds/src-noconflict/theme-monokai';
+import 'ace-builds/src-noconflict/theme-github';
+import 'ace-builds/src-noconflict/theme-dracula';
+import 'ace-builds/src-noconflict/theme-solarized_light';
+import 'ace-builds/src-noconflict/theme-tomorrow_night';
+
+
+import ace from 'ace-builds/src-noconflict/ace';
+
+
+// Configura la ruta base para los archivos de ace-builds
+ace.config.set('basePath', '/ace');
 
 const App = () => {
   const [proyectos, setProyectos] = useState([]);
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
   const [busqueda, setBusqueda] = useState('');
+  //const [archivoCodigo, setArchivoCodigo] = useState('');
+  const [contenidoCodigo, setContenidoCodigo] = useState('');
+  const [lenguaje, setLenguaje] = useState('javascript');
   const [mostrarModal, setMostrarModal] = useState(false);
   const [nuevoProyecto, setNuevoProyecto] = useState({
     nombreProyecto: '',
     descripcion: '',
   });
 
+  // Estados locales para los campos editables
+  const lenguajes = ['javascript', 'python', 'java', 'c_cpp', 'php', 'csharp', 'html', 'sql', 'ruby']; // lista de lenguajes
+  const nombresLenguajes = ['J.Script', 'Python', 'Java', 'C++', 'PHP', 'C#', 'HTML', 'SQL', 'Ruby']; // nombres visibles de los lenguajes
+
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
     if (!fecha) return 'Fecha no disponible';
     
-    // Aseguramos que la fecha esté en formato UTC para evitar desfases
     const date = new Date(fecha);
     date.setHours(date.getHours() + date.getTimezoneOffset() / 60);
   
@@ -28,19 +60,17 @@ const App = () => {
       const anio = date.getFullYear();
       return `${dia}/${mes}/${anio}`;
     }
-    
     return 'Fecha no disponible';
   };
 
+  // Cargar proyectos al inicio
   useEffect(() => {
     const obtenerProyectos = async () => {
       try {
         const response = await axios.get('http://localhost:3001/api/proyectos');
         setProyectos(response.data);
-
-        // Seleccionar automáticamente el primer proyecto si existe
         if (response.data.length > 0) {
-          setProyectoSeleccionado(response.data[0]);
+          seleccionarProyecto(response.data[0]); // Seleccionar el primer proyecto automáticamente
         }
       } catch (error) {
         console.error('Error al obtener los proyectos:', error);
@@ -50,99 +80,132 @@ const App = () => {
     obtenerProyectos();
   }, []);
 
+  // Guardar el código automáticamente después de 0.5 segundos de inactividad
   useEffect(() => {
-    // Manejar la navegación con las flechas del teclado
-    const manejarTeclas = (e) => {
-      if (proyectos.length === 0) return;
+    if (proyectoSeleccionado) {
+      const timer = setTimeout(async () => {
+        try {
+          await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/codigo`, {
+            contenido: contenidoCodigo
+          });
+          console.log('Código guardado automáticamente');
+        } catch (error) {
+          console.error('Error al guardar el código:', error);
+        }
+      }, 500); //500 milisengundos
 
-      const indexSeleccionado = proyectos.findIndex(
-        (proyecto) => proyecto.idProyecto === proyectoSeleccionado?.idProyecto
-      );
+      return () => clearTimeout(timer); // Cancela el temporizador si el usuario sigue escribiendo
+    }
+  }, [contenidoCodigo, proyectoSeleccionado]);
 
-      if (e.key === 'ArrowUp' && indexSeleccionado > 0) {
-        const nuevoSeleccionado = proyectos[indexSeleccionado - 1];
-        setProyectoSeleccionado(nuevoSeleccionado);
-        document.getElementById(`proyecto-${nuevoSeleccionado.idProyecto}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      } else if (e.key === 'ArrowDown' && indexSeleccionado < proyectos.length - 1) {
-        const nuevoSeleccionado = proyectos[indexSeleccionado + 1];
-        setProyectoSeleccionado(nuevoSeleccionado);
-        document.getElementById(`proyecto-${nuevoSeleccionado.idProyecto}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Manejar teclas de navegación
+useEffect(() => {
+  const manejarTeclas = (e) => {
+    if (proyectos.length === 0) return;
+
+    const indexSeleccionado = proyectos.findIndex(
+      (proyecto) => proyecto.idProyecto === proyectoSeleccionado?.idProyecto
+    );
+
+    if (e.key === 'ArrowUp' && indexSeleccionado > 0) {
+      const nuevoSeleccionado = proyectos[indexSeleccionado - 1];
+      
+      // Asegura cargar el código del proyecto seleccionado correctamente
+      seleccionarProyecto(nuevoSeleccionado);
+
+      // Asegura que el proyecto esté visible en el Scrollbar
+      const elemento = document.getElementById(`proyecto-${nuevoSeleccionado.idProyecto}`);
+      if (elemento) {
+        // Usamos "block: 'center'" para que el proyecto se mantenga centrado en la vista
+        elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    };
-
-    window.addEventListener('keydown', manejarTeclas);
-    return () => {
-      window.removeEventListener('keydown', manejarTeclas);
-    };
-  }, [proyectos, proyectoSeleccionado]);
-
-  const seleccionarProyecto = (proyecto) => {
-    setProyectoSeleccionado(proyecto);
+    } else if (e.key === 'ArrowDown' && indexSeleccionado < proyectos.length - 1) {
+      const nuevoSeleccionado = proyectos[indexSeleccionado + 1];
+      
+      // Asegura cargar el código del proyecto seleccionado correctamente
+      seleccionarProyecto(nuevoSeleccionado);
+      
+      // Asegura que el proyecto esté visible en el Scrollbar
+      const elemento = document.getElementById(`proyecto-${nuevoSeleccionado.idProyecto}`);
+      if (elemento) {
+        // Usamos "block: 'center'" para que el proyecto se mantenga centrado en la vista
+        elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
   };
 
-  // Función para mostrar el modal
+  window.addEventListener('keydown', manejarTeclas);
+  return () => {
+    window.removeEventListener('keydown', manejarTeclas);
+  };
+}, [proyectos, proyectoSeleccionado]);
+
+// Función para seleccionar un proyecto y cargar su código
+const seleccionarProyecto = async (proyecto) => {
+  setProyectoSeleccionado(proyecto);
+  try {
+    const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
+    setContenidoCodigo(response.data.contenido);
+    setLenguaje(proyecto.lenguaje || 'javascript'); // Actualiza el lenguaje al cargar un proyecto
+  } catch (error) {
+    console.error('Error al cargar el código del proyecto:', error);
+  }
+};
+
+  // Abrir el modal para crear un nuevo proyecto
   const abrirModal = () => {
     setMostrarModal(true);
   };
 
-  // Función para cerrar el modal
+  // Cerrar el modal
   const cerrarModal = () => {
     setMostrarModal(false);
     setNuevoProyecto({ nombreProyecto: '', descripcion: '' });
   };
 
-  // Función para manejar los cambios en el formulario del modal
+  // Manejar los cambios en el formulario del modal
   const manejarCambio = (e) => {
     const { name, value } = e.target;
     setNuevoProyecto({ ...nuevoProyecto, [name]: value });
   };
-  
-  // Crear la fecha actual en formato YYYY-MM-DD, asegurando que no haya desfase de zona horaria
+
+  // Obtener la fecha actual ajustada
   const obtenerFechaAjustada = (fecha) => {
-    fecha.setHours(0, 0, 0, 0); // Establece la hora a medianoche para evitar problemas de zona horaria
+    fecha.setHours(0, 0, 0, 0); 
     const year = fecha.getFullYear();
     const month = ('0' + (fecha.getMonth() + 1)).slice(-2);
     const day = ('0' + fecha.getDate()).slice(-2);
     return `${year}-${month}-${day}`;
   };
 
-  // Función para crear un nuevo proyecto
+  // Crear un nuevo proyecto
   const crearProyecto = async () => {
     try {
-      const fechaInicio = obtenerFechaAjustada(new Date()); // Fecha de inicio ajustada sin desfase
-      const fechaFin = obtenerFechaAjustada(new Date(new Date().setDate(new Date().getDate() + 7))); // Fecha de fin 7 días después
-
+      const fechaInicio = obtenerFechaAjustada(new Date());
+      const fechaFin = obtenerFechaAjustada(new Date(new Date().setDate(new Date().getDate() + 7)));
       const nuevoProyectoDatos = {
-        idUsuario: 'ASchaad', // Corregir en cuanto tengamos el login creado y la sesión guarde el usuario con el que se logueó
+        idUsuario: 'ASchaad',
         nombreProyecto: nuevoProyecto.nombreProyecto,
         descripcion: nuevoProyecto.descripcion,
         fechaInicio,
         fechaFin,
         estado: 'PENDIENTE',
+        lenguaje: 'javascript',
       };
 
       const response = await axios.post('http://localhost:3001/api/proyectos', nuevoProyectoDatos);
       if (response.status === 201) {
-        // Actualizar la lista de proyectos obteniendo de nuevo todos los proyectos del backend
         const responseProyectos = await axios.get('http://localhost:3001/api/proyectos');
         setProyectos(responseProyectos.data);
 
-        // Seleccionar el proyecto recién creado (usamos el último proyecto de la lista)
+        // Seleccionar automáticamente el nuevo proyecto creado
         const nuevoProyectoCreado = responseProyectos.data.find(
           (proyecto) => proyecto.nombreProyecto === nuevoProyectoDatos.nombreProyecto &&
                         proyecto.descripcion === nuevoProyectoDatos.descripcion
         );
 
         if (nuevoProyectoCreado) {
-          setProyectoSeleccionado(nuevoProyectoCreado);
-
-          // Espera breve para asegurarse de que el proyecto está renderizado, luego hacer scroll
-          setTimeout(() => {
-            const proyectoElement = document.getElementById(`proyecto-${nuevoProyectoCreado.idProyecto}`);
-            if (proyectoElement) {
-              proyectoElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          }, 100);
+          seleccionarProyecto(nuevoProyectoCreado); // Seleccionar el nuevo proyecto automáticamente
         }
 
         cerrarModal();
@@ -151,20 +214,19 @@ const App = () => {
       console.error('Error al crear el proyecto:', error);
     }
   };
-
-  // Función para actualizar el proyecto en el backend mediante PUT
+  // Actualizar un proyecto
   const actualizarProyecto = async (campo, valor) => {
     if (proyectoSeleccionado) {
       let proyectoActualizado = { ...proyectoSeleccionado };
-
+      
+      // Validación especial para la fecha de fin
       if (campo === 'fechaFin') {
         const partes = valor.split('/');
         if (partes.length === 3) {
           const dia = partes[0];
           const mes = partes[1];
           const anio = partes[2];
-          const fechaInvertida = `${mes}/${dia}/${anio}`; // Invertir día y mes
-          proyectoActualizado[campo] = fechaInvertida;
+          proyectoActualizado[campo] = `${mes}/${dia}/${anio}`;
         } else {
           alert('Por favor, ingresa una fecha válida en formato DD/MM/AAAA.');
           return;
@@ -172,7 +234,7 @@ const App = () => {
       } else {
         proyectoActualizado[campo] = valor;
       }
-
+  
       try {
         await axios.put(
           `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`,
@@ -191,32 +253,53 @@ const App = () => {
       }
     }
   };
+  
 
-  // Función para eliminar proyecto
-  const eliminarProyecto = async () => {
-    if (proyectoSeleccionado) {
-      try {
-        await axios.delete(
-          `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`
+  // Eliminar un proyecto
+const eliminarProyecto = async () => {
+  if (proyectoSeleccionado) {
+    try {
+      await axios.delete(
+        `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`
+      );
+      const nuevosProyectos = proyectos.filter(
+        (proyecto) => proyecto.idProyecto !== proyectoSeleccionado.idProyecto
+      );
+      
+      if (nuevosProyectos.length > 0) {
+        // Encuentra la posición del proyecto eliminado
+        const indexSeleccionado = proyectos.findIndex(
+          (proyecto) => proyecto.idProyecto === proyectoSeleccionado.idProyecto
         );
-        const nuevosProyectos = proyectos.filter(
-          (proyecto) => proyecto.idProyecto !== proyectoSeleccionado.idProyecto
-        );
-        setProyectos(nuevosProyectos);
-
-        // Seleccionar el proyecto anterior o siguiente
-        if (nuevosProyectos.length > 0) {
-          const index = proyectos.findIndex(
-            (proyecto) => proyecto.idProyecto === proyectoSeleccionado.idProyecto
-          );
-          const nuevoSeleccionado = nuevosProyectos[index - 1] || nuevosProyectos[index];
-          setProyectoSeleccionado(nuevoSeleccionado);
-        } else {
-          setProyectoSeleccionado(null);
-        }
-      } catch (error) {
-        console.error('Error al eliminar el proyecto:', error);
+        
+        // Selecciona el proyecto anterior, si existe. Si no, selecciona el siguiente.
+        const nuevoSeleccionado = nuevosProyectos[indexSeleccionado - 1] || nuevosProyectos[0];
+        setProyectoSeleccionado(nuevoSeleccionado);
+        
+        // Carga el código del nuevo proyecto seleccionado
+        seleccionarProyecto(nuevoSeleccionado);
+      } else {
+        // Si no quedan proyectos, limpiamos la selección
+        setProyectoSeleccionado(null);
+        setContenidoCodigo('');
       }
+      
+      setProyectos(nuevosProyectos);
+    } catch (error) {
+      console.error('Error al eliminar el proyecto:', error);
+    }
+  }
+};
+
+  // Guardar el código automáticamente
+  const guardarCodigoAutomáticamente = async (nuevoCodigo) => {
+    setContenidoCodigo(nuevoCodigo);
+    try {
+      await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/codigo`, {
+        codigo: nuevoCodigo,
+      });
+    } catch (error) {
+      console.error('Error al guardar el código:', error);
     }
   };
 
@@ -227,10 +310,9 @@ const App = () => {
 
   return (
     <div className="container">
-      {/* Resizable Sidebar */}
       <ResizableBox
         className="resizable-sidebar"
-        width={300}
+        width={250} //Espacio izquierda entre borde izquierdo y limite de carpeta de proyectos
         height={Infinity}
         axis="x"
         minConstraints={[200, Infinity]}
@@ -248,7 +330,6 @@ const App = () => {
         </section>
       </ResizableBox>
 
-      {/* Resizable Project List */}
       <ResizableBox
         className="resizable-project-list"
         width={300}
@@ -259,7 +340,6 @@ const App = () => {
         resizeHandles={['e']}
         style={{ flexShrink: 0 }}
       >
-        {/* Lista de proyectos */}
         <section className="project-list">
           <div className="search-bar">
             <input
@@ -273,18 +353,13 @@ const App = () => {
             <ul>
               {proyectosFiltrados.map((proyecto) => (
                 <li
-                  key={proyecto.idProyecto} // Asegurarse de que cada proyecto tenga un `key` único
-                  id={`proyecto-${proyecto.idProyecto}`} // Para poder hacer scroll hacia este elemento
-                  className={
-                    proyectoSeleccionado &&
-                    proyectoSeleccionado.idProyecto === proyecto.idProyecto
-                      ? 'selected'
-                      : ''
-                  }
+                  key={proyecto.idProyecto}
+                  id={`proyecto-${proyecto.idProyecto}`}
+                  className={proyectoSeleccionado?.idProyecto === proyecto.idProyecto ? 'selected' : ''}
                   onClick={() => seleccionarProyecto(proyecto)}
                 >
                   <h3>{proyecto.nombreProyecto}</h3>
-                  <p>{proyecto.descripcion.slice(0, 50)}...</p>
+                  <p>{proyecto.descripcion.slice(0, 50)}</p>
                 </li>
               ))}
             </ul>
@@ -292,7 +367,6 @@ const App = () => {
         </section>
       </ResizableBox>
 
-      {/* Detalles del proyecto */}
       <section className="project-details">
         <header>
           <div className="header-left">
@@ -358,6 +432,44 @@ const App = () => {
                   <option value="FINALIZADO">✅ FINALIZADO</option>
                 </select>
               </p>
+                  {/* Barra de lenguajes */}
+<div className="tabs">
+  {nombresLenguajes.map((nombre, index) => (
+    <label key={index} className={`tab ${lenguaje === lenguajes[index] ? 'selected' : ''}`}>
+      <input
+        type="radio"
+        name="tabs"
+        checked={lenguaje === lenguajes[index]}
+        onChange={() => {
+          setLenguaje(lenguajes[index]); // Cambia el lenguaje en la UI
+          actualizarProyecto('lenguaje', lenguajes[index]); // Actualiza el lenguaje en la base de datos
+        }}
+      />
+      {nombre}
+    </label>
+  ))}
+  <span className="slider"></span>
+</div>
+
+
+              {/* Editor de código */}
+              <AceEditor
+  mode={lenguaje}
+  theme="dracula" //github monokai dracula solarized_light tomorrow_night
+  name="editorCodigo"
+  value={contenidoCodigo}
+  onChange={guardarCodigoAutomáticamente}
+  fontSize={14}
+  width="100%"
+  height="450px"
+  setOptions={{
+    enableBasicAutocompletion: true,
+    enableLiveAutocompletion: true,
+    enableSnippets: true,
+    showLineNumbers: true,
+    tabSize: 4,
+  }}
+/>
             </>
           ) : (
             <p>No hay proyectos seleccionados. Crea uno nuevo para comenzar.</p>
@@ -365,41 +477,39 @@ const App = () => {
         </div>
       </section>
 
-      {/* Modal para crear un nuevo proyecto */}
       {mostrarModal && (
-  <div className="modal-overlay">
-    <div className="modal">
-      <div className="modal-header">
-        <h2>Crear Nuevo Proyecto</h2>
-        <button className="close-button" onClick={cerrarModal}>
-          &times;
-        </button>
-      </div>
-      <div className="modal-body">
-        <input
-          type="text"
-          name="nombreProyecto"
-          placeholder="Nombre del Proyecto" // Añadir el placeholder
-          value={nuevoProyecto.nombreProyecto}
-          onChange={manejarCambio}
-        />
-        <textarea
-          name="descripcion"
-          placeholder="Descripción" // Añadir el placeholder
-          value={nuevoProyecto.descripcion}
-          onChange={manejarCambio}
-        />
-      </div>
-      <div className="modal-footer">
-        <button onClick={crearProyecto}>+ Crear</button>
-      </div>
-    </div>
-  </div>
-)}
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2>Crear Nuevo Proyecto</h2>
+              <button className="close-button" onClick={cerrarModal}>
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
+              <input
+                type="text"
+                name="nombreProyecto"
+                placeholder="Nombre del Proyecto"
+                value={nuevoProyecto.nombreProyecto}
+                onChange={manejarCambio}
+              />
+              <textarea
+                name="descripcion"
+                placeholder="Descripción"
+                value={nuevoProyecto.descripcion}
+                onChange={manejarCambio}
+              />
+            </div>
+            <div className="modal-footer">
+              <button onClick={crearProyecto}>+ Crear</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default App;
-
-/** */
+//484
