@@ -461,7 +461,7 @@ const eliminarProyecto = async () => {
   onChange={guardarCodigoAutomáticamente}
   fontSize={14}
   width="100%"
-  height="450px"
+  height="calc(90vh - 200px)" // Ajusta 200px según sea necesario
   setOptions={{
     enableBasicAutocompletion: true,
     enableLiveAutocompletion: true,
