@@ -1,4 +1,5 @@
-@import '~react-resizable/css/styles.css';
+/* Eliminamos la importación de los estilos predeterminados */
+/* @import '~react-resizable/css/styles.css'; */
 
 /* Bloquear la selección de texto en toda la página */
 * {
@@ -17,7 +18,7 @@
   padding: 20px;
   box-shadow: 0px 0 0px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  border-right: 1px solid #ddd;
+  height: 100%;
 }
 
 .sidebar ul {
@@ -42,16 +43,14 @@
 }
 
 .project-list {
-  flex: 1;
   padding: 11px 0 0 0;
   background-color: #fff;
-  border-right: 1px solid #ddd;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
-/* Contenedor de la barra de búsqueda */
 .search-bar {
   margin-bottom: 0px;
   position: sticky;
@@ -62,7 +61,6 @@
   box-sizing: border-box;
 }
 
-/* Campo de búsqueda (input) */
 .search-bar input {
   width: 100%;
   padding: 10px;
@@ -113,7 +111,7 @@
 }
 
 .project-items li {
-  padding: 15px 10px;
+  padding: 1px 10px;
   border-bottom: 1px solid #ddd;
   cursor: default;
   border-radius: 10px;
@@ -128,19 +126,19 @@
   background-color: #d6d6d6;
 }
 
-/* Permitir la selección de texto en el contenido del proyecto, incluyendo subtítulos */
 .project-details {
   user-select: none; /* Por defecto, no seleccionable */
-  flex: 2;
+  flex-grow: 1;
   padding: 20px;
   background-color: #fafafa;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   overflow: hidden;
+  flex-grow: 1;
+  height: 100%;
 }
 
-/* Permitir selección en los párrafos, encabezados y subtítulos del cuerpo del proyecto */
 .project-details p,
 .project-details h1,
 .project-details h2,
@@ -205,7 +203,28 @@
 }
 
 .project-body {
-  margin-top: 20px;
+  margin-top: 5px;
+  overflow: auto; /* Agrega scroll si el contenido supera la altura */
+}
+
+/* Reducir márgenes entre elementos */
+.project-body h1,
+.project-body p,
+.project-body select,
+.project-body span,
+.project-body .tabs {
+  margin: 7px 0px; /* Reduce el margen superior e inferior a 5px */
+  padding: 0; /* Elimina cualquier padding adicional */
+}
+
+.project-body h1 {
+  font-size: 1.6rem; /* Ajusta el tamaño del título */
+}
+
+.project-body p,
+.project-body select,
+.project-body span {
+  font-size: 1rem; /* Asegura un tamaño consistente para el texto */
 }
 
 .empty-state {
@@ -214,24 +233,233 @@
   color: #aaa;
 }
 
-.resizer {
-  width: 5px;
-  cursor: ew-resize;
+/* Hacer el fondo del ResizableBox transparente */
+.transparent-sidebar {
+
   background-color: transparent;
+}
+
+
+/* Asegurar que la línea divisoria sea visible */
+.resizable-sidebar,
+.resizable-project-list {
+  border-right: 1px solid #ddd; /* Color de la línea divisoria */
+  position: relative;
+}
+
+/* Estilos esenciales para react-resizable */
+.react-resizable {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.react-resizable-handle {
   position: absolute;
+  width: 5px; /* Ancho del handle */
+  height: 100%;
   top: 0;
-  bottom: 0;
-  z-index: 1;
-  border: none;
-}
-
-.resizer-left {
   right: 0;
+  cursor: ew-resize;
+  z-index: 10;
+  background-color: transparent; /* Asegurar que el fondo sea transparente */
+  pointer-events: auto; /* Asegurar que capture los eventos del mouse */
 }
 
-.resizer-between {
-  left: 0;
-  right: -2.5px;
+/* Asegurar que no haya efectos visuales no deseados */
+.react-resizable-handle::before,
+.react-resizable-handle::after {
+  content: none !important;
 }
+
+/* Evitar cambios de color al interactuar */
+.react-resizable-handle:hover,
+.react-resizable-handle:active {
+  background-color: transparent;
+}
+
+/* Asegurar que el handle no afecte al contenido subyacente */
+.react-resizable-handle {
+  mix-blend-mode: normal;
+}
+
+/* Si deseas un indicador visual sutil, puedes agregar una línea */
+/* Opcional: Indicador visual en el handle */
+.react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 20%;
+  bottom: 20%;
+  width: 1px;
+  background-color: #ccc;
+  transform: translateX(-50%);
+}
+
+.project-items {
+  position: relative;
+  z-index: 1;
+}
+
+/* Estilos para el modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-body {
+  margin-bottom: 20px;
+}
+
+.modal-body label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.modal-body input,
+.modal-body textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-footer button {
+  padding: 10px 20px;
+  margin-left: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal-footer button:first-child {
+  background-color: #6c757d;
+  color: #ffffff;
+}
+
+.modal-footer button:last-child {
+  background-color: #28a745;
+  color: #ffffff;
+}
+
+.modal-footer button:hover {
+  opacity: 0.9;
+}
+.modal-body input,
+.modal-body textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-sizing: border-box;
+  font-size: 1rem;
+  font-family: Arial, Helvetica, sans-serif; /* Aplicar la misma fuente al textarea */
+}
+
+/* Estilo para el contenedor modal */
+.modal {
+  position: relative; /* Asegura que los elementos internos se posicionen correctamente dentro del modal */
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Estilo para la cabecera del modal */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Estilo para el botón de cerrar el modal (X) */
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #757575;
+}
+
+.close-button:hover {
+  color: #000000; /* Cambia a rojo al pasar el cursor */
+}
+
+/*Barra de lenguaje*/
+.tabs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.tab {
+  width: 40px;
+  height: 13px; /* Aumenta ligeramente la altura para centrar el texto */
+  padding: 0.5rem;
+  cursor: pointer;
+  z-index: 2;
+  display: inline-block;
+  text-align: center;
+  line-height: 13px; /* Igual al valor de la altura para centrar verticalmente el texto */
+  background-color:white; /*Color de cada capsula*/
+  border-radius: 25px;
+  margin: 0 5px;
+  transition: background-color 0.3s ease;
+  font-size: 12px; /* Cambia este valor para ajustar el tamaño de la fuente */
+
+}
+
+.tab.selected {
+  background-color: #007bff; /*Color de capsula seleccionada */
+  color: white; /*Color de letra de capsula seleccionada */
+}
+
+.tabs .slider {
+  width: 600px;
+  height: 40px;
+  position: absolute;
+  background-color: #282a36; /*Color de capsula grande*/
+  z-index: 0;
+  border-radius: 25px;
+  transition: 0.3s ease;
+  transform: translateX(0);
+  /*box-shadow: 4px 4px 4px rgba(0.1, 0.1, 0.1, 0.1); /* Sombra suave */
+  /*border: 1px solid #888888; /* Borde alrededor de la cápsula */
+}
+
+input[type="radio"] {
+  display: none;
+}
+/* ===================== */
+
 /**/
-/** Hola Mundo Diño*/
