@@ -49,6 +49,10 @@ const App = () => {
   const [mostrarModalConfirmacion, setMostrarModalConfirmacion] = useState(false);
   const [proyectoAEliminar, setProyectoAEliminar] = useState(null);
 
+  // Estados para los resultados de las pruebas
+  const [resultadosPrueba, setResultadosPrueba] = useState(null); // Estado para los resultados de las pruebas
+  const [mostrarModalPrueba, setMostrarModalPrueba] = useState(false); // Estado para mostrar/ocultar el modal de resultados
+
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
     if (!fecha) return 'Fecha no disponible';
@@ -153,6 +157,23 @@ const seleccionarProyecto = async (proyecto) => {
     console.error('Error al cargar el código del proyecto:', error);
   }
 };
+
+//Función para ejecutar el análisis de código
+const ejecutarPrueba = async () => {
+  console.log("Botón de pruebas clickeado");
+  try {
+    const response = await axios.post(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/analisis`, {
+      contenidoCodigo: contenidoCodigo, // Código que vamos a analizar
+    });
+
+    // Mostrar los resultados en el modal
+    setResultadosPrueba(response.data.resultados);
+    setMostrarModalPrueba(true);
+  } catch (error) {
+    console.error('Error al ejecutar la prueba:', error);
+  }
+};
+
 
   // Abrir el modal para crear un nuevo proyecto
   const abrirModal = () => {
@@ -393,7 +414,9 @@ const eliminarProyecto = async () => {
 >
   Eliminar
 </button>
-            <button disabled={!proyectoSeleccionado}>Pruebas</button>
+<button onClick={ejecutarPrueba} disabled={!proyectoSeleccionado}>
+  Pruebas
+</button>
           </div>
           <button className="new-project" onClick={abrirModal}>+ Crear Proyecto</button>
         </header>
@@ -547,8 +570,41 @@ const eliminarProyecto = async () => {
           </div>
         </div>
       )}
+      {/* Modal de resultados de la prueba */}
+    {mostrarModalPrueba && (
+      <div className="modal-overlay">
+        <div className="modal">
+          <div className="modal-header">
+            <h2>Resultados de la Prueba</h2>
+            <button className="close-button" onClick={() => setMostrarModalPrueba(false)}>
+              &times;
+            </button>
+          </div>
+          <div className="modal-body">
+            {resultadosPrueba ? (
+              <ul>
+                {resultadosPrueba.map((resultado, index) => (
+                  <li key={index}>
+                    <strong>{resultado.tipo}</strong>: {resultado.descripcion} (Línea: {resultado.linea})
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No se encontraron resultados.</p>
+            )}
+          </div>
+          <div className="modal-footer">
+            <button onClick={() => setMostrarModalPrueba(false)}>Cerrar</button>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
+  
+  
+  
+  
 };
 
 export default App;

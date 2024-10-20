@@ -3,6 +3,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const { poolPromise, sql } = require('./db'); // Importa db.js desde el archivo que creaste
+const { ESLint } = require('eslint'); // Importa ESLint para el análisis de JavaScript
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -37,6 +38,67 @@ const formatearFecha = (fecha) => {
 
   return 'Fecha no disponible';
 };
+//=========================================================================================||
+// FUNCIONES   PARA   ANALISIS   ESTATICO   DE   TODOS   LOS   LENGUAJES
+// Función para ejecutar análisis estático en código JavaScript
+async function analizarCodigoConESLint(codigo) {
+  try {
+    const eslint = new ESLint(); // Instancia ESLint
+    const resultados = await eslint.lintText(codigo); // Analiza el contenido del archivo
+    const mensajes = resultados[0].messages.map((mensaje) => {
+      return {
+        tipo: mensaje.severity === 1 ? 'Advertencia' : 'Error',
+        descripcion: mensaje.message,
+        linea: mensaje.line,
+        columna: mensaje.column,
+      };
+    });
+    return mensajes; // Devuelve los mensajes de análisis
+  } catch (error) {
+    console.error('Error al analizar código JavaScript:', error);
+    throw new Error('No se pudo analizar el código JavaScript.');
+  }
+}
+
+async function ejecutarAnalisisPython(codigo) {
+  // Aquí puedes integrar Pylint o Flake8
+  return [{ tipo: 'Advertencia', descripcion: 'Scanner en proceso para Lenguaje Python', linea: 1, columna: 1 }];
+}
+
+async function ejecutarAnalisisJava(codigo) {
+  // Aquí puedes integrar CheckStyle o PMD
+  return [{ tipo: 'Error', descripcion: 'Scanner en proceso para Lenguaje Java', linea: 1, columna: 1 }];
+}
+
+async function ejecutarAnalisisCPlusPlus(codigo) {
+  // Aquí puedes integrar Cppcheck
+  return [{ tipo: 'Advertencia', descripcion: 'Scanner en proceso para Lenguaje C++', linea: 1, columna: 1 }];
+}
+
+async function ejecutarAnalisisPHP(codigo) {
+  // Aquí puedes integrar PHPMD o PHP_CodeSniffer
+  return [{ tipo: 'Error', descripcion: 'Scanner en proceso para Lenguaje PHP', linea: 1, columna: 1 }];
+}
+
+async function ejecutarAnalisisCSharp(codigo) {
+  // Aquí puedes integrar Roslyn Analyzer
+  return [{ tipo: 'Advertencia', descripcion: 'Scanner en proceso para Lenguaje C#', linea: 1, columna: 1 }];
+}
+
+async function ejecutarAnalisisHTML(codigo) {
+  // Aquí puedes integrar HTMLHint
+  return [{ tipo: 'Advertencia', descripcion: 'Scanner en proceso para Lenguaje HTML', linea: 1, columna: 1 }];
+}
+
+async function ejecutarAnalisisSQL(codigo) {
+  // Aquí puedes integrar SQLint
+  return [{ tipo: 'Advertencia', descripcion: 'Scanner en proceso para Lenguaje SQL', linea: 1, columna: 1 }];
+}
+
+async function ejecutarAnalisisRuby(codigo) {
+  // Aquí puedes integrar RuboCop
+  return [{ tipo: 'Error', descripcion: 'Scanner en proceso para Lenguaje Ruby', linea: 1, columna: 1 }];
+}
 
 //=========================================================================================||
 // C R U D   P R O Y E C T O S / A R C H I V O S
@@ -468,9 +530,78 @@ app.get('/api/proyectos/:idProyecto/codigo', async (req, res) => {
       res.status(500).send({ message: err.message });
     }
   });
-  
-  //=========================================================================================||
-  // Función para inicializar archivos de código para proyectos existentes
+//=========================================================================================||
+// C R U D   A N Á L I S I S   E S T Á T I C O
+// Ruta POST para ejecutar el análisis de código estático en un proyecto
+app.post('/api/proyectos/:id/analisis', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const pool = await poolPromise;
+    
+    // Obtenemos el lenguaje del proyecto desde la base de datos
+    const proyecto = await pool.request()
+        .input('idProyecto', sql.Int, id)
+        .query('SELECT lenguaje FROM Proyectos WHERE idProyecto = @idProyecto');
+    
+    if (proyecto.recordset.length === 0) {
+        return res.status(404).send({ message: 'Proyecto no encontrado.' });
+    }
+
+    const lenguaje = proyecto.recordset[0].lenguaje;
+
+    // Obtenemos el código desde el archivo .txt del proyecto
+    const filePath = path.join(codigoDir, `proyecto_${id}.txt`);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send({ message: 'No se encontró código para este proyecto.' });
+    }
+
+    const contenidoCodigo = fs.readFileSync(filePath, 'utf-8');
+
+    // Dependiendo del lenguaje, ejecutamos el análisis correspondiente
+    let resultadoAnalisis;
+    switch (lenguaje) {
+      case 'javascript':
+        resultadoAnalisis = await analizarCodigoConESLint(contenidoCodigo);
+        break;
+      case 'python':
+        resultadoAnalisis = await ejecutarAnalisisPython(contenidoCodigo);
+        break;
+      case 'java':
+        resultadoAnalisis = await ejecutarAnalisisJava(contenidoCodigo);
+        break;
+      case 'c_cpp':
+        resultadoAnalisis = await ejecutarAnalisisCPlusPlus(contenidoCodigo);
+        break;
+      case 'php':
+        resultadoAnalisis = await ejecutarAnalisisPHP(contenidoCodigo);
+        break;
+      case 'csharp':
+        resultadoAnalisis = await ejecutarAnalisisCSharp(contenidoCodigo);
+        break;
+      case 'html':
+        resultadoAnalisis = await ejecutarAnalisisHTML(contenidoCodigo);
+        break;
+      case 'sql':
+        resultadoAnalisis = await ejecutarAnalisisSQL(contenidoCodigo);
+        break;
+      case 'ruby':
+        resultadoAnalisis = await ejecutarAnalisisRuby(contenidoCodigo);
+        break;
+      default:
+        return res.status(400).send({ message: `Análisis para el lenguaje ${lenguaje} no implementado aún.` });
+    }
+
+    // Devolver los resultados del análisis
+    res.status(200).json({ resultados: resultadoAnalisis });
+  } catch (err) {
+    res.status(500).send({ message: `Error al ejecutar el análisis: ${err.message}` });
+  }
+});
+
+//=========================================================================================||
+// Función para inicializar archivos de código para proyectos existentes
   const inicializarArchivosCodigo = async () => {
     try {
       const pool = await poolPromise;
