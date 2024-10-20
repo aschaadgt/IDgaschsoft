@@ -460,6 +460,23 @@
 input[type="radio"] {
   display: none;
 }
+
+/* Estilo para el botón "Sí, eliminar" */
+.modal-footer .delete-button {
+  background-color: #c82333!important; /* Color de fondo rojo */
+  color: #ffffff; /* Color del texto blanco */
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal-footer .delete-button:hover {
+  background-color: #e52222!important; /* Color de fondo rojo oscuro al hacer hover */
+  opacity: 0.9; /* Un ligero cambio en la opacidad al pasar el cursor */
+}
+
+
 /* ===================== */
 
 /**/

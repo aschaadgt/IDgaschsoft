@@ -23,9 +23,7 @@ import 'ace-builds/src-noconflict/theme-dracula';
 import 'ace-builds/src-noconflict/theme-solarized_light';
 import 'ace-builds/src-noconflict/theme-tomorrow_night';
 
-
 import ace from 'ace-builds/src-noconflict/ace';
-
 
 // Configura la ruta base para los archivos de ace-builds
 ace.config.set('basePath', '/ace');
@@ -46,6 +44,11 @@ const App = () => {
   // Estados locales para los campos editables
   const lenguajes = ['javascript', 'python', 'java', 'c_cpp', 'php', 'csharp', 'html', 'sql', 'ruby']; // lista de lenguajes
   const nombresLenguajes = ['J.Script', 'Python', 'Java', 'C++', 'PHP', 'C#', 'HTML', 'SQL', 'Ruby']; // nombres visibles de los lenguajes
+
+  // Inicio de edicion modal "seguro que desea eliminar" 05:43 PM
+  // Estados para confirmacion de eliminacion de proyecto.
+  const [mostrarModalConfirmacion, setMostrarModalConfirmacion] = useState(false);
+  const [proyectoAEliminar, setProyectoAEliminar] = useState(null);
 
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
@@ -291,6 +294,17 @@ const eliminarProyecto = async () => {
   }
 };
 
+  // Funcion de confirmacion de eliminacion
+  const confirmarEliminacionProyecto = async () => {
+    try {
+      await eliminarProyecto(); // Utiliza tu función de eliminar existente
+      setMostrarModalConfirmacion(false); // Cierra el modal
+    } catch (error) {
+      console.error('Error al eliminar el proyecto:', error);
+    }
+  };
+  
+
   // Guardar el código automáticamente
   const guardarCodigoAutomáticamente = async (nuevoCodigo) => {
     setContenidoCodigo(nuevoCodigo);
@@ -370,13 +384,16 @@ const eliminarProyecto = async () => {
       <section className="project-details">
         <header>
           <div className="header-left">
-            <button
-              className="delete-project"
-              onClick={eliminarProyecto}
-              disabled={!proyectoSeleccionado}
-            >
-              Eliminar
-            </button>
+          <button
+  className="delete-project"
+  onClick={() => {
+    setProyectoAEliminar(proyectoSeleccionado);
+    setMostrarModalConfirmacion(true);
+  }}
+  disabled={!proyectoSeleccionado}
+>
+  Eliminar
+</button>
             <button disabled={!proyectoSeleccionado}>Pruebas</button>
           </div>
           <button className="new-project" onClick={abrirModal}>+ Crear Proyecto</button>
@@ -476,6 +493,30 @@ const eliminarProyecto = async () => {
           )}
         </div>
       </section>
+      {mostrarModalConfirmacion && (
+  <div className="modal-overlay">
+    <div className="modal">
+      <div className="modal-header">
+        <h2>Confirmar Eliminación</h2>
+        <button className="close-button" onClick={() => setMostrarModalConfirmacion(false)}>
+          &times;
+        </button>
+      </div>
+      <div className="modal-body">
+        <p>
+          ¿Está seguro que desea eliminar el proyecto{' '}
+          <strong>{proyectoAEliminar?.nombreProyecto}</strong>?
+        </p>
+      </div>
+      <div className="modal-footer">
+        <button onClick={() => setMostrarModalConfirmacion(false)}>Cancelar</button>
+        <button className="delete-button" onClick={confirmarEliminacionProyecto}>
+          Sí, eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {mostrarModal && (
         <div className="modal-overlay">
