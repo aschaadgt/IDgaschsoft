@@ -45,7 +45,6 @@ const App = () => {
   const lenguajes = ['javascript', 'python', 'java', 'c_cpp', 'php', 'csharp', 'html', 'sql', 'ruby']; // lista de lenguajes
   const nombresLenguajes = ['J.Script', 'Python', 'Java', 'C++', 'PHP', 'C#', 'HTML', 'SQL', 'Ruby']; // nombres visibles de los lenguajes
 
-  // Inicio de edicion modal "seguro que desea eliminar" 05:43 PM
   // Estados para confirmacion de eliminacion de proyecto.
   const [mostrarModalConfirmacion, setMostrarModalConfirmacion] = useState(false);
   const [proyectoAEliminar, setProyectoAEliminar] = useState(null);
@@ -337,7 +336,7 @@ const eliminarProyecto = async () => {
         <section className="sidebar transparent-sidebar">
           <ul>
             <li className="sidebar-item">Todos los proyectos</li>
-            <li className="sidebar-item">Programación 2</li>
+            <li className="sidebar-item">Otros</li>
             <li className="sidebar-item">Archivados</li>
             <li className="sidebar-item">Eliminados</li>
           </ul>
@@ -553,4 +552,4 @@ const eliminarProyecto = async () => {
 };
 
 export default App;
-//484
+//555
