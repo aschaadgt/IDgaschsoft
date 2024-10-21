@@ -429,54 +429,67 @@ app.get('/api/defectos/:id', async (req, res) => {
 
 // Ruta POST para crear un nuevo defecto
 app.post('/api/defectos', async (req, res) => {
-    try {
-        const { idPrueba, descripcion, prioridad, estado, fechaCreacion, fechaResolucion } = req.body;
+  try {
+      // Destructuramos correctamente el campo 'asignado'
+      const { idPrueba, descripcion, prioridad, estado, fechaCreacion, fechaResolucion, asignado } = req.body;
 
-        // Verifica si se han proporcionado todos los campos requeridos
-        if (!idPrueba || !descripcion || !prioridad || !estado || !fechaCreacion) {
-            return res.status(400).send({ message: 'Por favor, llena todos los campos requeridos.' });
-        }
+      // Verifica si se han proporcionado todos los campos requeridos
+      if (!idPrueba || !descripcion || !prioridad || !estado || !fechaCreacion) {
+          return res.status(400).send({ message: 'Por favor, llena todos los campos requeridos.' });
+      }
 
-        const pool = await poolPromise;
-        await pool.request()
-            .input('idPrueba', sql.Int, idPrueba)
-            .input('descripcion', sql.NVarChar, descripcion)
-            .input('prioridad', sql.NVarChar, prioridad)
-            .input('estado', sql.NVarChar, estado)
-            .input('fechaCreacion', sql.DateTime, fechaCreacion)
-            .input('fechaResolucion', sql.DateTime, fechaResolucion || null) // Campo opcional
-            .query('INSERT INTO Defectos (idPrueba, descripcion, prioridad, estado, fechaCreacion, fechaResolucion) VALUES (@idPrueba, @descripcion, @prioridad, @estado, @fechaCreacion, @fechaResolucion)');
+      const pool = await poolPromise;
+      await pool.request()
+          .input('idPrueba', sql.Int, idPrueba)
+          .input('descripcion', sql.NVarChar, descripcion)
+          .input('prioridad', sql.NVarChar, prioridad)
+          .input('estado', sql.NVarChar, estado)
+          .input('fechaCreacion', sql.DateTime, fechaCreacion)
+          .input('fechaResolucion', sql.DateTime, fechaResolucion || null) // Campo opcional
+          .input('asignado', sql.VarChar, asignado || null) // Campo opcional de asignación
+          .query('INSERT INTO Defectos (idPrueba, descripcion, prioridad, estado, fechaCreacion, fechaResolucion, Asignado) VALUES (@idPrueba, @descripcion, @prioridad, @estado, @fechaCreacion, @fechaResolucion, @asignado)');
 
-        res.status(201).send({ message: 'Defecto creado exitosamente.' });
-    } catch (err) {
-        res.status(500).send({ message: err.message });
-    }
+      res.status(201).send({ message: 'Defecto creado exitosamente.' });
+  } catch (err) {
+      res.status(500).send({ message: err.message });
+  }
 });
-
 // Ruta PUT para actualizar un defecto existente eee
+// Ruta PUT para actualizar un defecto existente
 app.put('/api/defectos/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { descripcion, prioridad, estado, fechaResolucion } = req.body;
+  try {
+      const { id } = req.params; // Obtiene el ID del defecto desde la URL
+      const { descripcion, prioridad, estado, fechaResolucion, Asignado} = req.body; // Destructura los campos desde el body
 
-        const pool = await poolPromise;
-        const result = await pool.request()
-            .input('descripcion', sql.NVarChar, descripcion)
-            .input('prioridad', sql.NVarChar, prioridad)
-            .input('estado', sql.NVarChar, estado)
-            .input('fechaResolucion', sql.DateTime, fechaResolucion || null)
-            .input('idDefecto', sql.Int, id)
-            .query('UPDATE Defectos SET descripcion = @descripcion, prioridad = @prioridad, estado = @estado, fechaResolucion = @fechaResolucion WHERE idDefecto = @idDefecto');
+      // Verifica si el ID es válido y si se han proporcionado los campos requeridos
+      if (!descripcion || !prioridad || !estado) {
+          return res.status(400).send({ message: 'Por favor, llena todos los campos requeridos.' });
+      }
 
-        if (result.rowsAffected[0] === 0) {
-            return res.status(404).send({ message: 'Defecto no encontrado.' });
-        }
+      const pool = await poolPromise;
 
-        res.send({ message: 'Defecto actualizado exitosamente.' });
-    } catch (err) {
-        res.status(500).send({ message: err.message });
-    }
+      // Actualiza los campos del defecto
+      const result = await pool.request()
+          .input('descripcion', sql.NVarChar, descripcion)
+          .input('prioridad', sql.NVarChar, prioridad)
+          .input('estado', sql.NVarChar, estado)
+          .input('fechaResolucion', sql.DateTime, fechaResolucion || null) // Campo opcional
+          .input('asignado', sql.VarChar, Asignado || null) // Campo opcional de asignación
+          .input('idDefecto', sql.Int, id) // ID del defecto a actualizar
+          .query('UPDATE Defectos SET descripcion = @descripcion, prioridad = @prioridad, estado = @estado, fechaResolucion = @fechaResolucion, Asignado = @asignado WHERE idDefecto = @idDefecto');
+
+      // Verifica si la actualización afectó alguna fila
+      if (result.rowsAffected[0] === 0) {
+          return res.status(404).send({ message: `Defecto con ID ${id} no fue encontrado.` });
+      }
+
+      // Si todo va bien, enviamos un mensaje de éxito
+      res.send({ message: 'Defecto actualizado exitosamente.' });
+  } catch (err) {
+      res.status(500).send({ message: err.message }); // Manejo de errores
+  }
 });
+
 
 // Ruta DELETE para eliminar un defecto
 app.delete('/api/defectos/:id', async (req, res) => {
@@ -625,4 +638,4 @@ app.listen(port, async () => {
     console.log(`Servidor ejecutándose en http://localhost:${port}`);
     await inicializarArchivosCodigo();  // Crear archivos para proyectos existentes
 });
-/*497*/
+/*628*/
