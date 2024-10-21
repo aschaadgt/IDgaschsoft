@@ -454,7 +454,6 @@ app.post('/api/defectos', async (req, res) => {
       res.status(500).send({ message: err.message });
   }
 });
-// Ruta PUT para actualizar un defecto existente eee
 // Ruta PUT para actualizar un defecto existente
 app.put('/api/defectos/:id', async (req, res) => {
   try {
@@ -638,4 +637,4 @@ app.listen(port, async () => {
     console.log(`Servidor ejecutándose en http://localhost:${port}`);
     await inicializarArchivosCodigo();  // Crear archivos para proyectos existentes
 });
-/*628*/
+/*640*/
