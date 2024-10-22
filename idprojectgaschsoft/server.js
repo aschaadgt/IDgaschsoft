@@ -43,62 +43,83 @@ const formatearFecha = (fecha) => {
 //=========================================================================================||
 // FUNCIONES   PARA   ANALISIS   ESTATICO   DE   TODOS   LOS   LENGUAJES
 // Función para ejecutar análisis estático en código JavaScript
-async function analizarCodigoConESLint(codigo) {
+async function analizarCodigoConESLint(codigo, lenguaje) {
   try {
-    // Parsear el HTML y extraer el código JavaScript
-    const dom = new JSDOM(codigo);
-    const scripts = dom.window.document.querySelectorAll('script');
-    let jsCode = '';
-
-    scripts.forEach(script => {
-      jsCode += script.textContent + '\n';
-    });
-
-    if (!jsCode) {
-      throw new Error('No se encontró código JavaScript en el archivo.');
-    }
-
-    const eslint = new ESLint();
-    const resultados = await eslint.lintText(jsCode);
-    const mensajes = resultados[0].messages.map((mensaje) => {
-      const { ruleId, message, line, column } = mensaje;
-      let descripcion = message;
-
-      if (ruleId && translationMapping[ruleId]) {
-        descripcion = translationMapping[ruleId];
-
-        // Reemplazar variables dinámicas en el mensaje
-        const variableName = extractVariableName(message, ruleId);
-        if (variableName) {
-          descripcion = descripcion.replace('{variable}', variableName);
-        }
+      // Verificar si el lenguaje es JavaScript
+      if (lenguaje.toLowerCase() !== 'javascript') {
+          throw new Error('Lenguaje no soportado para análisis con ESLint.');
       }
 
-      return {
-        tipo: mensaje.severity === 1 ? 'Advertencia' : 'Error',
-        descripcion: descripcion,
-        linea: line,
-        columna: column,
-      };
-    });
-    return mensajes;
+      // Parsear el HTML y extraer el código JavaScript
+      const dom = new JSDOM(codigo);
+      const scripts = dom.window.document.querySelectorAll('script');
+      let jsCode = '';
+
+      scripts.forEach(script => {
+          jsCode += script.textContent + '\n';
+      });
+
+      if (!jsCode.trim()) {
+          throw new Error('No se encontró código JavaScript en el archivo.');
+      }
+
+      const eslint = new ESLint();
+      const resultados = await eslint.lintText(jsCode);
+      const mensajes = resultados[0].messages.map((mensaje) => {
+          const { ruleId, message, line, column, severity } = mensaje;
+          // Consol para poder ver nuevas reglas en ingles, comentar una vez se añada a translationMapping
+          // Ejemplo no-unused-vars - Message: se coloca "'no-template-curly-in-string': {" en el arch.
+          // console.log(`Rule ID: ${ruleId} - Message: ${message}`);
+
+          let descripcion = message;
+          let nivel = 'Information'; // Nivel por defecto
+
+          if (ruleId && translationMapping[ruleId]) {
+              descripcion = translationMapping[ruleId].message;
+
+              // Reemplazar variables dinámicas en el mensaje
+              const variableName = extractVariableName(message, ruleId);
+              if (variableName) {
+                  descripcion = descripcion.replace('{variable}', variableName);
+              }
+
+              // Asignar el nivel personalizado
+              nivel = translationMapping[ruleId].level;
+          }
+
+          return {
+              tipo: nivel, // Usar el nivel personalizado
+              descripcion: descripcion,
+              linea: line,
+              columna: column,
+          };
+      });
+      return mensajes;
   } catch (error) {
-    throw new Error('No se pudo analizar el código JavaScript.');
+      // Eliminaste el console.error para limpiar la consola
+      throw error; // Lanzar el error para que sea manejado en otro lugar
   }
 }
+
 // Función para extraer el nombre de la variable del mensaje original
 function extractVariableName(message, ruleId) {
   let match;
   switch (ruleId) {
-    case 'no-unused-vars':
-    case 'no-undef':
-    case 'no-redeclare':
-      match = message.match(/'(.*?)'/);
-      return match ? match[1] : null;
-    default:
-      return null;
+      case 'no-unused-vars':
+      case 'no-undef':
+      case 'no-redeclare':
+      case 'no-use-before-define':
+          match = message.match(/'(.+?)'/);
+          return match ? match[1] : null;
+      case 'func-names':
+          match = message.match(/function (.+?)\(/);
+          return match ? match[1] : null;
+      default:
+          return null;
   }
 }
+
+module.exports = { analizarCodigoConESLint };
 //--------------------
 async function ejecutarAnalisisPython(codigo) {
   // Aquí puedes integrar Pylint o Flake8
@@ -615,7 +636,7 @@ app.post('/api/proyectos/:id/analisis', async (req, res) => {
     let resultadoAnalisis;
     switch (lenguaje) {
       case 'javascript':
-        resultadoAnalisis = await analizarCodigoConESLint(contenidoCodigo);
+        resultadoAnalisis = await analizarCodigoConESLint(contenidoCodigo, lenguaje); // Pasar el lenguaje
         break;
       case 'python':
         resultadoAnalisis = await ejecutarAnalisisPython(contenidoCodigo);

@@ -520,4 +520,32 @@ input[type="radio"] {
   color: #000000;
 }
 
+/**/
+.modal-body ul li {
+  margin-bottom: 10px;
+}
+
+.modal-body ul li strong.Critical {
+  color: red;
+}
+
+.modal-body ul li strong.High {
+  color: orange;
+}
+
+.modal-body ul li strong.Medium {
+  color: gold;
+}
+
+.modal-body ul li strong.Low {
+  color: green;
+}
+
+.modal-body ul li strong.Best\ Practice {
+  color: blue;
+}
+
+.modal-body ul li strong.Information {
+  color: gray;
+}
 /*523*/
