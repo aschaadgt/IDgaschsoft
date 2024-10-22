@@ -5,7 +5,7 @@ const path = require('path');
 const { poolPromise, sql } = require('./db'); // Importa db.js desde el archivo que creaste
 const { ESLint } = require('eslint'); // Importa ESLint para el análisis de JavaScript
 const { JSDOM } = require('jsdom'); // Import de módulo necesario para manipular HTML
-const translationMapping = require('./translationMapping'); // Mi propia libreria de traducciones de JavaScrip
+const { translationMapping, SEVERITY_LEVELS } = require('./translationMapping'); // Mi propia libreria de traducciones de JavaScrip
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -44,8 +44,12 @@ const formatearFecha = (fecha) => {
 // FUNCIONES   PARA   ANALISIS   ESTATICO   DE   TODOS   LOS   LENGUAJES
 // Función para ejecutar análisis estático en código JavaScript
 async function analizarCodigoConESLint(codigo, lenguaje) {
+  
   try {
-      // Verificar si el lenguaje es JavaScript
+      if (lenguaje.toLowerCase() !== 'javascript') {
+      throw new Error('Lenguaje no soportado para análisis con ESLint.');
+      }
+      // Parsear el HTML y extraer el código JavaScript
       if (lenguaje.toLowerCase() !== 'javascript') {
           throw new Error('Lenguaje no soportado para análisis con ESLint.');
       }
@@ -698,4 +702,4 @@ app.listen(port, async () => {
     console.log(`Servidor ejecutándose en http://localhost:${port}`);
     await inicializarArchivosCodigo();  // Crear archivos para proyectos existentes
 });
-/*640*/
+/*701*/

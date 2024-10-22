@@ -611,7 +611,7 @@ const eliminarProyecto = async () => {
     )}
     </div>
   );
-  
+  /*614*/
   
   
   
