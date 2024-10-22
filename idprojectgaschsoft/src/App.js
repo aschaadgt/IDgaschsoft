@@ -171,11 +171,19 @@ const ejecutarPrueba = async () => {
 
     // Mostrar los resultados en el modal
     setResultadosPrueba(response.data.resultados || []);
-    setMostrarModalPrueba(true);
-  } catch (error) {
-    console.error('Error al ejecutar la prueba:', error);
-  }
-};
+      setMostrarModalPrueba(true);
+    } catch (error) {
+      console.error('Error al ejecutar la prueba:', error);
+      // Mostrar un mensaje de error en el modal
+      setResultadosPrueba([{
+        tipo: 'Error',
+        descripcion: 'Hubo un problema al ejecutar el análisis. ¿Es el lenguaje correcto?',
+        linea: null,
+        columna: null,
+      }]);
+      setMostrarModalPrueba(true);
+    }
+  };
 
 
   // Abrir el modal para crear un nuevo proyecto
@@ -574,34 +582,34 @@ const eliminarProyecto = async () => {
         </div>
       )}
       {/* Modal de resultados de la prueba */}
-    {mostrarModalPrueba && (
-      <div className="modal-overlay">
-        <div className="modal">
-          <div className="modal-header">
-            <h2>Resultados de la Prueba</h2>
-            <button className="close-button" onClick={() => setMostrarModalPrueba(false)}>
-              &times;
-            </button>
-          </div>
-          <div className="modal-body">
-          {resultadosPrueba && resultadosPrueba.length > 0 ? (
-    <ul>
-      {resultadosPrueba.map((resultado, index) => (
-        <li key={index}>
-          <strong>{resultado.tipo}</strong>: {resultado.descripcion} (Línea: {resultado.linea})
-        </li>
-      ))}
-    </ul>
-  ) : (
-    <p>¡Excelente! Tu código no tiene ningún defecto en esta prueba.</p>
-  )}
-</div>
-          <div className="modal-footer">
-            <button onClick={() => setMostrarModalPrueba(false)}>Cerrar</button>
+      {mostrarModalPrueba && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2>Resultados de la Prueba</h2>
+              <button className="close-button" onClick={() => setMostrarModalPrueba(false)}>
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
+              {resultadosPrueba && resultadosPrueba.length > 0 ? (
+                <ul>
+                  {resultadosPrueba.map((resultado, index) => (
+                    <li key={index}>
+                      <strong>{resultado.tipo}:</strong> {resultado.descripcion} {resultado.linea && `(Línea: ${resultado.linea})`}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>¡Excelente! Tu código no tiene ningún defecto en esta prueba.</p>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setMostrarModalPrueba(false)}>Cerrar</button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
     </div>
   );
   

@@ -83,7 +83,6 @@ async function analizarCodigoConESLint(codigo) {
     });
     return mensajes;
   } catch (error) {
-    console.error('Error al analizar código JavaScript:', error);
     throw new Error('No se pudo analizar el código JavaScript.');
   }
 }
