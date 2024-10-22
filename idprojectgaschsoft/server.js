@@ -4,7 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const { poolPromise, sql } = require('./db'); // Importa db.js desde el archivo que creaste
 const { ESLint } = require('eslint'); // Importa ESLint para el análisis de JavaScript
-
+const { JSDOM } = require('jsdom'); // Import de módulo necesario para manipular HTML
+const translationMapping = require('./translationMapping'); // Mi propia libreria de traducciones de JavaScrip
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -38,28 +39,68 @@ const formatearFecha = (fecha) => {
 
   return 'Fecha no disponible';
 };
+
 //=========================================================================================||
 // FUNCIONES   PARA   ANALISIS   ESTATICO   DE   TODOS   LOS   LENGUAJES
 // Función para ejecutar análisis estático en código JavaScript
 async function analizarCodigoConESLint(codigo) {
   try {
-    const eslint = new ESLint(); // Instancia ESLint
-    const resultados = await eslint.lintText(codigo); // Analiza el contenido del archivo
+    // Parsear el HTML y extraer el código JavaScript
+    const dom = new JSDOM(codigo);
+    const scripts = dom.window.document.querySelectorAll('script');
+    let jsCode = '';
+
+    scripts.forEach(script => {
+      jsCode += script.textContent + '\n';
+    });
+
+    if (!jsCode) {
+      throw new Error('No se encontró código JavaScript en el archivo.');
+    }
+
+    const eslint = new ESLint();
+    const resultados = await eslint.lintText(jsCode);
     const mensajes = resultados[0].messages.map((mensaje) => {
+      const { ruleId, message, line, column } = mensaje;
+      let descripcion = message;
+
+      if (ruleId && translationMapping[ruleId]) {
+        descripcion = translationMapping[ruleId];
+
+        // Reemplazar variables dinámicas en el mensaje
+        const variableName = extractVariableName(message, ruleId);
+        if (variableName) {
+          descripcion = descripcion.replace('{variable}', variableName);
+        }
+      }
+
       return {
         tipo: mensaje.severity === 1 ? 'Advertencia' : 'Error',
-        descripcion: mensaje.message,
-        linea: mensaje.line,
-        columna: mensaje.column,
+        descripcion: descripcion,
+        linea: line,
+        columna: column,
       };
     });
-    return mensajes; // Devuelve los mensajes de análisis
+    return mensajes;
   } catch (error) {
     console.error('Error al analizar código JavaScript:', error);
     throw new Error('No se pudo analizar el código JavaScript.');
   }
 }
-
+// Función para extraer el nombre de la variable del mensaje original
+function extractVariableName(message, ruleId) {
+  let match;
+  switch (ruleId) {
+    case 'no-unused-vars':
+    case 'no-undef':
+    case 'no-redeclare':
+      match = message.match(/'(.*?)'/);
+      return match ? match[1] : null;
+    default:
+      return null;
+  }
+}
+//--------------------
 async function ejecutarAnalisisPython(codigo) {
   // Aquí puedes integrar Pylint o Flake8
   return [{ tipo: 'Advertencia', descripcion: 'Scanner en proceso para Lenguaje Python', linea: 1, columna: 1 }];

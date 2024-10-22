@@ -50,9 +50,9 @@ const App = () => {
   const [proyectoAEliminar, setProyectoAEliminar] = useState(null);
 
   // Estados para los resultados de las pruebas
-  const [resultadosPrueba, setResultadosPrueba] = useState(null); // Estado para los resultados de las pruebas
+  const [resultadosPrueba, setResultadosPrueba] = useState([]); // Inicializamos como un array vacío
   const [mostrarModalPrueba, setMostrarModalPrueba] = useState(false); // Estado para mostrar/ocultar el modal de resultados
-
+  
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
     if (!fecha) return 'Fecha no disponible';
@@ -162,12 +162,15 @@ const seleccionarProyecto = async (proyecto) => {
 const ejecutarPrueba = async () => {
   console.log("Botón de pruebas clickeado");
   try {
-    const response = await axios.post(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/analisis`, {
-      contenidoCodigo: contenidoCodigo, // Código que vamos a analizar
-    });
+    const response = await axios.post(
+      `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/analisis`,
+      {
+        contenidoCodigo: contenidoCodigo, // Código que vamos a analizar
+      }
+    );
 
     // Mostrar los resultados en el modal
-    setResultadosPrueba(response.data.resultados);
+    setResultadosPrueba(response.data.resultados || []);
     setMostrarModalPrueba(true);
   } catch (error) {
     console.error('Error al ejecutar la prueba:', error);
@@ -581,18 +584,18 @@ const eliminarProyecto = async () => {
             </button>
           </div>
           <div className="modal-body">
-            {resultadosPrueba ? (
-              <ul>
-                {resultadosPrueba.map((resultado, index) => (
-                  <li key={index}>
-                    <strong>{resultado.tipo}</strong>: {resultado.descripcion} (Línea: {resultado.linea})
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No se encontraron resultados.</p>
-            )}
-          </div>
+          {resultadosPrueba && resultadosPrueba.length > 0 ? (
+    <ul>
+      {resultadosPrueba.map((resultado, index) => (
+        <li key={index}>
+          <strong>{resultado.tipo}</strong>: {resultado.descripcion} (Línea: {resultado.linea})
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p>¡Excelente! Tu código no tiene ningún defecto en esta prueba.</p>
+  )}
+</div>
           <div className="modal-footer">
             <button onClick={() => setMostrarModalPrueba(false)}>Cerrar</button>
           </div>
