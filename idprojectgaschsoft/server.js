@@ -344,43 +344,49 @@ app.get('/api/proyectos/:id/pruebas', async (req, res) => {
 // Ruta POST para crear una nueva prueba en un proyecto con formato de fechas
 app.post('/api/proyectos/:id/pruebas', async (req, res) => {
   try {
-      const { id } = req.params; // ID del proyecto
-      const { nombrePrueba, descripcion, fechaEjecucion, resultado } = req.body;
+    const { id } = req.params; // ID del proyecto
+    const { nombrePrueba, descripcion, fechaEjecucion, resultado } = req.body;
 
-      // Verifica si se han proporcionado todos los campos requeridos
-      if (!nombrePrueba || !descripcion || !fechaEjecucion || !resultado) {
-          return res.status(400).send({ message: 'Por favor, llena todos los campos requeridos.' });
-      }
+    // Verifica si se han proporcionado todos los campos requeridos
+    if (!nombrePrueba || !descripcion || !fechaEjecucion || !resultado) {
+      return res.status(400).send({ message: 'Por favor, llena todos los campos requeridos.' });
+    }
 
-      const pool = await poolPromise;
+    const pool = await poolPromise;
 
-      // Verificar que el proyecto existe
-      const proyecto = await pool.request()
-          .input('idProyecto', sql.Int, id)
-          .query('SELECT idProyecto FROM Proyectos WHERE idProyecto = @idProyecto');
+    // Verificar que el proyecto existe
+    const proyecto = await pool.request()
+      .input('idProyecto', sql.Int, id)
+      .query('SELECT idProyecto FROM Proyectos WHERE idProyecto = @idProyecto');
 
-      if (proyecto.recordset.length === 0) {
-          return res.status(404).send({ message: `El proyecto con ID ${id} no fue encontrado.` });
-      }
+    if (proyecto.recordset.length === 0) {
+      return res.status(404).send({ message: `El proyecto con ID ${id} no fue encontrado.` });
+    }
 
-      // Inserta la nueva prueba en la base de datos
-      const result = await pool.request()
-          .input('idProyecto', sql.Int, id)
-          .input('nombrePrueba', sql.NVarChar, nombrePrueba)
-          .input('descripcion', sql.NVarChar, descripcion)
-          .input('fechaEjecucion', sql.DateTime, fechaEjecucion)
-          .input('resultado', sql.NVarChar, resultado)
-          .query('INSERT INTO Pruebas (idProyecto, nombrePrueba, descripcion, fechaEjecucion, resultado) VALUES (@idProyecto, @nombrePrueba, @descripcion, @fechaEjecucion, @resultado)');
+    // Inserta la nueva prueba en la base de datos y obtiene el idPrueba generado
+    const result = await pool.request()
+      .input('idProyecto', sql.Int, id)
+      .input('nombrePrueba', sql.NVarChar, nombrePrueba)
+      .input('descripcion', sql.NVarChar, descripcion)
+      .input('fechaEjecucion', sql.DateTime, fechaEjecucion)
+      .input('resultado', sql.NVarChar, resultado)
+      .query(`
+        INSERT INTO Pruebas (idProyecto, nombrePrueba, descripcion, fechaEjecucion, resultado)
+        OUTPUT INSERTED.idPrueba
+        VALUES (@idProyecto, @nombrePrueba, @descripcion, @fechaEjecucion, @resultado)
+      `);
 
-      if (result.rowsAffected[0] > 0) {
-          res.status(201).send({ message: 'Prueba creada exitosamente.', result });
-      } else {
-          res.status(500).send({ message: 'Error al crear la prueba.' });
-      }
+    if (result.rowsAffected[0] > 0) {
+      const nuevaPruebaId = result.recordset[0].idPrueba;
+      res.status(201).send({ message: 'Prueba creada exitosamente.', idPrueba: nuevaPruebaId });
+    } else {
+      res.status(500).send({ message: 'Error al crear la prueba.' });
+    }
   } catch (err) {
-      res.status(500).send({ message: err.message });
+    res.status(500).send({ message: err.message });
   }
 });
+
 
 // Ruta PUT para actualizar una prueba existente con formato de fechas
 app.put('/api/pruebas/:id', async (req, res) => {
@@ -491,6 +497,23 @@ app.get('/api/defectos/:id', async (req, res) => {
         res.status(500).send({ message: err.message });
     }
 });
+
+// Ruta GET para obtener los defectos de una prueba específica
+app.get('/api/pruebas/:idPrueba/defectos', async (req, res) => {
+  try {
+      const { idPrueba } = req.params;
+
+      const pool = await poolPromise;
+      const result = await pool.request()
+          .input('idPrueba', sql.Int, idPrueba)
+          .query('SELECT * FROM Defectos WHERE idPrueba = @idPrueba');
+
+      res.json(result.recordset);
+  } catch (err) {
+      res.status(500).send({ message: err.message });
+  }
+});
+
 
 // Ruta POST para crear un nuevo defecto
 app.post('/api/defectos', async (req, res) => {

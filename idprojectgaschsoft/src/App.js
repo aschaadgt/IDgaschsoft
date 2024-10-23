@@ -53,6 +53,14 @@ const App = () => {
   const [resultadosPrueba, setResultadosPrueba] = useState([]); // Inicializamos como un array vacío
   const [mostrarModalPrueba, setMostrarModalPrueba] = useState(false); // Estado para mostrar/ocultar el modal de resultados
   
+  const [pestañaActiva, setPestañaActiva] = useState('Pruebas'); // 'Pruebas' o 'Dashboard'
+  
+  // Nuevos estados para manejar pruebas y defectos
+  const [listaPruebas, setListaPruebas] = useState([]);
+  const [pruebaSeleccionada, setPruebaSeleccionada] = useState(null);
+  const [resultadosDefectos, setResultadosDefectos] = useState([]);
+  const [listaUsuarios, setListaUsuarios] = useState([]);
+
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
     if (!fecha) return 'Fecha no disponible';
@@ -153,37 +161,118 @@ const seleccionarProyecto = async (proyecto) => {
     const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
     setContenidoCodigo(response.data.contenido);
     setLenguaje(proyecto.lenguaje || 'javascript'); // Actualiza el lenguaje al cargar un proyecto
+
+    // Cargar las pruebas asociadas al proyecto
+    const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/pruebas`);
+    setListaPruebas(responsePruebas.data);
+
+    // Seleccionar la prueba más reciente si existe
+    if (responsePruebas.data.length > 0) {
+      seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
+    } else {
+      setPruebaSeleccionada(null);
+      setResultadosDefectos([]);
+    }
+
+    // Cargar la lista de usuarios para el dropdown de asignación
+    const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
+    setListaUsuarios(responseUsuarios.data);
+
   } catch (error) {
-    console.error('Error al cargar el código del proyecto:', error);
+    console.error('Error al cargar los datos del proyecto:', error);
   }
 };
+
+// Función para seleccionar una prueba y cargar sus defectos
+const seleccionarPrueba = async (prueba) => {
+  setPruebaSeleccionada(prueba);
+  try {
+    const responseDefectos = await axios.get(`http://localhost:3001/api/pruebas/${prueba.idPrueba}/defectos`);
+    setResultadosDefectos(responseDefectos.data);
+  } catch (error) {
+    console.error('Error al cargar los defectos de la prueba:', error);
+  }
+};
+
 
 //Función para ejecutar el análisis de código
-const ejecutarPrueba = async () => {
-  console.log("Botón de pruebas clickeado");
+const ejecutarNuevaPrueba = async () => {
+  console.log("Ejecutando nueva prueba");
   try {
-      const response = await axios.post(
-          `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/analisis`,
-          {
-              contenidoCodigo: contenidoCodigo, // Código que vamos a analizar
-          }
-      );
+    // Ejecutar el análisis de código
+    const response = await axios.post(
+      `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/analisis`,
+      {
+        contenidoCodigo: contenidoCodigo, // Código que vamos a analizar
+      }
+    );
 
-      // Mostrar los resultados en el modal
-      setResultadosPrueba(response.data.resultados || []);
-      setMostrarModalPrueba(true);
-    } catch (error) {
-      console.error('Error al ejecutar la prueba:', error);
-      // Mostrar un mensaje de error en el modal
-      setResultadosPrueba([{
-          tipo: 'Critical',
-          descripcion: 'Hubo un problema al ejecutar el análisis. ¿Es el lenguaje correcto?',
-          linea: null,
-          columna: null,
-      }]);
-      setMostrarModalPrueba(true);
+    const resultadosAnalisis = response.data.resultados || [];
+
+    // Crear una nueva prueba en la base de datos
+    const nuevaPrueba = {
+      nombrePrueba: `Prueba ${listaPruebas.length + 1} de proyecto ${proyectoSeleccionado.idProyecto}`,
+      descripcion: `Prueba del proyecto ${proyectoSeleccionado.idProyecto}`,
+      fechaEjecucion: new Date(),
+      resultado: 'CREADA',
+    };
+
+    const responsePrueba = await axios.post(
+      `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`,
+      nuevaPrueba
+    );
+
+    // Obtener el ID de la prueba creada
+    const idPruebaCreada = responsePrueba.data.idPrueba;
+
+    // Guardar los defectos encontrados en la base de datos
+    for (const defecto of resultadosAnalisis) {
+      const nuevoDefecto = {
+        idPrueba: idPruebaCreada,
+        descripcion: defecto.descripcion,
+        prioridad: defecto.tipo,
+        estado: 'NUEVO',
+        fechaCreacion: new Date(),
+        fechaResolucion: null,
+        asignado: null,
+      };
+      await axios.post(`http://localhost:3001/api/defectos`, nuevoDefecto);
+    }
+
+    // Recargar las pruebas y seleccionar la nueva
+    const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`);
+    setListaPruebas(responsePruebas.data);
+
+    // Seleccionar la nueva prueba creada
+    const nuevaPruebaCreada = responsePruebas.data.find(prueba => prueba.idPrueba === idPruebaCreada);
+    if (nuevaPruebaCreada) {
+      seleccionarPrueba(nuevaPruebaCreada);
+    }
+
+  } catch (error) {
+    console.error('Error al ejecutar la prueba:', error);
   }
-};
+  };
+
+  // Función para actualizar un defecto específico
+  const actualizarDefecto = async (idDefecto, campo, valor) => {
+  try {
+    // Crear una copia del defecto a actualizar
+    const defectoActualizado = resultadosDefectos.find((d) => d.idDefecto === idDefecto);
+    defectoActualizado[campo] = valor;
+
+    // Actualizar el defecto en la base de datos
+    await axios.put(`http://localhost:3001/api/defectos/${idDefecto}`, defectoActualizado);
+
+    // Actualizar el estado local
+    setResultadosDefectos(
+      resultadosDefectos.map((d) => (d.idDefecto === idDefecto ? defectoActualizado : d))
+    );
+  } catch (error) {
+    console.error('Error al actualizar el defecto:', error);
+  }
+  };
+
 
   // Abrir el modal para crear un nuevo proyecto
   const abrirModal = () => {
@@ -424,9 +513,13 @@ const eliminarProyecto = async () => {
 >
   Eliminar
 </button>
-<button onClick={ejecutarPrueba} disabled={!proyectoSeleccionado}>
+<button
+  onClick={() => setMostrarModalPrueba(true)}
+  disabled={!proyectoSeleccionado}
+>
   Pruebas
 </button>
+
           </div>
           <button className="new-project" onClick={abrirModal}>+ Crear Proyecto</button>
         </header>
@@ -582,33 +675,138 @@ const eliminarProyecto = async () => {
       )}
       {/* Modal de resultados de la prueba */}
       {mostrarModalPrueba && (
-        <div className="modal-overlay">
-            <div className="modal">
-                <div className="modal-header">
-                    <h2>Resultados de la Prueba</h2>
-                    <button className="close-button" onClick={() => setMostrarModalPrueba(false)}>
-                        &times;
-                    </button>
-                </div>
-                <div className="modal-body">
-                    {resultadosPrueba && resultadosPrueba.length > 0 ? (
-                        <ul>
-                            {resultadosPrueba.map((resultado, index) => (
-                                <li key={index}>
-                                    <strong className={resultado.tipo}>{resultado.tipo}:</strong> {resultado.descripcion} {resultado.linea && `(Línea: ${resultado.linea})`}
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p>¡Excelente! Tu código no tiene ningún defecto en esta prueba.</p>
-                    )}
-                </div>
-                <div className="modal-footer">
-                    <button onClick={() => setMostrarModalPrueba(false)}>Cerrar</button>
-                </div>
-            </div>
-        </div>
-    )}
+  <div className="modal-overlay">
+    <div className="modal modal-large"> {/* Añadimos una clase para ampliar el tamaño */}
+      <div className="modal-header">
+        <h2>{/* Aquí añadiremos el título dinámico más adelante */}</h2>
+        <button className="close-button" onClick={() => setMostrarModalPrueba(false)}>
+          &times;
+        </button>
+      </div>
+      {/* Añadimos las pestañas */}
+      <div className="modal-tabs">
+        <button
+          className={`tab-button ${pestañaActiva === 'Pruebas' ? 'active' : ''}`}
+          onClick={() => setPestañaActiva('Pruebas')}
+        >
+          Pruebas
+        </button>
+        <button
+          className={`tab-button ${pestañaActiva === 'Dashboard' ? 'active' : ''}`}
+          onClick={() => setPestañaActiva('Dashboard')}
+        >
+          Dashboard
+        </button>
+      </div>
+      {/* Contenido del modal cambia según la pestaña activa */}
+      <div className="modal-body">
+        {pestañaActiva === 'Pruebas' ? (
+          /* Contenido de la pestaña Pruebas */
+          <div>
+            <div>
+  {/* Encabezado con el título y el dropdown para seleccionar pruebas */}
+  <div className="prueba-header">
+    <h2>Prueba N° {pruebaSeleccionada ? pruebaSeleccionada.idPrueba : 'N/A'}</h2>
+    <select
+      value={pruebaSeleccionada ? pruebaSeleccionada.idPrueba : ''}
+      onChange={(e) => {
+        const prueba = listaPruebas.find(p => p.idPrueba === parseInt(e.target.value));
+        seleccionarPrueba(prueba);
+      }}
+    >
+      {listaPruebas.map((prueba) => (
+        <option key={prueba.idPrueba} value={prueba.idPrueba}>
+          {prueba.nombrePrueba}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Mostrar la fecha de ejecución */}
+  <p>Fecha de Ejecución: {pruebaSeleccionada ? formatearFecha(pruebaSeleccionada.fechaEjecucion) : 'N/A'}</p>
+
+  {/* Botón para ejecutar nueva prueba */}
+  <button onClick={ejecutarNuevaPrueba}>Ejecutar Nueva Prueba</button>
+
+  {/* Tabla de defectos */}
+  <table className="tabla-defectos">
+    <thead>
+      <tr>
+        <th>Prioridad</th>
+        <th>Descripción</th>
+        <th>Línea</th>
+        <th>Asignado</th>
+        <th>Estado</th>
+        <th>Fecha Límite</th>
+      </tr>
+    </thead>
+    <tbody>
+      {resultadosDefectos.map((defecto) => (
+        <tr key={defecto.idDefecto}>
+          <td>{defecto.prioridad}</td>
+          <td>{defecto.descripcion}</td>
+          <td>{defecto.linea || ''}</td>
+          <td>
+            <select
+              value={defecto.asignado || ''}
+              onChange={(e) => actualizarDefecto(defecto.idDefecto, 'asignado', e.target.value)}
+            >
+              <option value="">Sin asignar</option>
+              {listaUsuarios.map((usuario) => (
+                <option key={usuario.idUsuario} value={usuario.idUsuario}>
+                  {usuario.nombreUsuario}
+                </option>
+              ))}
+            </select>
+          </td>
+          <td>
+            <select
+              value={defecto.estado}
+              onChange={(e) => actualizarDefecto(defecto.idDefecto, 'estado', e.target.value)}
+            >
+              <option value="NUEVO">🔲 NUEVO</option>
+              <option value="EN REVISION">🟪 EN REVISION</option>
+              <option value="OMITIDO">🟩 OMITIDO</option>
+              <option value="RESUELTO">✅ RESUELTO</option>
+            </select>
+          </td>
+          <td
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={(e) => actualizarDefecto(defecto.idDefecto, 'fechaResolucion', e.target.innerText)}
+          >
+            {defecto.fechaResolucion ? formatearFecha(defecto.fechaResolucion) : ''}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colSpan="5">Total de Defectos: {resultadosDefectos.length}</td>
+        <td>
+          Resueltos: {resultadosDefectos.filter((d) => d.estado === 'RESUELTO').length}
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+          </div>
+        ) : (
+          /* Contenido de la pestaña Dashboard */
+          <div>
+            <p>Próximamente: Dashboard de métricas.</p>
+          </div>
+        )}
+      </div>
+      <div className="modal-footer">
+        <button onClick={() => setMostrarModalPrueba(false)}>Cerrar</button>
+      </div>
+    </div>
+  </div>
+)}
+
+
     </div>
   );
   /*614*/
