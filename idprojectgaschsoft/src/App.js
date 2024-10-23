@@ -612,10 +612,7 @@ const eliminarProyecto = async () => {
     </div>
   );
   /*614*/
-  
-  
-  
 };
 
 export default App;
-//611
+//618

@@ -702,4 +702,4 @@ app.listen(port, async () => {
     console.log(`Servidor ejecutándose en http://localhost:${port}`);
     await inicializarArchivosCodigo();  // Crear archivos para proyectos existentes
 });
-/*701*/
+/*705*/
