@@ -678,7 +678,7 @@ const eliminarProyecto = async () => {
   <div className="modal-overlay">
     <div className="modal modal-large"> {/* Añadimos una clase para ampliar el tamaño */}
       <div className="modal-header">
-        <h2>{/* Aquí añadiremos el título dinámico más adelante */}</h2>
+      <h1>{proyectoSeleccionado ? proyectoSeleccionado.nombreProyecto : 'Proyecto'}</h1>
         <button className="close-button" onClick={() => setMostrarModalPrueba(false)}>
           &times;
         </button>
