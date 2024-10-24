@@ -769,6 +769,7 @@ const eliminarProyecto = async () => {
             <div>
   {/* Encabezado con el título y el dropdown para seleccionar pruebas */}
   <div className="prueba-header">
+  <div className="titulo-y-estado">
     <h2>Prueba N° {pruebaSeleccionada ? pruebaSeleccionada.idPrueba : 'N/A'}</h2>
     {pruebaSeleccionada && (
       <select
@@ -782,10 +783,13 @@ const eliminarProyecto = async () => {
         <option value="DEPURADA">✅ DEPURADA</option>
       </select>
     )}
+  </div>
+  {/* Dropdown para seleccionar pruebas en la siguiente línea */}
+  <div className="selector-prueba">
     <select
       value={pruebaSeleccionada ? pruebaSeleccionada.idPrueba : ''}
       onChange={(e) => {
-        const prueba = listaPruebas.find(p => p.idPrueba === parseInt(e.target.value));
+        const prueba = listaPruebas.find((p) => p.idPrueba === parseInt(e.target.value));
         seleccionarPrueba(prueba);
       }}
     >
@@ -796,6 +800,8 @@ const eliminarProyecto = async () => {
       ))}
     </select>
   </div>
+</div>
+
 
   {/* Mostrar la fecha de ejecución */}
   <p>Fecha de Ejecución: {pruebaSeleccionada ? formatearFecha(pruebaSeleccionada.fechaEjecucion) : 'N/A'}</p>

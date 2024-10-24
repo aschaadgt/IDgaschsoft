@@ -607,11 +607,6 @@ input[type="radio"] {
 }
 
 /*comienzo*/
-.prueba-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1px; /* Espacio debajo del header, ajusta según necesites */
-}
 
 .titulo-y-estado {
   display: flex;
@@ -620,11 +615,7 @@ input[type="radio"] {
 
 .titulo-y-estado h2 {
   margin: 0;
-  margin-right: 0px; /* Espacio entre el título y el Dropdown */
-}
-
-.estado-prueba {
-  /* Si deseas ajustar estilos adicionales */
+  margin-right: 20px; /* Espacio entre el título y el Dropdown */
 }
 
 /* Estilos para eliminar el borde negro del Dropdown */
@@ -637,8 +628,6 @@ input[type="radio"] {
   cursor: pointer;
 }
 
-
-
 /* Asegurar que el Dropdown de selección de prueba también tenga el borde eliminado */
 .prueba-header select {
   border: none;
@@ -646,9 +635,7 @@ input[type="radio"] {
   background-color: transparent;
   font-size: 1rem;
   cursor: pointer;
-  margin-left: 10px;
+  margin-left: -3.5px;
 
 }
-
-
 /*551*/
