@@ -139,7 +139,6 @@ const convertirFecha = (fecha) => {
           await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/codigo`, {
             contenido: contenidoCodigo
           });
-          console.log('Código guardado automáticamente');
         } catch (error) {
           console.error('Error al guardar el código:', error);
         }
@@ -214,8 +213,6 @@ const seleccionarProyecto = async (proyecto) => {
     // Cargar la lista de usuarios para el dropdown de asignación
     const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
     setListaUsuarios(responseUsuarios.data);
-  console.log('Usuarios obtenidos:', responseUsuarios.data);
-
 
   } catch (error) {
     console.error('Error al cargar los datos del proyecto:', error);
@@ -232,8 +229,7 @@ const seleccionarPrueba = async (prueba) => {
   const pruebaConFechaISO = { ...prueba, fechaEjecucion: fechaEjecucionISO };
 
   setPruebaSeleccionada(pruebaConFechaISO);
-  console.log('Prueba Seleccionada:', pruebaConFechaISO);
-  
+ 
   try {
     const responseDefectos = await axios.get(`http://localhost:3001/api/pruebas/${prueba.idPrueba}/defectos`);
     setResultadosDefectos(responseDefectos.data);
@@ -244,7 +240,6 @@ const seleccionarPrueba = async (prueba) => {
 
 //Función para ejecutar el análisis de código
 const ejecutarNuevaPrueba = async () => {
-  console.log("Ejecutando nueva prueba");
   try {
     // Ejecutar el análisis de código
     const response = await axios.post(
@@ -313,15 +308,11 @@ const ejecutarNuevaPrueba = async () => {
         return;
       }
   
-      console.log('Defecto actual antes de actualizar:', defectoActual);
-  
       // Actualizar el campo específico
       const defectoActualizado = {
         ...defectoActual,
         [campo]: valor,
       };
-  
-      console.log('Defecto actualizado:', defectoActualizado);
   
       // Actualizar el defecto en la base de datos
       await axios.put(`http://localhost:3001/api/defectos/${idDefecto}`, defectoActualizado);
