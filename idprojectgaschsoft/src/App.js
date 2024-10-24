@@ -673,36 +673,7 @@ const eliminarProyecto = async () => {
   </div>
 )}
 
-      {mostrarModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>Crear Nuevo Proyecto</h2>
-              <button className="close-button" onClick={cerrarModal}>
-                &times;
-              </button>
-            </div>
-            <div className="modal-body">
-              <input
-                type="text"
-                name="nombreProyecto"
-                placeholder="Nombre del Proyecto"
-                value={nuevoProyecto.nombreProyecto}
-                onChange={manejarCambio}
-              />
-              <textarea
-                name="descripcion"
-                placeholder="Descripción"
-                value={nuevoProyecto.descripcion}
-                onChange={manejarCambio}
-              />
-            </div>
-            <div className="modal-footer">
-              <button onClick={crearProyecto}>+ Crear</button>
-            </div>
-          </div>
-        </div>
-      )}
+      
       {/* Modal de resultados de la prueba */}
       {mostrarModal && (
         <div className="modal-overlay">

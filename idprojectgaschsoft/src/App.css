@@ -410,7 +410,7 @@
 }
 
 .close-button:hover {
-  color: #000000; /* Cambia a rojo al pasar el cursor */
+  color: red; /* Cambia a rojo al pasar el cursor */
 }
 
 /*Barra de lenguaje*/
@@ -517,7 +517,7 @@ input[type="radio"] {
 }
 
 .close-button:hover {
-  color: #000000;
+  color: red;
 }
 
 /**/
@@ -637,5 +637,48 @@ input[type="radio"] {
   cursor: pointer;
   margin-left: -3.5px;
 
+}
+.modal.modal-large .modal-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  flex-grow: 1; /* Permite que el título ocupe el espacio disponible */
+  text-align: center; /* Alinea el texto hacia la derecha */
+}
+
+.modal.modal-large .close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #aaa;
+}
+
+.modal.modal-large .close-button:hover {
+  color: red;
+}
+
+/* Estilos para la sección prueba-header */
+.prueba-header {
+  margin-bottom: -14px;
+}
+
+/* Estilos para la tabla de defectos */
+.tabla-defectos {
+  width: 100%;
+  border: 1px solid #dddddd;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.tabla-defectos td {
+  border: 1px solid #ddd;
+  padding: 2px;
+  text-align: left;
+}
+
+/* Remover bordes negros de los Dropdowns */
+select {
+  border: none;
+  outline: none;
 }
 /*551*/
