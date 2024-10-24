@@ -618,13 +618,20 @@ input[type="radio"] {
   margin-right: 20px; /* Espacio entre el título y el Dropdown */
 }
 
+.tabla-defectos th,
+.tabla-defectos td {
+  line-height: 1; /* Reduce la altura de línea */
+  
+}
+
+
 /* Estilos para eliminar el borde negro del Dropdown */
 .estado-prueba,
 .prueba-header select {
   border: none;
   outline: none;
   background-color: transparent;
-  font-size: 1rem;
+  font-size: 1rem!important;
   cursor: pointer;
 }
 
@@ -633,7 +640,7 @@ input[type="radio"] {
   border: none;
   outline: none;
   background-color: transparent;
-  font-size: 1rem;
+  font-size: 2rem;
   cursor: pointer;
   margin-left: -3.5px;
 
@@ -680,6 +687,23 @@ input[type="radio"] {
 select {
   border: none;
   outline: none;
+}
+
+/* Estilos para el Input de Fecha Límite */
+.fecha-limite-input {
+  border: none!important; /* Elimina el borde predeterminado */
+  background: none!important; /* Elimina el fondo predeterminado */
+  outline: none!important; /* Elimina el contorno al enfocarse */
+  padding: 0px!important; /* Añade un poco de padding para mejor usabilidad */
+  font-size: 0.88rem!important; /* Ajusta el tamaño de la fuente si es necesario */
+  width: 100%; /* Asegura que el input ocupe todo el ancho de la celda */
+  box-sizing: border-box; /* Incluye el padding en el cálculo del ancho */
+}
+
+/* Opcional: Cambia el fondo o añade un ligero efecto al enfocarse */
+.fecha-limite-input:focus {
+  background-color: #f0f0f0; /* Cambia el fondo al enfocarse */
+  border-radius: 4px; /* Añade bordes redondeados al enfocarse */
 }
 
 
