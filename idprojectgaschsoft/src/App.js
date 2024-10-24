@@ -214,6 +214,8 @@ const seleccionarProyecto = async (proyecto) => {
     // Cargar la lista de usuarios para el dropdown de asignación
     const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
     setListaUsuarios(responseUsuarios.data);
+  console.log('Usuarios obtenidos:', responseUsuarios.data);
+
 
   } catch (error) {
     console.error('Error al cargar los datos del proyecto:', error);
@@ -301,24 +303,39 @@ const ejecutarNuevaPrueba = async () => {
 
   // Función para actualizar un defecto específico
   const actualizarDefecto = async (idDefecto, campo, valor) => {
-  try {
-    // Crear una copia del defecto a actualizar
-    const defectoActualizado = resultadosDefectos.find((d) => d.idDefecto === idDefecto);
-    defectoActualizado[campo] = valor;
-
-    // Actualizar el defecto en la base de datos
-    await axios.put(`http://localhost:3001/api/defectos/${idDefecto}`, defectoActualizado);
-
-    // Actualizar el estado local
-    setResultadosDefectos(
-      resultadosDefectos.map((d) => (d.idDefecto === idDefecto ? defectoActualizado : d))
-    );
-  } catch (error) {
-    console.error('Error al actualizar el defecto:', error);
-  }
+    try {
+      // Obtener el defecto original desde la base de datos
+      const response = await axios.get(`http://localhost:3001/api/defectos/${idDefecto}`);
+      const defectoActual = response.data;
+  
+      if (!defectoActual) {
+        console.error('Defecto no encontrado en la base de datos.');
+        return;
+      }
+  
+      console.log('Defecto actual antes de actualizar:', defectoActual);
+  
+      // Actualizar el campo específico
+      const defectoActualizado = {
+        ...defectoActual,
+        [campo]: valor,
+      };
+  
+      console.log('Defecto actualizado:', defectoActualizado);
+  
+      // Actualizar el defecto en la base de datos
+      await axios.put(`http://localhost:3001/api/defectos/${idDefecto}`, defectoActualizado);
+  
+      // Actualizar el estado local
+      setResultadosDefectos(
+        resultadosDefectos.map((d) => (d.idDefecto === idDefecto ? defectoActualizado : d))
+      );
+    } catch (error) {
+      console.error('Error al actualizar el defecto:', error);
+    }
   };
-
-
+  
+ 
   // Abrir el modal para crear un nuevo proyecto
   const abrirModal = () => {
     setMostrarModal(true);
@@ -824,10 +841,10 @@ const eliminarProyecto = async () => {
             >
               <option value="">Sin asignar</option>
               {listaUsuarios.map((usuario) => (
-                <option key={usuario.idUsuario} value={usuario.idUsuario}>
-                  {usuario.nombreUsuario}
-                </option>
-              ))}
+  <option key={usuario.idUsuario} value={usuario.idUsuario}>
+    {usuario.nombre} {usuario.apellido}
+  </option>
+))}
             </select>
           </td>
           <td>

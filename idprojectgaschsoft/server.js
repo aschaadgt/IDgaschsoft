@@ -510,9 +510,21 @@ app.get('/api/defectos/:id', async (req, res) => {
         const { id } = req.params;
 
         const pool = await poolPromise;
-        const result = await pool.request()
-            .input('idDefecto', sql.Int, id)
-            .query('SELECT * FROM Defectos WHERE idDefecto = @idDefecto');
+    const result = await pool.request()
+      .input('idDefecto', sql.Int, id)
+      .query(`
+        SELECT 
+          idDefecto,
+          idPrueba,
+          descripcion,
+          prioridad,
+          estado,
+          fechaCreacion,
+          fechaResolucion,
+          Asignado AS asignado -- Alias del campo
+        FROM Defectos
+        WHERE idDefecto = @idDefecto
+      `);
 
         if (result.recordset.length === 0) {
             return res.status(404).send({ message: `Defecto con ID ${id} no fue encontrado.` });
@@ -527,16 +539,28 @@ app.get('/api/defectos/:id', async (req, res) => {
 // Ruta GET para obtener los defectos de una prueba específica
 app.get('/api/pruebas/:idPrueba/defectos', async (req, res) => {
   try {
-      const { idPrueba } = req.params;
+    const { idPrueba } = req.params;
 
-      const pool = await poolPromise;
-      const result = await pool.request()
-          .input('idPrueba', sql.Int, idPrueba)
-          .query('SELECT * FROM Defectos WHERE idPrueba = @idPrueba');
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('idPrueba', sql.Int, idPrueba)
+      .query(`
+        SELECT 
+          idDefecto,
+          idPrueba,
+          descripcion,
+          prioridad,
+          estado,
+          fechaCreacion,
+          fechaResolucion,
+          Asignado AS asignado -- Alias del campo
+        FROM Defectos
+        WHERE idPrueba = @idPrueba
+      `);
 
-      res.json(result.recordset);
+    res.json(result.recordset);
   } catch (err) {
-      res.status(500).send({ message: err.message });
+    res.status(500).send({ message: err.message });
   }
 });
 
@@ -571,38 +595,51 @@ app.post('/api/defectos', async (req, res) => {
 // Ruta PUT para actualizar un defecto existente
 app.put('/api/defectos/:id', async (req, res) => {
   try {
-      const { id } = req.params; // Obtiene el ID del defecto desde la URL
-      const { descripcion, prioridad, estado, fechaResolucion, Asignado} = req.body; // Destructura los campos desde el body
+    const { id } = req.params;
+    const { descripcion, prioridad, estado, fechaResolucion, asignado } = req.body;
 
-      // Verifica si el ID es válido y si se han proporcionado los campos requeridos
-      if (!descripcion || !prioridad || !estado) {
-          return res.status(400).send({ message: 'Por favor, llena todos los campos requeridos.' });
-      }
+    // Comentamos o eliminamos la validación estricta
+    // if (!descripcion || !prioridad || !estado) {
+    //   return res.status(400).send({ message: 'Por favor, llena todos los campos requeridos.' });
+    // }
 
-      const pool = await poolPromise;
+    const pool = await poolPromise;
 
-      // Actualiza los campos del defecto
-      const result = await pool.request()
-          .input('descripcion', sql.NVarChar, descripcion)
-          .input('prioridad', sql.NVarChar, prioridad)
-          .input('estado', sql.NVarChar, estado)
-          .input('fechaResolucion', sql.DateTime, fechaResolucion || null) // Campo opcional
-          .input('asignado', sql.VarChar, Asignado || null) // Campo opcional de asignación
-          .input('idDefecto', sql.Int, id) // ID del defecto a actualizar
-          .query('UPDATE Defectos SET descripcion = @descripcion, prioridad = @prioridad, estado = @estado, fechaResolucion = @fechaResolucion, Asignado = @asignado WHERE idDefecto = @idDefecto');
+    // Construimos la consulta dinámicamente
+    let updateFields = [];
+    if (descripcion !== undefined) updateFields.push(`descripcion = @descripcion`);
+    if (prioridad !== undefined) updateFields.push(`prioridad = @prioridad`);
+    if (estado !== undefined) updateFields.push(`estado = @estado`);
+    if (fechaResolucion !== undefined) updateFields.push(`fechaResolucion = @fechaResolucion`);
+    if (asignado !== undefined) updateFields.push(`asignado = @asignado`);
 
-      // Verifica si la actualización afectó alguna fila
-      if (result.rowsAffected[0] === 0) {
-          return res.status(404).send({ message: `Defecto con ID ${id} no fue encontrado.` });
-      }
+    if (updateFields.length === 0) {
+      return res.status(400).send({ message: 'No hay campos para actualizar.' });
+    }
 
-      // Si todo va bien, enviamos un mensaje de éxito
-      res.send({ message: 'Defecto actualizado exitosamente.' });
+    const query = `UPDATE Defectos SET ${updateFields.join(', ')} WHERE idDefecto = @idDefecto`;
+
+    const request = pool.request()
+      .input('idDefecto', sql.Int, id);
+
+    if (descripcion !== undefined) request.input('descripcion', sql.NVarChar, descripcion);
+    if (prioridad !== undefined) request.input('prioridad', sql.NVarChar, prioridad);
+    if (estado !== undefined) request.input('estado', sql.NVarChar, estado);
+    if (fechaResolucion !== undefined) request.input('fechaResolucion', sql.DateTime, fechaResolucion || null);
+    if (asignado !== undefined) request.input('asignado', sql.VarChar, asignado || null);
+
+    const result = await request.query(query);
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).send({ message: `Defecto con ID ${id} no fue encontrado.` });
+    }
+
+    res.send({ message: 'Defecto actualizado exitosamente.' });
   } catch (err) {
-      res.status(500).send({ message: err.message }); // Manejo de errores
+    console.error('Error al actualizar el defecto:', err);
+    res.status(500).send({ message: err.message });
   }
 });
-
 
 // Ruta DELETE para eliminar un defecto
 app.delete('/api/defectos/:id', async (req, res) => {
@@ -636,7 +673,6 @@ app.get('/api/usuarios', async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 });
-
 
 //=========================================================================================||
 // C R U D   A R C H I V O S
