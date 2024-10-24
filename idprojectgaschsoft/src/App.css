@@ -362,11 +362,6 @@
   color: #ffffff;
 }
 
-/* Estilo al pasar el cursor sobre el botón */
-.button:first-child:hover {
-  background-color: #218838; /* Verde más oscuro */
-}
-
 .modal-footer button:last-child {
   background-color: #28a745;
   color: #ffffff;
@@ -530,29 +525,35 @@ input[type="radio"] {
   margin-bottom: 10px;
 }
 
-.modal-body ul li strong.Critical {
+/* Estilos para los niveles de criticidad en la tabla de defectos */
+.tabla-defectos td.criticidad {
+  font-weight: bold;
+}
+
+.tabla-defectos td.criticidad.Critical {
   color: red;
 }
 
-.modal-body ul li strong.High {
+.tabla-defectos td.criticidad.High {
   color: orange;
 }
 
-.modal-body ul li strong.Medium {
+.tabla-defectos td.criticidad.Medium {
   color: gold;
 }
 
-.modal-body ul li strong.Low {
+.tabla-defectos td.criticidad.Low {
   color: green;
 }
 
-.modal-body ul li strong.Best\ Practice {
+.tabla-defectos td.criticidad.Best-Practice {
   color: blue;
 }
 
-.modal-body ul li strong.Information {
+.tabla-defectos td.criticidad.Information {
   color: gray;
 }
+
 
 /* Estilos para ampliar el modal */
 .modal-large {

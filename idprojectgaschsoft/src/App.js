@@ -801,7 +801,7 @@ const eliminarProyecto = async () => {
   <table className="tabla-defectos">
     <thead>
       <tr>
-        <th>Prioridad</th>
+        <th>Criticidad</th>
         <th>Descripción</th>
         <th>Línea</th>
         <th>Asignado</th>
@@ -812,7 +812,9 @@ const eliminarProyecto = async () => {
     <tbody>
       {resultadosDefectos.map((defecto) => (
         <tr key={defecto.idDefecto}>
-          <td>{defecto.prioridad}</td>
+          <td className={`criticidad ${defecto.prioridad.replace(/\s/g, '-')}`}>
+  {defecto.prioridad}
+</td>
           <td>{defecto.descripcion}</td>
           <td>{defecto.linea || ''}</td>
           <td>
