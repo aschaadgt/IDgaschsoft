@@ -241,7 +241,7 @@ const ejecutarNuevaPrueba = async () => {
 
     // Crear una nueva prueba en la base de datos
     const nuevaPrueba = {
-      nombrePrueba: `Prueba ${listaPruebas.length + 1} de proyecto ${proyectoSeleccionado.idProyecto}`,
+      nombrePrueba: `Prueba ${listaPruebas.length + 1} ${proyectoSeleccionado.idProyecto}`,
       descripcion: `Prueba del proyecto ${proyectoSeleccionado.idProyecto}`,
       fechaEjecucion: new Date(),
       resultado: 'CREADA',
@@ -770,7 +770,11 @@ const eliminarProyecto = async () => {
   {/* Encabezado con el título y el dropdown para seleccionar pruebas */}
   <div className="prueba-header">
   <div className="titulo-y-estado">
-    <h2>Prueba N° {pruebaSeleccionada ? pruebaSeleccionada.idPrueba : 'N/A'}</h2>
+  <h2>
+  {pruebaSeleccionada
+    ? `Prueba ${listaPruebas.indexOf(pruebaSeleccionada) + 1} de ${proyectoSeleccionado.nombreProyecto}`
+    : 'Selecciona una prueba'}
+</h2>
     {pruebaSeleccionada && (
       <select
         className="estado-prueba"
@@ -786,19 +790,19 @@ const eliminarProyecto = async () => {
   </div>
   {/* Dropdown para seleccionar pruebas en la siguiente línea */}
   <div className="selector-prueba">
-    <select
-      value={pruebaSeleccionada ? pruebaSeleccionada.idPrueba : ''}
-      onChange={(e) => {
-        const prueba = listaPruebas.find((p) => p.idPrueba === parseInt(e.target.value));
-        seleccionarPrueba(prueba);
-      }}
-    >
-      {listaPruebas.map((prueba) => (
-        <option key={prueba.idPrueba} value={prueba.idPrueba}>
-          {prueba.nombrePrueba}
-        </option>
-      ))}
-    </select>
+  <select
+  value={pruebaSeleccionada ? pruebaSeleccionada.idPrueba : ''}
+  onChange={(e) => {
+    const prueba = listaPruebas.find((p) => p.idPrueba === parseInt(e.target.value));
+    seleccionarPrueba(prueba);
+  }}
+>
+  {listaPruebas.map((prueba, index) => (
+    <option key={prueba.idPrueba} value={prueba.idPrueba}>
+      Prueba {index + 1}
+    </option>
+  ))}
+</select>
   </div>
 </div>
 
