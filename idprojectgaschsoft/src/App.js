@@ -796,9 +796,7 @@ const eliminarProyecto = async () => {
   {/* Mostrar la fecha de ejecución */}
   <p>Fecha de Ejecución: {pruebaSeleccionada ? formatearFecha(pruebaSeleccionada.fechaEjecucion) : 'N/A'}</p>
 
-  {/* Botón para ejecutar nueva prueba */}
-  <button onClick={ejecutarNuevaPrueba}>Ejecutar Nueva Prueba</button>
-
+  
   {/* Tabla de defectos */}
   <table className="tabla-defectos">
     <thead>
@@ -872,6 +870,9 @@ const eliminarProyecto = async () => {
         )}
       </div>
       <div className="modal-footer">
+        {/* Botón para ejecutar nueva prueba */}
+  <button onClick={ejecutarNuevaPrueba}>Ejecutar Nueva Prueba</button>
+
         <button onClick={() => setMostrarModalPrueba(false)}>Cerrar</button>
       </div>
     </div>
@@ -882,4 +883,4 @@ const eliminarProyecto = async () => {
 };
 
 export default App;
-//618
+//885
