@@ -214,6 +214,7 @@ const seleccionarProyecto = async (proyecto) => {
     const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
     setListaUsuarios(responseUsuarios.data);
 
+
   } catch (error) {
     console.error('Error al cargar los datos del proyecto:', error);
   }
@@ -229,7 +230,7 @@ const seleccionarPrueba = async (prueba) => {
   const pruebaConFechaISO = { ...prueba, fechaEjecucion: fechaEjecucionISO };
 
   setPruebaSeleccionada(pruebaConFechaISO);
- 
+  
   try {
     const responseDefectos = await axios.get(`http://localhost:3001/api/pruebas/${prueba.idPrueba}/defectos`);
     setResultadosDefectos(responseDefectos.data);
@@ -313,7 +314,7 @@ const ejecutarNuevaPrueba = async () => {
         ...defectoActual,
         [campo]: valor,
       };
-  
+   
       // Actualizar el defecto en la base de datos
       await axios.put(`http://localhost:3001/api/defectos/${idDefecto}`, defectoActualizado);
   
