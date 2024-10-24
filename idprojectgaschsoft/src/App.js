@@ -24,6 +24,8 @@ import 'ace-builds/src-noconflict/theme-solarized_light';
 import 'ace-builds/src-noconflict/theme-tomorrow_night';
 
 import ace from 'ace-builds/src-noconflict/ace';
+import { parse, format } from 'date-fns';
+
 
 // Configura la ruta base para los archivos de ace-builds
 ace.config.set('basePath', '/ace');
@@ -54,7 +56,7 @@ const App = () => {
   const [mostrarModalPrueba, setMostrarModalPrueba] = useState(false); // Estado para mostrar/ocultar el modal de resultados
   
   const [pestañaActiva, setPestañaActiva] = useState('Pruebas'); // 'Pruebas' o 'Dashboard'
-  
+
   // Nuevos estados para manejar pruebas y defectos
   const [listaPruebas, setListaPruebas] = useState([]);
   const [pruebaSeleccionada, setPruebaSeleccionada] = useState(null);
@@ -90,6 +92,11 @@ const App = () => {
   }
 };
 
+// Función para convertir "DD/MM/YYYY" a "YYYY-MM-DD"
+const convertirFecha = (fecha) => {
+  const fechaParseada = parse(fecha, 'dd/MM/yyyy', new Date());
+  return format(fechaParseada, 'yyyy-MM-dd');
+};
 
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
@@ -215,7 +222,16 @@ const seleccionarProyecto = async (proyecto) => {
 
 // Función para seleccionar una prueba y cargar sus defectos
 const seleccionarPrueba = async (prueba) => {
-  setPruebaSeleccionada(prueba);
+  let fechaEjecucionISO = null;
+  if (prueba.fechaEjecucion) {
+    fechaEjecucionISO = convertirFecha(prueba.fechaEjecucion);
+  }
+
+  const pruebaConFechaISO = { ...prueba, fechaEjecucion: fechaEjecucionISO };
+
+  setPruebaSeleccionada(pruebaConFechaISO);
+  console.log('Prueba Seleccionada:', pruebaConFechaISO);
+  
   try {
     const responseDefectos = await axios.get(`http://localhost:3001/api/pruebas/${prueba.idPrueba}/defectos`);
     setResultadosDefectos(responseDefectos.data);
@@ -223,7 +239,6 @@ const seleccionarPrueba = async (prueba) => {
     console.error('Error al cargar los defectos de la prueba:', error);
   }
 };
-
 
 //Función para ejecutar el análisis de código
 const ejecutarNuevaPrueba = async () => {
@@ -672,8 +687,7 @@ const eliminarProyecto = async () => {
     </div>
   </div>
 )}
-
-      
+     
       {/* Modal de resultados de la prueba */}
       {mostrarModal && (
         <div className="modal-overlay">
@@ -743,9 +757,10 @@ const eliminarProyecto = async () => {
   <div className="titulo-y-estado">
   <h2>
   {pruebaSeleccionada
-    ? `Prueba ${listaPruebas.indexOf(pruebaSeleccionada) + 1} de ${proyectoSeleccionado.nombreProyecto}`
+    ? `Prueba ${listaPruebas.findIndex(p => p.idPrueba === pruebaSeleccionada.idPrueba) + 1} de ${proyectoSeleccionado.nombreProyecto}`
     : 'Selecciona una prueba'}
 </h2>
+
     {pruebaSeleccionada && (
       <select
         className="estado-prueba"
@@ -826,13 +841,14 @@ const eliminarProyecto = async () => {
               <option value="RESUELTO">✅ RESUELTO</option>
             </select>
           </td>
-          <td
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={(e) => actualizarDefecto(defecto.idDefecto, 'fechaResolucion', e.target.innerText)}
-          >
-            {defecto.fechaResolucion ? formatearFecha(defecto.fechaResolucion) : ''}
-          </td>
+          <td>
+  <input
+    type="date"
+    value={defecto.fechaResolucion ? defecto.fechaResolucion.substring(0, 10) : ''}
+    onChange={(e) => actualizarDefecto(defecto.idDefecto, 'fechaResolucion', e.target.value)}
+    className="fecha-limite-input"
+  />
+</td>
         </tr>
       ))}
     </tbody>
@@ -861,11 +877,8 @@ const eliminarProyecto = async () => {
     </div>
   </div>
 )}
-
-
     </div>
   );
-  /*614*/
 };
 
 export default App;

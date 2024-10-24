@@ -26,9 +26,9 @@ if (!fs.existsSync(codigoDir)) {
 // Función para formatear fecha en DD/MM/AAAA
 const formatearFecha = (fecha) => {
   if (!fecha) return 'Fecha no disponible';
-
+  
   const date = new Date(fecha);
-  date.setHours(date.getHours() + date.getTimezoneOffset() / 60);
+  date.setHours(date.getHours() + date.getTimezoneOffset() / 60); // Paréntesis añadido aquí
 
   if (!isNaN(date.getTime())) {
     const dia = ('0' + date.getDate()).slice(-2);
@@ -36,7 +36,6 @@ const formatearFecha = (fecha) => {
     const anio = date.getFullYear();
     return `${dia}/${mes}/${anio}`;
   }
-
   return 'Fecha no disponible';
 };
 
