@@ -596,5 +596,59 @@ input[type="radio"] {
   text-align: right;
 }
 
+.estado-prueba {
+  margin-top: 1px;
+}
+
+.estado-prueba select {
+  width: 160px;
+  padding: 5px;
+  font-size: 1rem;
+}
+
+/*comienzo*/
+.prueba-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1px; /* Espacio debajo del header, ajusta según necesites */
+}
+
+.titulo-y-estado {
+  display: flex;
+  align-items: center;
+}
+
+.titulo-y-estado h2 {
+  margin: 0;
+  margin-right: 0px; /* Espacio entre el título y el Dropdown */
+}
+
+.estado-prueba {
+  /* Si deseas ajustar estilos adicionales */
+}
+
+/* Estilos para eliminar el borde negro del Dropdown */
+.estado-prueba,
+.prueba-header select {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+
+
+/* Asegurar que el Dropdown de selección de prueba también tenga el borde eliminado */
+.prueba-header select {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-left: 10px;
+
+}
+
 
 /*551*/

@@ -217,3 +217,8 @@ WHERE idDefecto IN (264, 265, 266, 267, 268, 269);
 -- Eliminar la restricción de clave foránea en el campo 'Asignado'
 ALTER TABLE [IDProjectGASCHSOFT].[dbo].[Defectos]
 DROP CONSTRAINT FK_Defectos_Usuarios;
+
+-- Eliminar datos de tablas de pruebas y defectos.
+DELETE FROM [IDProjectGASCHSOFT].[dbo].[Defectos];
+DELETE FROM [IDProjectGASCHSOFT].[dbo].[Pruebas];
+

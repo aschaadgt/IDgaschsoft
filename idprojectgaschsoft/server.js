@@ -389,29 +389,56 @@ app.post('/api/proyectos/:id/pruebas', async (req, res) => {
 
 
 // Ruta PUT para actualizar una prueba existente con formato de fechas
+// Ruta PUT para actualizar una prueba existente
 app.put('/api/pruebas/:id', async (req, res) => {
   try {
       const { id } = req.params; // ID de la prueba
       const { nombrePrueba, descripcion, fechaEjecucion, resultado } = req.body;
 
       const pool = await poolPromise;
-      const result = await pool.request()
-          .input('nombrePrueba', sql.NVarChar, nombrePrueba)
-          .input('descripcion', sql.NVarChar, descripcion)
-          .input('fechaEjecucion', sql.DateTime, fechaEjecucion)
-          .input('resultado', sql.NVarChar, resultado)
-          .input('idPrueba', sql.Int, id)
-          .query('UPDATE Pruebas SET nombrePrueba = @nombrePrueba, descripcion = @descripcion, fechaEjecucion = @fechaEjecucion, resultado = @resultado WHERE idPrueba = @idPrueba');
+      const request = pool.request().input('idPrueba', sql.Int, id);
+
+      let camposActualizar = [];
+
+      if (nombrePrueba !== undefined) {
+        request.input('nombrePrueba', sql.NVarChar, nombrePrueba);
+        camposActualizar.push('nombrePrueba = @nombrePrueba');
+      }
+
+      if (descripcion !== undefined) {
+        request.input('descripcion', sql.NVarChar, descripcion);
+        camposActualizar.push('descripcion = @descripcion');
+      }
+
+      if (fechaEjecucion !== undefined) {
+        request.input('fechaEjecucion', sql.DateTime, fechaEjecucion);
+        camposActualizar.push('fechaEjecucion = @fechaEjecucion');
+      }
+
+      if (resultado !== undefined) {
+        request.input('resultado', sql.NVarChar, resultado);
+        camposActualizar.push('resultado = @resultado');
+      }
+
+      if (camposActualizar.length === 0) {
+        return res.status(400).send({ message: 'No se proporcionaron campos para actualizar.' });
+      }
+
+      const updateQuery = `UPDATE Pruebas SET ${camposActualizar.join(', ')} WHERE idPrueba = @idPrueba`;
+
+      const result = await request.query(updateQuery);
 
       if (result.rowsAffected[0] === 0) {
-          return res.status(404).send({ message: 'Prueba no encontrada.' });
+        return res.status(404).send({ message: 'Prueba no encontrada.' });
       }
 
       res.send({ message: 'Prueba actualizada exitosamente.' });
   } catch (err) {
+      console.error('Error al actualizar la prueba:', err);
       res.status(500).send({ message: err.message });
   }
 });
+
 
 // Ruta DELETE para eliminar una prueba y sus defectos relacionados
 app.delete('/api/pruebas/:idPrueba', async (req, res) => {
@@ -597,6 +624,21 @@ app.delete('/api/defectos/:id', async (req, res) => {
         res.status(500).send({ message: err.message });
     }
 });
+//=========================================================================================||
+// C R U D   U S U A R I O S
+// Ruta GET para obtener todos los usuarios
+app.get('/api/usuarios', async (req, res) => {
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request().query('SELECT * FROM Usuarios');
+    res.json(result.recordset);
+  } catch (err) {
+    console.error('Error al obtener los usuarios:', err);
+    res.status(500).send({ message: err.message });
+  }
+});
+
+
 //=========================================================================================||
 // C R U D   A R C H I V O S
 // Ruta GET para obtener el código de un proyecto

@@ -61,6 +61,36 @@ const App = () => {
   const [resultadosDefectos, setResultadosDefectos] = useState([]);
   const [listaUsuarios, setListaUsuarios] = useState([]);
 
+ //Funcion para actualizar estado de prueba
+ const actualizarPrueba = async (campo, valor) => {
+  if (pruebaSeleccionada) {
+    try {
+      await axios.put(
+        `http://localhost:3001/api/pruebas/${pruebaSeleccionada.idPrueba}`,
+        {
+          [campo]: valor,
+        }
+      );
+
+      // Actualizar el estado local
+      setPruebaSeleccionada({
+        ...pruebaSeleccionada,
+        [campo]: valor,
+      });
+      setListaPruebas(
+        listaPruebas.map((prueba) =>
+          prueba.idPrueba === pruebaSeleccionada.idPrueba
+            ? { ...prueba, [campo]: valor }
+            : prueba
+        )
+      );
+    } catch (error) {
+      console.error('Error al actualizar la prueba:', error);
+    }
+  }
+};
+
+
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
     if (!fecha) return 'Fecha no disponible';
@@ -674,11 +704,44 @@ const eliminarProyecto = async () => {
         </div>
       )}
       {/* Modal de resultados de la prueba */}
+      {mostrarModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2>Crear Nuevo Proyecto</h2>
+              <button className="close-button" onClick={cerrarModal}>
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
+              <input
+                type="text"
+                name="nombreProyecto"
+                placeholder="Nombre del Proyecto"
+                value={nuevoProyecto.nombreProyecto}
+                onChange={manejarCambio}
+              />
+              <textarea
+                name="descripcion"
+                placeholder="Descripción"
+                value={nuevoProyecto.descripcion}
+                onChange={manejarCambio}
+              />
+            </div>
+            <div className="modal-footer">
+              <button onClick={crearProyecto}>+ Crear</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal de resultados de la prueba */}
       {mostrarModalPrueba && (
   <div className="modal-overlay">
     <div className="modal modal-large"> {/* Añadimos una clase para ampliar el tamaño */}
       <div className="modal-header">
       <h1>{proyectoSeleccionado ? proyectoSeleccionado.nombreProyecto : 'Proyecto'}</h1>
+      {/* Añadimos el Dro */}
+
         <button className="close-button" onClick={() => setMostrarModalPrueba(false)}>
           &times;
         </button>
@@ -707,6 +770,18 @@ const eliminarProyecto = async () => {
   {/* Encabezado con el título y el dropdown para seleccionar pruebas */}
   <div className="prueba-header">
     <h2>Prueba N° {pruebaSeleccionada ? pruebaSeleccionada.idPrueba : 'N/A'}</h2>
+    {pruebaSeleccionada && (
+      <select
+        className="estado-prueba"
+        value={pruebaSeleccionada.resultado}
+        onChange={(e) => actualizarPrueba('resultado', e.target.value)}
+      >
+        <option value="CREADA">🔲 CREADA</option>
+        <option value="EN REVISION">🟪 EN REVISION</option>
+        <option value="CANCELADA">🟩 CANCELADA</option>
+        <option value="DEPURADA">✅ DEPURADA</option>
+      </select>
+    )}
     <select
       value={pruebaSeleccionada ? pruebaSeleccionada.idPrueba : ''}
       onChange={(e) => {
