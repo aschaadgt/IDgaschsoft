@@ -712,5 +712,34 @@ select {
   border-radius: 4px; /* Añade bordes redondeados al enfocarse */
 }
 
+/* Spinner de carga */
+.spinner {
+  border: 4px solid #007bff;
+  border-left-color: #0056b2;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.modal-footer button {
+  min-width: 150px; /* Mantener el tamaño mínimo del botón */
+  margin-right: 10px; /* Espaciado entre los botones */
+}
+
 
 /*551*/

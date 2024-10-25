@@ -64,6 +64,9 @@ const App = () => {
   const [resultadosDefectos, setResultadosDefectos] = useState([]);
   const [listaUsuarios, setListaUsuarios] = useState([]);
 
+  // Funcion cargando al crear prueba:
+  const [cargando, setCargando] = useState(false); // Nuevo estado para control del spinner
+
  //Funcion para actualizar estado de prueba
  const actualizarPrueba = async (campo, valor) => {
   if (pruebaSeleccionada) {
@@ -253,6 +256,7 @@ const seleccionarPrueba = async (prueba) => {
 
 //Función para ejecutar el análisis de código
 const ejecutarNuevaPrueba = async () => {
+  setCargando(true); // Mostrar spinner
   try {
     // Ejecutar el análisis de código
     const response = await axios.post(
@@ -310,6 +314,7 @@ const ejecutarNuevaPrueba = async () => {
   } catch (error) {
     console.error('Error al ejecutar la prueba:', error);
   }
+  setCargando(false); // Ocultar spinner
 };
 
 
@@ -941,11 +946,23 @@ const eliminarProyecto = async () => {
         )}
       </div>
       <div className="modal-footer">
-        {/* Botón para ejecutar nueva prueba */}
-  <button onClick={ejecutarNuevaPrueba}>Ejecutar Nueva Prueba</button>
+  {/* Spinner centrado */}
+  {cargando && (
+    <div className="spinner-container">
+      <div className="spinner"></div>
+    </div>
+  )}
 
-        <button onClick={() => setMostrarModalPrueba(false)}>Cerrar</button>
-      </div>
+  {/* Botón para ejecutar nueva prueba */}
+  <button onClick={ejecutarNuevaPrueba} disabled={cargando}>
+    Ejecutar Nueva Prueba
+  </button>
+
+  {/* Botón para cerrar */}
+  <button onClick={() => setMostrarModalPrueba(false)} disabled={cargando}>
+    Cerrar
+  </button>
+</div>
     </div>
   </div>
 )}
