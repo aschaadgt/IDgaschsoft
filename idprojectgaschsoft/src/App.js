@@ -4,6 +4,7 @@ import axios from 'axios';
 import './App.css';
 import { ResizableBox } from 'react-resizable';
 import AceEditor from 'react-ace'; // Para incluir el editor de código dentro de la sección de detalles del proyecto.
+import Select from 'react-select';
 
 // Importar los lenguajes que vamos a usar en el editor de código
 import 'ace-builds/src-noconflict/mode-javascript';
@@ -91,6 +92,17 @@ const App = () => {
     }
   }
 };
+
+// Funcion para el tamaño del Dropdowns
+const opcionesPruebas = listaPruebas.map((prueba, index) => ({
+  value: prueba.idPrueba,
+  label: `Prueba ${index + 1}`,
+}));
+
+const opcionesUsuarios = listaUsuarios.map((usuario) => ({
+  value: usuario.idUsuario,
+  label: `${usuario.nombre} ${usuario.apellido}`,
+}));
 
 // Función para convertir "DD/MM/YYYY" a "YYYY-MM-DD"
 const convertirFecha = (fecha) => {
@@ -253,10 +265,13 @@ const ejecutarNuevaPrueba = async () => {
     const resultadosAnalisis = response.data.resultados || [];
 
     // Crear una nueva prueba en la base de datos
+    const fechaEjecucion = new Date();
+    fechaEjecucion.setHours(fechaEjecucion.getHours() - fechaEjecucion.getTimezoneOffset() / 60); // Ajustar zona horaria a UTC
+
     const nuevaPrueba = {
       nombrePrueba: `Prueba ${listaPruebas.length + 1} ${proyectoSeleccionado.idProyecto}`,
       descripcion: `Prueba del proyecto ${proyectoSeleccionado.idProyecto}`,
-      fechaEjecucion: new Date(),
+      fechaEjecucion: fechaEjecucion, // Ajustar la fecha
       resultado: 'CREADA',
     };
 
@@ -275,7 +290,7 @@ const ejecutarNuevaPrueba = async () => {
         descripcion: defecto.descripcion,
         prioridad: defecto.tipo,
         estado: 'NUEVO',
-        fechaCreacion: new Date(),
+        fechaCreacion: new Date(),  // Ajusta la fecha de creación de los defectos
         fechaResolucion: null,
         asignado: null,
       };
@@ -295,7 +310,8 @@ const ejecutarNuevaPrueba = async () => {
   } catch (error) {
     console.error('Error al ejecutar la prueba:', error);
   }
-  };
+};
+
 
   // Función para actualizar un defecto específico
   const actualizarDefecto = async (idDefecto, campo, valor) => {
@@ -785,19 +801,51 @@ const eliminarProyecto = async () => {
   </div>
   {/* Dropdown para seleccionar pruebas en la siguiente línea */}
   <div className="selector-prueba">
-  <select
-    value={pruebaSeleccionada ? pruebaSeleccionada.idPrueba : ''}
-    onChange={(e) => {
-      const prueba = listaPruebas.find((p) => p.idPrueba === parseInt(e.target.value));
+  <Select
+    value={opcionesPruebas.find((opcion) => opcion.value === pruebaSeleccionada?.idPrueba)}
+    onChange={(selectedOption) => {
+      const prueba = listaPruebas.find((p) => p.idPrueba === selectedOption.value);
       seleccionarPrueba(prueba);
     }}
-  >
-    {listaPruebas.map((prueba, index) => (
-      <option key={prueba.idPrueba} value={prueba.idPrueba}>
-        Prueba {index + 1}
-      </option>
-    ))}
-  </select>
+    options={opcionesPruebas}
+    menuPlacement="auto" /* Controla la posición del menú desplegable */
+    styles={{
+      option: (provided, state) => ({
+        ...provided,
+        backgroundColor: state.isSelected ? '#767676' : '#fff',  // Color gris cuando está seleccionada la opción
+        color: state.isSelected ? '#fff' : '#000',               // Texto blanco cuando está seleccionada
+        padding: '1px 5px',     // Reduce el espacio alrededor del texto
+        outline: 'none',        // Elimina el borde azul del foco
+      }),
+      control: (provided, state) => ({
+        ...provided,
+        width: '118px',  // Ancho del select en estado cerrado
+        borderColor: '#fff',  // Borde personalizado
+        boxShadow: state.isFocused ? 'none' : provided.boxShadow,  // Elimina el borde azul en foco
+        '&:hover': {
+          borderColor: '#none',  // Mantiene el color del borde al pasar el cursor
+        },
+      }),
+      menu: (provided) => ({
+        ...provided,
+        maxHeight: '150px', // Altura del menú desplegable
+        width: '105px',  // Ancho del menú desplegable (lo ajustas según lo que necesites)
+        overflowY: 'auto',  // Scroll solo vertical
+      }),
+      indicatorSeparator: () => ({
+        display: 'none',  // Elimina la línea separadora
+      }),
+      valueContainer: (provided) => ({
+        ...provided,
+        padding: '0px 0px',      // Ajusta el padding interno del contenedor de valor
+      }),
+      menuList: (provided) => ({
+        ...provided,
+        maxHeight: '100px',  // Tamaño máximo de la lista de opciones
+        overflowY: 'auto',   // Habilita el scroll vertical solo en la lista de opciones
+      }),
+    }}
+  />
 </div>
 </div>
 
@@ -845,7 +893,7 @@ const eliminarProyecto = async () => {
                   {usuario.nombre} {usuario.apellido}
                 </option>
               ))}
-            </select>
+            </select> 
           </td>
           <td>
             <select
