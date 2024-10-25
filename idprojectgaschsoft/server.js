@@ -90,6 +90,9 @@ async function analizarCodigoConESLint(codigo, lenguaje) {
               nivel = translationMapping[ruleId].level;
           }
 
+          // Agregamos la línea traducida
+          descripcion = `${descripcion}  ${line}`;  // Aquí también agregamos la línea después de traducir
+
           return {
               tipo: nivel, // Usar el nivel personalizado
               descripcion: descripcion,
@@ -557,6 +560,8 @@ app.get('/api/pruebas/:idPrueba/defectos', async (req, res) => {
         FROM Defectos
         WHERE idPrueba = @idPrueba
       `);
+
+      
 
     res.json(result.recordset);
   } catch (err) {

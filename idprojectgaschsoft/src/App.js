@@ -805,27 +805,35 @@ const eliminarProyecto = async () => {
   {/* Mostrar la fecha de ejecución */}
   <p>Fecha de Ejecución: {pruebaSeleccionada ? formatearFecha(pruebaSeleccionada.fechaEjecucion) : 'N/A'}</p>
 
-  
-  {/* Tabla de defectos */}
-  <table className="tabla-defectos">
-    <thead>
-      <tr>
-        <th>Criticidad</th>
-        <th>Descripción</th>
-        <th>Línea</th>
-        <th>Asignado</th>
-        <th>Estado</th>
-        <th>Fecha Límite</th>
-      </tr>
-    </thead>
-    <tbody>
-      {resultadosDefectos.map((defecto) => (
+{/* Tabla de defectos */}
+{/* Tabla de defectos */}
+<table className="tabla-defectos">
+  <thead>
+    <tr>
+      <th>Criticidad</th>
+      <th>Descripción</th>
+      <th>Línea</th>
+      <th>Asignado</th>
+      <th>Estado</th>
+      <th>Fecha Límite</th>
+    </tr>
+  </thead>
+  <tbody>
+    {resultadosDefectos.map((defecto) => {
+      // Expresión regular para encontrar el número de línea en la descripción
+      const match = defecto.descripcion.match(/\b(\d+)\b$/);
+      const linea = match ? match[1] : 'N/A';  // Extraer el número de línea o mostrar 'N/A'
+      
+      // Eliminar el número de línea de la descripción
+      const descripcionSinLinea = defecto.descripcion.replace(/\b(\d+)\b$/, '');
+
+      return (
         <tr key={defecto.idDefecto}>
           <td className={`criticidad ${defecto.prioridad.replace(/\s/g, '-')}`}>
-  {defecto.prioridad}
-</td>
-          <td>{defecto.descripcion}</td>
-          <td>{defecto.linea || ''}</td>
+            {defecto.prioridad}
+          </td>
+          <td>{descripcionSinLinea.trim()}</td> {/* Mostrar la descripción sin el número de línea */}
+          <td>{linea}</td> {/* Mostrar el número de línea extraído */}
           <td>
             <select
               value={defecto.asignado || ''}
@@ -833,10 +841,10 @@ const eliminarProyecto = async () => {
             >
               <option value="">Sin asignar</option>
               {listaUsuarios.map((usuario) => (
-  <option key={usuario.idUsuario} value={usuario.idUsuario}>
-    {usuario.nombre} {usuario.apellido}
-  </option>
-))}
+                <option key={usuario.idUsuario} value={usuario.idUsuario}>
+                  {usuario.nombre} {usuario.apellido}
+                </option>
+              ))}
             </select>
           </td>
           <td>
@@ -851,25 +859,29 @@ const eliminarProyecto = async () => {
             </select>
           </td>
           <td>
-  <input
-    type="date"
-    value={defecto.fechaResolucion ? defecto.fechaResolucion.substring(0, 10) : ''}
-    onChange={(e) => actualizarDefecto(defecto.idDefecto, 'fechaResolucion', e.target.value)}
-    className="fecha-limite-input"
-  />
-</td>
+            <input
+              type="date"
+              value={defecto.fechaResolucion ? defecto.fechaResolucion.substring(0, 10) : ''}
+              onChange={(e) => actualizarDefecto(defecto.idDefecto, 'fechaResolucion', e.target.value)}
+              className="fecha-limite-input"
+            />
+          </td>
         </tr>
-      ))}
-    </tbody>
-    <tfoot>
-      <tr>
-        <td colSpan="5">Total de Defectos: {resultadosDefectos.length}</td>
-        <td>
-          Resueltos: {resultadosDefectos.filter((d) => d.estado === 'RESUELTO').length}
-        </td>
-      </tr>
-    </tfoot>
-  </table>
+      );
+    })}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colSpan="5">Total de Defectos: {resultadosDefectos.length}</td>
+      <td>
+        Resueltos: {resultadosDefectos.filter((d) => d.estado === 'RESUELTO').length}
+      </td>
+    </tr>
+  </tfoot>
+</table>
+
+
+
 </div>
 
           </div>
