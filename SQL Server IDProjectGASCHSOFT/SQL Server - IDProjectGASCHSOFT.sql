@@ -174,3 +174,51 @@ UPDATE Proyectos SET lenguaje = 'csharp' WHERE idProyecto = 161;
 UPDATE Proyectos SET lenguaje = 'java' WHERE idProyecto = 189;
 UPDATE Proyectos SET lenguaje = 'ruby' WHERE idProyecto = 190;
 UPDATE Proyectos SET lenguaje = 'sql' WHERE idProyecto = 220;
+-- Actualizar tabla de defectos añadiendo asignado
+-- Agregar el campo 'Asignado' a la tabla 'Defectos'
+ALTER TABLE [IDProjectGASCHSOFT].[dbo].[Defectos]
+ADD Asignado VARCHAR(36) NULL; -- Mismo tipo de dato que 'idUsuario' en 'Usuarios'
+
+-- Establecer 'Asignado' como clave foránea que referencia a 'Usuarios(idUsuario)'
+ALTER TABLE [IDProjectGASCHSOFT].[dbo].[Defectos]
+ADD CONSTRAINT FK_Defectos_Usuarios
+FOREIGN KEY (Asignado) REFERENCES [IDProjectGASCHSOFT].[dbo].[Usuarios](idUsuario);
+-- Asignar usuarios a los defectos
+-- Asignar 'JPerez' a los primeros 7 defectos
+UPDATE [IDProjectGASCHSOFT].[dbo].[Defectos]
+SET Asignado = 'JPerez'
+WHERE idDefecto IN (230, 231, 232, 233, 234, 235, 236);
+
+-- Asignar 'MLopez' a los siguientes 7 defectos
+UPDATE [IDProjectGASCHSOFT].[dbo].[Defectos]
+SET Asignado = 'MLopez'
+WHERE idDefecto IN (237, 238, 239, 240, 241, 242, 243);
+
+-- Asignar 'CRodriguez' a los siguientes 7 defectos
+UPDATE [IDProjectGASCHSOFT].[dbo].[Defectos]
+SET Asignado = 'CRodriguez'
+WHERE idDefecto IN (244, 245, 246, 247, 248, 249, 250);
+
+-- Asignar 'AGonzalez' a los siguientes 7 defectos
+UPDATE [IDProjectGASCHSOFT].[dbo].[Defectos]
+SET Asignado = 'AGonzalez'
+WHERE idDefecto IN (251, 252, 253, 254, 255, 256, 257);
+
+-- Asignar 'LHernandez' a los siguientes 6 defectos
+UPDATE [IDProjectGASCHSOFT].[dbo].[Defectos]
+SET Asignado = 'LHernandez'
+WHERE idDefecto IN (258, 259, 260, 261, 262, 263);
+
+-- Asignar 'RMorales' a los últimos 6 defectos
+UPDATE [IDProjectGASCHSOFT].[dbo].[Defectos]
+SET Asignado = 'RMorales'
+WHERE idDefecto IN (264, 265, 266, 267, 268, 269);
+
+-- Eliminar la restricción de clave foránea en el campo 'Asignado'
+ALTER TABLE [IDProjectGASCHSOFT].[dbo].[Defectos]
+DROP CONSTRAINT FK_Defectos_Usuarios;
+
+-- Eliminar datos de tablas de pruebas y defectos.
+DELETE FROM [IDProjectGASCHSOFT].[dbo].[Defectos];
+DELETE FROM [IDProjectGASCHSOFT].[dbo].[Pruebas];
+

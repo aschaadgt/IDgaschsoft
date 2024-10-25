@@ -358,7 +358,7 @@
 }
 
 .modal-footer button:first-child {
-  background-color: #6c757d;
+  background-color: #007bff;
   color: #ffffff;
 }
 
@@ -410,7 +410,7 @@
 }
 
 .close-button:hover {
-  color: #000000; /* Cambia a rojo al pasar el cursor */
+  color: red; /* Cambia a rojo al pasar el cursor */
 }
 
 /*Barra de lenguaje*/
@@ -460,6 +460,286 @@
 input[type="radio"] {
   display: none;
 }
-/* ===================== */
+
+/* Estilo para el botón "Sí, eliminar" */
+.modal-footer .delete-button {
+  background-color: #c82333!important; /* Color de fondo rojo */
+  color: #ffffff; /* Color del texto blanco */
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal-footer .delete-button:hover {
+  background-color: #e52222!important; /* Color de fondo rojo oscuro al hacer hover */
+  opacity: 0.9; /* Un ligero cambio en la opacidad al pasar el cursor */
+}
+
+/*Estilo para Modal de Pruebas*/
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-body {
+  margin-bottom: 20px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #757575;
+}
+
+.close-button:hover {
+  color: red;
+}
 
 /**/
+.modal-body ul li {
+  margin-bottom: 10px;
+}
+
+/* Estilos para los niveles de criticidad en la tabla de defectos */
+.tabla-defectos td.criticidad {
+  font-weight: bold;
+}
+
+.tabla-defectos td.criticidad.Critical {
+  color: red;
+}
+
+.tabla-defectos td.criticidad.High {
+  color: orange;
+}
+
+.tabla-defectos td.criticidad.Medium {
+  color: gold;
+}
+
+.tabla-defectos td.criticidad.Low {
+  color: green;
+}
+
+.tabla-defectos td.criticidad.Best-Practice {
+  color: blue;
+}
+
+.tabla-defectos td.criticidad.Information {
+  color: gray;
+}
+
+
+/* Estilos para ampliar el modal */
+.modal-large {
+  width: 80%;
+  max-width: 1200px;
+  height: 80%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid #ccc;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.tab-button.active {
+  background-color: #ffffff;
+  border-bottom: 2px solid #007bff;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.modal-footer {
+  padding: 10px;
+  text-align: right;
+}
+
+.estado-prueba {
+  margin-top: 1px;
+}
+
+.estado-prueba select {
+  width: 160px;
+  padding: 5px;
+  font-size: 1rem;
+}
+
+/*comienzo*/
+
+.titulo-y-estado {
+  display: flex;
+  align-items: center;
+}
+
+.titulo-y-estado h2 {
+  margin: 0;
+  margin-right: 20px; /* Espacio entre el título y el Dropdown */
+}
+
+.tabla-defectos th,
+.tabla-defectos td {
+  line-height: 1; /* Reduce la altura de línea */
+  
+}
+
+
+/* Estilos para eliminar el borde negro del Dropdown */
+.estado-prueba,
+.prueba-header select {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 1rem!important;
+  cursor: pointer;
+}
+
+/* Asegurar que el Dropdown de selección de prueba también tenga el borde eliminado */
+.prueba-header select {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 2rem;
+  cursor: pointer;
+  margin-left: -3.5px;
+
+}
+.modal.modal-large .modal-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  flex-grow: 1; /* Permite que el título ocupe el espacio disponible */
+  text-align: center; /* Alinea el texto hacia la derecha */
+}
+
+.modal.modal-large .close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #aaa;
+}
+
+.modal.modal-large .close-button:hover {
+  color: red;
+}
+
+/* Estilos para la sección prueba-header */
+.prueba-header {
+  margin-bottom: -14px;
+}
+
+/* Estilos para la tabla de defectos */
+.tabla-defectos {
+  width: 100%;
+  border: 1px solid #dddddd;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.tabla-defectos td {
+  border: 1px solid #ddd;
+  padding: 2px;
+  text-align: left;
+}
+
+/* Remover bordes negros de los Dropdowns */
+select {
+  border: none;
+  outline: none;
+}
+
+/* Estilos para el Input de Fecha Límite */
+.fecha-limite-input {
+  border: none!important; /* Elimina el borde predeterminado */
+  background: none!important; /* Elimina el fondo predeterminado */
+  outline: none!important; /* Elimina el contorno al enfocarse */
+  padding: 0px!important; /* Añade un poco de padding para mejor usabilidad */
+  font-size: 0.88rem!important; /* Ajusta el tamaño de la fuente si es necesario */
+  width: 100%; /* Asegura que el input ocupe todo el ancho de la celda */
+  box-sizing: border-box; /* Incluye el padding en el cálculo del ancho */
+}
+
+/* Opcional: Cambia el fondo o añade un ligero efecto al enfocarse */
+.fecha-limite-input:focus {
+  background-color: #f0f0f0; /* Cambia el fondo al enfocarse */
+  border-radius: 4px; /* Añade bordes redondeados al enfocarse */
+}
+
+/* Spinner de carga */
+.spinner {
+  border: 4px solid #007bff;
+  border-left-color: #0056b2;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.modal-footer button {
+  min-width: 150px; /* Mantener el tamaño mínimo del botón */
+  margin-right: 10px; /* Espaciado entre los botones */
+}
+
+
+/*551*/
