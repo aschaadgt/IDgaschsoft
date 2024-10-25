@@ -712,12 +712,10 @@ select {
   border-radius: 4px; /* Añade bordes redondeados al enfocarse */
 }
 
-/* App.css */
-
-
-
-
-
+.selector-prueba select {
+  max-height: 50px!important; /* Controla el tamaño máximo de la lista desplegable */
+  overflow-y: auto;  /* Habilita el scroll cuando haya muchas opciones */
+}
 
 
 /*551*/

@@ -786,19 +786,19 @@ const eliminarProyecto = async () => {
   {/* Dropdown para seleccionar pruebas en la siguiente línea */}
   <div className="selector-prueba">
   <select
-  value={pruebaSeleccionada ? pruebaSeleccionada.idPrueba : ''}
-  onChange={(e) => {
-    const prueba = listaPruebas.find((p) => p.idPrueba === parseInt(e.target.value));
-    seleccionarPrueba(prueba);
-  }}
->
-  {listaPruebas.map((prueba, index) => (
-    <option key={prueba.idPrueba} value={prueba.idPrueba}>
-      Prueba {index + 1}
-    </option>
-  ))}
-</select>
-  </div>
+    value={pruebaSeleccionada ? pruebaSeleccionada.idPrueba : ''}
+    onChange={(e) => {
+      const prueba = listaPruebas.find((p) => p.idPrueba === parseInt(e.target.value));
+      seleccionarPrueba(prueba);
+    }}
+  >
+    {listaPruebas.map((prueba, index) => (
+      <option key={prueba.idPrueba} value={prueba.idPrueba}>
+        Prueba {index + 1}
+      </option>
+    ))}
+  </select>
+</div>
 </div>
 
 
