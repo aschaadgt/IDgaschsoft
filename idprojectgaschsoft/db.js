@@ -2,13 +2,13 @@ const sql = require('mssql');
 
 // Configuración de la conexión a SQL Server
 const config = {
-    user: 'sa', // Usuario de SQL Server
-    password: 'RiskHundred2024.', // Contraseña de SQL Server
-    server: 'localhost', // Servidor, o la IP si es remoto
-    database: 'IDProjectGASCHSOFT', // Nombre de la base de datos
+    user: 'idprojectgaschsofff@idprojectgaschsofttt', 
+    password: 'RiskHundred2024.', 
+    server: 'idprojectgaschsofttt.database.windows.net', // Cambia por el nombre de tu servidor en Azure
+    database: 'IDProjectGASCHSOFT', // Nombre de la base de datos en Azure
     options: {
-        encrypt: true, // Si estás usando SQL Server en Azure, se usa esta opción
-        trustServerCertificate: true // Para SQL Server local, habilita esta opción
+        encrypt: true, // Esto debe estar en true para conexiones a Azure
+        trustServerCertificate: false // Para Azure, debe estar en false
     }
 };
 
@@ -16,11 +16,11 @@ const config = {
 const poolPromise = new sql.ConnectionPool(config)
     .connect()
     .then(pool => {
-        console.log('Conectado a SQL Server');
+        console.log('Conectado a SQL Server en Azure');
         return pool;
     })
     .catch(err => {
-        console.log('Error en la conexión a la base de datos: ', err);
+        console.log('Error en la conexión a la base de datos en Azure: ', err);
     });
 
 module.exports = {
