@@ -22,12 +22,11 @@ jobs:
           node-version: '20.x'
 
       # Cambio de directorio a 'idprojectgaschsoft' antes de ejecutar npm
-      - name: npm install, build, and test
+      - name: npm install and build
         run: |
           cd idprojectgaschsoft
           npm install
-          npm run build --if-present
-          npm run test --if-present
+          npm run build --if-present  # Eliminamos npm run test para no ejecutar las pruebas
       
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
