@@ -160,8 +160,7 @@ const convertirFecha = (fecha) => {
 
       return () => clearTimeout(timer); // Cancela el temporizador si el usuario sigue escribiendo
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contenidoCodigo, proyectoSeleccionado]);
+  }, [contenidoCodigo, proyectoSeleccionado, seleccionarProyecto]);  // Agrega seleccionarProyecto aquí
 
   // Manejar teclas de navegación
 useEffect(() => {
