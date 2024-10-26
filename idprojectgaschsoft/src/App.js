@@ -1,4 +1,3 @@
-// App.js
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
@@ -83,7 +82,6 @@ const App = () => {
     value: prueba.idPrueba,
     label: `Prueba ${index + 1}`,
   }));
-
   // Función para convertir "DD/MM/YYYY" a "YYYY-MM-DD"
   const convertirFecha = useCallback((fecha) => {
     const fechaParseada = parse(fecha, 'dd/MM/yyyy', new Date());
@@ -121,6 +119,7 @@ const App = () => {
     };
     obtenerProyectos();
   }, []);
+
   // Guardar el código automáticamente después de 0.5 segundos de inactividad
   useEffect(() => {
     if (proyectoSeleccionado) {
@@ -217,459 +216,459 @@ const App = () => {
     }
   }, [convertirFecha]);
 
-  // Función para ejecutar el análisis de código
-  const ejecutarNuevaPrueba = async () => {
-    setCargando(true); // Mostrar spinner
-    try {
-      const response = await axios.post(
-        `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/analisis`,
-        { contenidoCodigo: contenidoCodigo }
-      );
-
-      const resultadosAnalisis = response.data.resultados || [];
-      const fechaEjecucion = new Date();
-      fechaEjecucion.setHours(fechaEjecucion.getHours() - fechaEjecucion.getTimezoneOffset() / 60);
-
-      const nuevaPrueba = {
-        nombrePrueba: `Prueba ${listaPruebas.length + 1} ${proyectoSeleccionado.idProyecto}`,
-        descripcion: `Prueba del proyecto ${proyectoSeleccionado.idProyecto}`,
-        fechaEjecucion: fechaEjecucion,
-        resultado: 'CREADA',
-      };
-
-      const responsePrueba = await axios.post(
-        `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`,
-        nuevaPrueba
-      );
-
-      const idPruebaCreada = responsePrueba.data.idPrueba;
-
-      for (const defecto of resultadosAnalisis) {
-        const nuevoDefecto = {
-          idPrueba: idPruebaCreada,
-          descripcion: defecto.descripcion,
-          prioridad: defecto.tipo,
-          estado: 'NUEVO',
-          fechaCreacion: new Date(),
-          fechaResolucion: null,
-          asignado: null,
-        };
-        await axios.post(`http://localhost:3001/api/defectos`, nuevoDefecto);
-      }
-
-      const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`);
-      setListaPruebas(responsePruebas.data);
-
-      const nuevaPruebaCreada = responsePruebas.data.find(prueba => prueba.idPrueba === idPruebaCreada);
-      if (nuevaPruebaCreada) {
-        seleccionarPrueba(nuevaPruebaCreada);
-      }
-
-    } catch (error) {
-      console.error('Error al ejecutar la prueba:', error);
-    }
-    setCargando(false); // Ocultar spinner
-  };
-
-  // Función para actualizar un defecto específico
-  const actualizarDefecto = async (idDefecto, campo, valor) => {
-    try {
-      const response = await axios.get(`http://localhost:3001/api/defectos/${idDefecto}`);
-      const defectoActual = response.data;
-  
-      if (!defectoActual) {
-        console.error('Defecto no encontrado en la base de datos.');
-        return;
-      }
-
-      const defectoActualizado = {
-        ...defectoActual,
-        [campo]: valor,
-      };
-
-      await axios.put(`http://localhost:3001/api/defectos/${idDefecto}`, defectoActualizado);
-      setResultadosDefectos(
-        resultadosDefectos.map((d) => (d.idDefecto === idDefecto ? defectoActualizado : d))
-      );
-    } catch (error) {
-      console.error('Error al actualizar el defecto:', error);
-    }
-  };
-  // Abrir el modal para crear un nuevo proyecto
-  const abrirModal = () => {
-    setMostrarModal(true);
-  };
-
-  // Cerrar el modal
-  const cerrarModal = () => {
-    setMostrarModal(false);
-    setNuevoProyecto({ nombreProyecto: '', descripcion: '' });
-  };
-
-  // Manejar los cambios en el formulario del modal
-  const manejarCambio = (e) => {
-    const { name, value } = e.target;
-    setNuevoProyecto({ ...nuevoProyecto, [name]: value });
-  };
-
-  // Obtener la fecha actual ajustada
-  const obtenerFechaAjustada = (fecha) => {
-    fecha.setHours(0, 0, 0, 0); 
-    const year = fecha.getFullYear();
-    const month = ('0' + (fecha.getMonth() + 1)).slice(-2);
-    const day = ('0' + fecha.getDate()).slice(-2);
-    return `${year}-${month}-${day}`;
-  };
-
-  // Crear un nuevo proyecto
-  const crearProyecto = async () => {
-    try {
-      const fechaInicio = obtenerFechaAjustada(new Date());
-      const fechaFin = obtenerFechaAjustada(new Date(new Date().setDate(new Date().getDate() + 7)));
-      const nuevoProyectoDatos = {
-        idUsuario: 'ASchaad',
-        nombreProyecto: nuevoProyecto.nombreProyecto,
-        descripcion: nuevoProyecto.descripcion,
-        fechaInicio,
-        fechaFin,
-        estado: 'PENDIENTE',
-        lenguaje: 'javascript',
-      };
-
-      const response = await axios.post('http://localhost:3001/api/proyectos', nuevoProyectoDatos);
-      if (response.status === 201) {
-        const responseProyectos = await axios.get('http://localhost:3001/api/proyectos');
-        setProyectos(responseProyectos.data);
-
-        // Seleccionar automáticamente el nuevo proyecto creado
-        const nuevoProyectoCreado = responseProyectos.data.find(
-          (proyecto) => proyecto.nombreProyecto === nuevoProyectoDatos.nombreProyecto &&
-                        proyecto.descripcion === nuevoProyectoDatos.descripcion
+    // Función para ejecutar el análisis de código
+    const ejecutarNuevaPrueba = async () => {
+      setCargando(true); // Mostrar spinner
+      try {
+        const response = await axios.post(
+          `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/analisis`,
+          { contenidoCodigo: contenidoCodigo }
         );
-
-        if (nuevoProyectoCreado) {
-          seleccionarProyecto(nuevoProyectoCreado); // Seleccionar el nuevo proyecto automáticamente
+  
+        const resultadosAnalisis = response.data.resultados || [];
+        const fechaEjecucion = new Date();
+        fechaEjecucion.setHours(fechaEjecucion.getHours() - fechaEjecucion.getTimezoneOffset() / 60);
+  
+        const nuevaPrueba = {
+          nombrePrueba: `Prueba ${listaPruebas.length + 1} ${proyectoSeleccionado.idProyecto}`,
+          descripcion: `Prueba del proyecto ${proyectoSeleccionado.idProyecto}`,
+          fechaEjecucion: fechaEjecucion,
+          resultado: 'CREADA',
+        };
+  
+        const responsePrueba = await axios.post(
+          `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`,
+          nuevaPrueba
+        );
+  
+        const idPruebaCreada = responsePrueba.data.idPrueba;
+  
+        for (const defecto of resultadosAnalisis) {
+          const nuevoDefecto = {
+            idPrueba: idPruebaCreada,
+            descripcion: defecto.descripcion,
+            prioridad: defecto.tipo,
+            estado: 'NUEVO',
+            fechaCreacion: new Date(),
+            fechaResolucion: null,
+            asignado: null,
+          };
+          await axios.post(`http://localhost:3001/api/defectos`, nuevoDefecto);
         }
-
-        cerrarModal();
+  
+        const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`);
+        setListaPruebas(responsePruebas.data);
+  
+        const nuevaPruebaCreada = responsePruebas.data.find(prueba => prueba.idPrueba === idPruebaCreada);
+        if (nuevaPruebaCreada) {
+          seleccionarPrueba(nuevaPruebaCreada);
+        }
+  
+      } catch (error) {
+        console.error('Error al ejecutar la prueba:', error);
       }
-    } catch (error) {
-      console.error('Error al crear el proyecto:', error);
-    }
-  };
-
-  // Actualizar un proyecto
-  const actualizarProyecto = async (campo, valor) => {
-    if (proyectoSeleccionado) {
-      let proyectoActualizado = { ...proyectoSeleccionado };
-      
-      // Validación especial para la fecha de fin
-      if (campo === 'fechaFin') {
-        const partes = valor.split('/');
-        if (partes.length === 3) {
-          const dia = partes[0];
-          const mes = partes[1];
-          const anio = partes[2];
-          proyectoActualizado[campo] = `${mes}/${dia}/${anio}`;
-        } else {
-          alert('Por favor, ingresa una fecha válida en formato DD/MM/AAAA.');
+      setCargando(false); // Ocultar spinner
+    };
+  
+    // Función para actualizar un defecto específico
+    const actualizarDefecto = async (idDefecto, campo, valor) => {
+      try {
+        const response = await axios.get(`http://localhost:3001/api/defectos/${idDefecto}`);
+        const defectoActual = response.data;
+    
+        if (!defectoActual) {
+          console.error('Defecto no encontrado en la base de datos.');
           return;
         }
-      } else {
-        proyectoActualizado[campo] = valor;
-      }
   
-      try {
-        await axios.put(
-          `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`,
-          proyectoActualizado
-        );
-        setProyectoSeleccionado(proyectoActualizado);
-        setProyectos(
-          proyectos.map((proyecto) =>
-            proyecto.idProyecto === proyectoActualizado.idProyecto
-              ? proyectoActualizado
-              : proyecto
-          )
+        const defectoActualizado = {
+          ...defectoActual,
+          [campo]: valor,
+        };
+  
+        await axios.put(`http://localhost:3001/api/defectos/${idDefecto}`, defectoActualizado);
+        setResultadosDefectos(
+          resultadosDefectos.map((d) => (d.idDefecto === idDefecto ? defectoActualizado : d))
         );
       } catch (error) {
-        console.error('Error al actualizar el proyecto:', error);
+        console.error('Error al actualizar el defecto:', error);
       }
-    }
-  };
-
-  // Eliminar un proyecto
-  const eliminarProyecto = async () => {
-    if (proyectoSeleccionado) {
+    };
+  
+    // Abrir el modal para crear un nuevo proyecto
+    const abrirModal = () => {
+      setMostrarModal(true);
+    };
+  
+    // Cerrar el modal
+    const cerrarModal = () => {
+      setMostrarModal(false);
+      setNuevoProyecto({ nombreProyecto: '', descripcion: '' });
+    };
+  
+    // Manejar los cambios en el formulario del modal
+    const manejarCambio = (e) => {
+      const { name, value } = e.target;
+      setNuevoProyecto({ ...nuevoProyecto, [name]: value });
+    };
+  
+    // Obtener la fecha actual ajustada
+    const obtenerFechaAjustada = (fecha) => {
+      fecha.setHours(0, 0, 0, 0); 
+      const year = fecha.getFullYear();
+      const month = ('0' + (fecha.getMonth() + 1)).slice(-2);
+      const day = ('0' + fecha.getDate()).slice(-2);
+      return `${year}-${month}-${day}`;
+    };
+  
+    // Crear un nuevo proyecto
+    const crearProyecto = async () => {
       try {
-        await axios.delete(
-          `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`
-        );
-        const nuevosProyectos = proyectos.filter(
-          (proyecto) => proyecto.idProyecto !== proyectoSeleccionado.idProyecto
-        );
-        
-        if (nuevosProyectos.length > 0) {
-          const indexSeleccionado = proyectos.findIndex(
-            (proyecto) => proyecto.idProyecto === proyectoSeleccionado.idProyecto
+        const fechaInicio = obtenerFechaAjustada(new Date());
+        const fechaFin = obtenerFechaAjustada(new Date(new Date().setDate(new Date().getDate() + 7)));
+        const nuevoProyectoDatos = {
+          idUsuario: 'ASchaad',
+          nombreProyecto: nuevoProyecto.nombreProyecto,
+          descripcion: nuevoProyecto.descripcion,
+          fechaInicio,
+          fechaFin,
+          estado: 'PENDIENTE',
+          lenguaje: 'javascript',
+        };
+  
+        const response = await axios.post('http://localhost:3001/api/proyectos', nuevoProyectoDatos);
+        if (response.status === 201) {
+          const responseProyectos = await axios.get('http://localhost:3001/api/proyectos');
+          setProyectos(responseProyectos.data);
+  
+          // Seleccionar automáticamente el nuevo proyecto creado
+          const nuevoProyectoCreado = responseProyectos.data.find(
+            (proyecto) => proyecto.nombreProyecto === nuevoProyectoDatos.nombreProyecto &&
+                          proyecto.descripcion === nuevoProyectoDatos.descripcion
           );
-
-          const nuevoSeleccionado = nuevosProyectos[indexSeleccionado - 1] || nuevosProyectos[0];
-          setProyectoSeleccionado(nuevoSeleccionado);
-          seleccionarProyecto(nuevoSeleccionado);
-        } else {
-          setProyectoSeleccionado(null);
-          setContenidoCodigo('');
+  
+          if (nuevoProyectoCreado) {
+            seleccionarProyecto(nuevoProyectoCreado); // Seleccionar el nuevo proyecto automáticamente
+          }
+  
+          cerrarModal();
         }
+      } catch (error) {
+        console.error('Error al crear el proyecto:', error);
+      }
+    };
+  
+    // Actualizar un proyecto
+    const actualizarProyecto = async (campo, valor) => {
+      if (proyectoSeleccionado) {
+        let proyectoActualizado = { ...proyectoSeleccionado };
         
-        setProyectos(nuevosProyectos);
+        // Validación especial para la fecha de fin
+        if (campo === 'fechaFin') {
+          const partes = valor.split('/');
+          if (partes.length === 3) {
+            const dia = partes[0];
+            const mes = partes[1];
+            const anio = partes[2];
+            proyectoActualizado[campo] = `${mes}/${dia}/${anio}`;
+          } else {
+            alert('Por favor, ingresa una fecha válida en formato DD/MM/AAAA.');
+            return;
+          }
+        } else {
+          proyectoActualizado[campo] = valor;
+        }
+    
+        try {
+          await axios.put(
+            `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`,
+            proyectoActualizado
+          );
+          setProyectoSeleccionado(proyectoActualizado);
+          setProyectos(
+            proyectos.map((proyecto) =>
+              proyecto.idProyecto === proyectoActualizado.idProyecto
+                ? proyectoActualizado
+                : proyecto
+            )
+          );
+        } catch (error) {
+          console.error('Error al actualizar el proyecto:', error);
+        }
+      }
+    };
+  
+    // Eliminar un proyecto
+    const eliminarProyecto = async () => {
+      if (proyectoSeleccionado) {
+        try {
+          await axios.delete(
+            `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`
+          );
+          const nuevosProyectos = proyectos.filter(
+            (proyecto) => proyecto.idProyecto !== proyectoSeleccionado.idProyecto
+          );
+          
+          if (nuevosProyectos.length > 0) {
+            const indexSeleccionado = proyectos.findIndex(
+              (proyecto) => proyecto.idProyecto === proyectoSeleccionado.idProyecto
+            );
+  
+            const nuevoSeleccionado = nuevosProyectos[indexSeleccionado - 1] || nuevosProyectos[0];
+            setProyectoSeleccionado(nuevoSeleccionado);
+            seleccionarProyecto(nuevoSeleccionado);
+          } else {
+            setProyectoSeleccionado(null);
+            setContenidoCodigo('');
+          }
+          
+          setProyectos(nuevosProyectos);
+        } catch (error) {
+          console.error('Error al eliminar el proyecto:', error);
+        }
+      }
+    };
+  
+    // Función de confirmación de eliminación
+    const confirmarEliminacionProyecto = async () => {
+      try {
+        await eliminarProyecto();
+        setMostrarModalConfirmacion(false); // Cierra el modal
       } catch (error) {
         console.error('Error al eliminar el proyecto:', error);
       }
-    }
-  };
-
-  // Función de confirmación de eliminación
-  const confirmarEliminacionProyecto = async () => {
-    try {
-      await eliminarProyecto();
-      setMostrarModalConfirmacion(false); // Cierra el modal
-    } catch (error) {
-      console.error('Error al eliminar el proyecto:', error);
-    }
-  };
-
-  // Guardar el código automáticamente
-  const guardarCodigoAutomáticamente = async (nuevoCodigo) => {
-    setContenidoCodigo(nuevoCodigo);
-    try {
-      await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/codigo`, {
-        codigo: nuevoCodigo,
-      });
-    } catch (error) {
-      console.error('Error al guardar el código:', error);
-    }
-  };
-
-  // Filtrar proyectos según el término de búsqueda
-  const proyectosFiltrados = proyectos.filter((proyecto) =>
-    proyecto.nombreProyecto.toLowerCase().includes(busqueda.toLowerCase())
-  );
-
-  return (
-    <div className="container">
-      <ResizableBox
-        className="resizable-sidebar"
-        width={250} // Espacio izquierda entre borde izquierdo y limite de carpeta de proyectos
-        height={Infinity}
-        axis="x"
-        minConstraints={[200, Infinity]}
-        maxConstraints={[600, Infinity]}
-        resizeHandles={['e']}
-        style={{ flexShrink: 0 }}
-      >
-        <section className="sidebar transparent-sidebar">
-          <ul>
-            <li className="sidebar-item">Todos los proyectos</li>
-            <li className="sidebar-item">Otros</li>
-            <li className="sidebar-item">Archivados</li>
-            <li className="sidebar-item">Eliminados</li>
-          </ul>
-        </section>
-      </ResizableBox>
-      <ResizableBox
-        className="resizable-project-list"
-        width={300}
-        height={Infinity}
-        axis="x"
-        minConstraints={[200, Infinity]}
-        maxConstraints={[600, Infinity]}
-        resizeHandles={['e']}
-        style={{ flexShrink: 0 }}
-      >
-        <section className="project-list">
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Buscar en todos los proyectos"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-            />
-          </div>
-          <div className="project-items">
+    };
+  
+    // Guardar el código automáticamente
+    const guardarCodigoAutomáticamente = async (nuevoCodigo) => {
+      setContenidoCodigo(nuevoCodigo);
+      try {
+        await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/codigo`, {
+          codigo: nuevoCodigo,
+        });
+      } catch (error) {
+        console.error('Error al guardar el código:', error);
+      }
+    };
+    // Filtrar proyectos según el término de búsqueda
+    const proyectosFiltrados = proyectos.filter((proyecto) =>
+      proyecto.nombreProyecto.toLowerCase().includes(busqueda.toLowerCase())
+    );
+  
+    return (
+      <div className="container">
+        <ResizableBox
+          className="resizable-sidebar"
+          width={250} // Espacio izquierda entre borde izquierdo y limite de carpeta de proyectos
+          height={Infinity}
+          axis="x"
+          minConstraints={[200, Infinity]}
+          maxConstraints={[600, Infinity]}
+          resizeHandles={['e']}
+          style={{ flexShrink: 0 }}
+        >
+          <section className="sidebar transparent-sidebar">
             <ul>
-              {proyectosFiltrados.map((proyecto) => (
-                <li
-                  key={proyecto.idProyecto}
-                  id={`proyecto-${proyecto.idProyecto}`}
-                  className={proyectoSeleccionado?.idProyecto === proyecto.idProyecto ? 'selected' : ''}
-                  onClick={() => seleccionarProyecto(proyecto)}
-                >
-                  <h3>{proyecto.nombreProyecto}</h3>
-                  <p>{proyecto.descripcion.slice(0, 50)}</p>
-                </li>
-              ))}
+              <li className="sidebar-item">Todos los proyectos</li>
+              <li className="sidebar-item">Otros</li>
+              <li className="sidebar-item">Archivados</li>
+              <li className="sidebar-item">Eliminados</li>
             </ul>
-          </div>
-        </section>
-      </ResizableBox>
-
-      <section className="project-details">
-        <header>
-          <div className="header-left">
-            <button
-              className="delete-project"
-              onClick={() => {
-                setProyectoAEliminar(proyectoSeleccionado);
-                setMostrarModalConfirmacion(true);
-              }}
-              disabled={!proyectoSeleccionado}
-            >
-              Eliminar
-            </button>
-            <button
-              onClick={() => setMostrarModalPrueba(true)}
-              disabled={!proyectoSeleccionado}
-            >
-              Pruebas
-            </button>
-          </div>
-          <button className="new-project" onClick={abrirModal}>+ Crear Proyecto</button>
-        </header>
-        <div className="project-body">
-          {proyectoSeleccionado ? (
-            <>
-              <h1
-                contentEditable
-                suppressContentEditableWarning
-                onBlur={(e) => actualizarProyecto('nombreProyecto', e.target.innerText)}
-                style={{ border: 'none', outline: 'none' }}
-              >
-                {proyectoSeleccionado.nombreProyecto}
-              </h1>
-              <p
-                contentEditable
-                suppressContentEditableWarning
-                onBlur={(e) => actualizarProyecto('descripcion', e.target.innerText)}
-                style={{ border: 'none', outline: 'none' }}
-              >
-                {proyectoSeleccionado.descripcion}
-              </p>
-              <p>
-                <strong>Fecha de Inicio:</strong> {formatearFecha(proyectoSeleccionado.fechaInicio)}
-              </p>
-              <p>
-                <strong>Fecha de Fin: </strong>
-                <span
-                  contentEditable
-                  suppressContentEditableWarning
-                  onBlur={(e) => actualizarProyecto('fechaFin', e.target.innerText)}
-                  style={{ border: 'none', outline: 'none', display: 'inline' }}
-                >
-                  {formatearFecha(proyectoSeleccionado.fechaFin)}
-                </span>
-              </p>
-              <p>
-                <strong>Estado: </strong>
-                <select
-                  value={proyectoSeleccionado.estado}
-                  onChange={(e) => actualizarProyecto('estado', e.target.value)}
-                  style={{
-                    border: 'none',
-                    outline: 'none',
-                    background: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <option value="PENDIENTE">🔲 PENDIENTE</option>
-                  <option value="IN PROGRESS">🟪 IN PROGRESS</option>
-                  <option value="CANCELADO">🟩 CANCELADO</option>
-                  <option value="FINALIZADO">✅ FINALIZADO</option>
-                </select>
-              </p>
-
-              {/* Editor de código */}
-              <AceEditor
-                mode={lenguaje}
-                theme="dracula"
-                name="editorCodigo"
-                value={contenidoCodigo}
-                onChange={guardarCodigoAutomáticamente}
-                fontSize={14}
-                width="100%"
-                height="calc(90vh - 200px)"
-                setOptions={{
-                  enableBasicAutocompletion: true,
-                  enableLiveAutocompletion: true,
-                  enableSnippets: true,
-                  showLineNumbers: true,
-                  tabSize: 4,
-                }}
-              />
-            </>
-          ) : (
-            <p>No hay proyectos seleccionados. Crea uno nuevo para comenzar.</p>
-          )}
-        </div>
-      </section>
-
-      {mostrarModalConfirmacion && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>Confirmar Eliminación</h2>
-              <button className="close-button" onClick={() => setMostrarModalConfirmacion(false)}>
-                &times;
-              </button>
-            </div>
-            <div className="modal-body">
-              <p>
-                ¿Está seguro que desea eliminar el proyecto{' '}
-                <strong>{proyectoAEliminar?.nombreProyecto}</strong>?
-              </p>
-            </div>
-            <div className="modal-footer">
-              <button onClick={() => setMostrarModalConfirmacion(false)}>Cancelar</button>
-              <button className="delete-button" onClick={confirmarEliminacionProyecto}>
-                Sí, eliminar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {mostrarModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>Crear Nuevo Proyecto</h2>
-              <button className="close-button" onClick={cerrarModal}>
-                &times;
-              </button>
-            </div>
-            <div className="modal-body">
+          </section>
+        </ResizableBox>
+  
+        <ResizableBox
+          className="resizable-project-list"
+          width={300}
+          height={Infinity}
+          axis="x"
+          minConstraints={[200, Infinity]}
+          maxConstraints={[600, Infinity]}
+          resizeHandles={['e']}
+          style={{ flexShrink: 0 }}
+        >
+          <section className="project-list">
+            <div className="search-bar">
               <input
                 type="text"
-                name="nombreProyecto"
-                placeholder="Nombre del Proyecto"
-                value={nuevoProyecto.nombreProyecto}
-                onChange={manejarCambio}
-              />
-              <textarea
-                name="descripcion"
-                placeholder="Descripción"
-                value={nuevoProyecto.descripcion}
-                onChange={manejarCambio}
+                placeholder="Buscar en todos los proyectos"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
               />
             </div>
-            <div className="modal-footer">
-              <button onClick={crearProyecto}>+ Crear</button>
+            <div className="project-items">
+              <ul>
+                {proyectosFiltrados.map((proyecto) => (
+                  <li
+                    key={proyecto.idProyecto}
+                    id={`proyecto-${proyecto.idProyecto}`}
+                    className={proyectoSeleccionado?.idProyecto === proyecto.idProyecto ? 'selected' : ''}
+                    onClick={() => seleccionarProyecto(proyecto)}
+                  >
+                    <h3>{proyecto.nombreProyecto}</h3>
+                    <p>{proyecto.descripcion.slice(0, 50)}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        </ResizableBox>
+  
+        <section className="project-details">
+          <header>
+            <div className="header-left">
+              <button
+                className="delete-project"
+                onClick={() => {
+                  setProyectoAEliminar(proyectoSeleccionado);
+                  setMostrarModalConfirmacion(true);
+                }}
+                disabled={!proyectoSeleccionado}
+              >
+                Eliminar
+              </button>
+              <button
+                onClick={() => setMostrarModalPrueba(true)}
+                disabled={!proyectoSeleccionado}
+              >
+                Pruebas
+              </button>
+            </div>
+            <button className="new-project" onClick={abrirModal}>+ Crear Proyecto</button>
+          </header>
+          <div className="project-body">
+            {proyectoSeleccionado ? (
+              <>
+                <h1
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => actualizarProyecto('nombreProyecto', e.target.innerText)}
+                  style={{ border: 'none', outline: 'none' }}
+                >
+                  {proyectoSeleccionado.nombreProyecto}
+                </h1>
+                <p
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => actualizarProyecto('descripcion', e.target.innerText)}
+                  style={{ border: 'none', outline: 'none' }}
+                >
+                  {proyectoSeleccionado.descripcion}
+                </p>
+                <p>
+                  <strong>Fecha de Inicio:</strong> {formatearFecha(proyectoSeleccionado.fechaInicio)}
+                </p>
+                <p>
+                  <strong>Fecha de Fin: </strong>
+                  <span
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={(e) => actualizarProyecto('fechaFin', e.target.innerText)}
+                    style={{ border: 'none', outline: 'none', display: 'inline' }}
+                  >
+                    {formatearFecha(proyectoSeleccionado.fechaFin)}
+                  </span>
+                </p>
+                <p>
+                  <strong>Estado: </strong>
+                  <select
+                    value={proyectoSeleccionado.estado}
+                    onChange={(e) => actualizarProyecto('estado', e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      background: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="PENDIENTE">🔲 PENDIENTE</option>
+                    <option value="IN PROGRESS">🟪 IN PROGRESS</option>
+                    <option value="CANCELADO">🟩 CANCELADO</option>
+                    <option value="FINALIZADO">✅ FINALIZADO</option>
+                  </select>
+                </p>
+  
+                {/* Editor de código */}
+                <AceEditor
+                  mode={lenguaje}
+                  theme="dracula"
+                  name="editorCodigo"
+                  value={contenidoCodigo}
+                  onChange={guardarCodigoAutomáticamente}
+                  fontSize={14}
+                  width="100%"
+                  height="calc(90vh - 200px)"
+                  setOptions={{
+                    enableBasicAutocompletion: true,
+                    enableLiveAutocompletion: true,
+                    enableSnippets: true,
+                    showLineNumbers: true,
+                    tabSize: 4,
+                  }}
+                />
+              </>
+            ) : (
+              <p>No hay proyectos seleccionados. Crea uno nuevo para comenzar.</p>
+            )}
+          </div>
+        </section>
+  
+        {mostrarModalConfirmacion && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <div className="modal-header">
+                <h2>Confirmar Eliminación</h2>
+                <button className="close-button" onClick={() => setMostrarModalConfirmacion(false)}>
+                  &times;
+                </button>
+              </div>
+              <div className="modal-body">
+                <p>
+                  ¿Está seguro que desea eliminar el proyecto{' '}
+                  <strong>{proyectoAEliminar?.nombreProyecto}</strong>?
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button onClick={() => setMostrarModalConfirmacion(false)}>Cancelar</button>
+                <button className="delete-button" onClick={confirmarEliminacionProyecto}>
+                  Sí, eliminar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {mostrarModalPrueba && (
+        )}
+  
+        {mostrarModal && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <div className="modal-header">
+                <h2>Crear Nuevo Proyecto</h2>
+                <button className="close-button" onClick={cerrarModal}>
+                  &times;
+                </button>
+              </div>
+              <div className="modal-body">
+                <input
+                  type="text"
+                  name="nombreProyecto"
+                  placeholder="Nombre del Proyecto"
+                  value={nuevoProyecto.nombreProyecto}
+                  onChange={manejarCambio}
+                />
+                <textarea
+                  name="descripcion"
+                  placeholder="Descripción"
+                  value={nuevoProyecto.descripcion}
+                  onChange={manejarCambio}
+                />
+              </div>
+              <div className="modal-footer">
+                <button onClick={crearProyecto}>+ Crear</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {mostrarModalPrueba && (
         <div className="modal-overlay">
           <div className="modal modal-large">
             <div className="modal-header">
@@ -718,6 +717,7 @@ const App = () => {
                         </select>
                       )}
                     </div>
+
                     <Select
                       value={opcionesPruebas.find((opcion) => opcion.value === pruebaSeleccionada?.idPrueba)}
                       onChange={(selectedOption) => {
