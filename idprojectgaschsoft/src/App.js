@@ -266,6 +266,34 @@ const App = () => {
     }
   };
 
+  const opcionesPruebas = listaPruebas.map((prueba, index) => ({
+    value: prueba.idPrueba,
+    label: `Prueba ${index + 1}`,
+  }));
+  
+  const actualizarPrueba = async (campo, valor) => {
+    if (pruebaSeleccionada) {
+      try {
+        await axios.put(
+          `http://localhost:3001/api/pruebas/${pruebaSeleccionada.idPrueba}`,
+          { [campo]: valor }
+        );
+  
+        setPruebaSeleccionada({ ...pruebaSeleccionada, [campo]: valor });
+        setListaPruebas(
+          listaPruebas.map((prueba) =>
+            prueba.idPrueba === pruebaSeleccionada.idPrueba
+              ? { ...prueba, [campo]: valor }
+              : prueba
+          )
+        );
+      } catch (error) {
+        console.error('Error al actualizar la prueba:', error);
+      }
+    }
+  };
+  
+  
   // Abrir el modal para crear un nuevo proyecto
   const abrirModal = () => {
     setMostrarModal(true);
