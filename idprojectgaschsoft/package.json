@@ -27,12 +27,12 @@
     "webpack-dev-server": "^5.1.0"
   },
   "scripts": {
-  "start": "set NODE_OPTIONS=--openssl-legacy-provider && react-scripts start",
-  "start-backend": "node server.js",
-  "build": "ESLINT_NO_DEV_ERRORS=true react-scripts build",
-  "test": "react-scripts test",
-  "eject": "react-scripts eject"
-  },
+    "start": "set NODE_OPTIONS=--openssl-legacy-provider && react-scripts start",
+    "start-backend": "node server.js",
+    "build": "set ESLINT_NO_DEV_ERRORS=true && react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+},
   "eslintConfig": {
     "extends": [
       "react-app",
