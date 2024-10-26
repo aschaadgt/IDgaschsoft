@@ -53,7 +53,6 @@ const App = () => {
   const [proyectoAEliminar, setProyectoAEliminar] = useState(null);
 
   // Estados para los resultados de las pruebas
-  const [resultadosPrueba, setResultadosPrueba] = useState([]); // Inicializamos como un array vacío
   const [mostrarModalPrueba, setMostrarModalPrueba] = useState(false); // Estado para mostrar/ocultar el modal de resultados
   
   const [pestañaActiva, setPestañaActiva] = useState('Pruebas'); // 'Pruebas' o 'Dashboard'
@@ -161,6 +160,7 @@ const convertirFecha = (fecha) => {
 
       return () => clearTimeout(timer); // Cancela el temporizador si el usuario sigue escribiendo
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contenidoCodigo, proyectoSeleccionado]);
 
   // Manejar teclas de navegación
