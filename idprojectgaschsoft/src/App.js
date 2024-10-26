@@ -5,6 +5,7 @@ import './App.css';
 import { ResizableBox } from 'react-resizable';
 import AceEditor from 'react-ace'; // Para incluir el editor de código dentro de la sección de detalles del proyecto.
 import Select from 'react-select';
+import { useCallback, useEffect } from 'react';
 
 // Importar los lenguajes que vamos a usar en el editor de código
 import 'ace-builds/src-noconflict/mode-javascript';
@@ -157,10 +158,10 @@ const convertirFecha = (fecha) => {
           console.error('Error al guardar el código:', error);
         }
       }, 500); //500 milisengundos
-
+  
       return () => clearTimeout(timer); // Cancela el temporizador si el usuario sigue escribiendo
     }
-  }, [contenidoCodigo, proyectoSeleccionado, seleccionarProyecto]);  // Agrega seleccionarProyecto aquí
+  }, [contenidoCodigo, proyectoSeleccionado, seleccionarProyecto]);
 
   // Manejar teclas de navegación
 useEffect(() => {
@@ -205,34 +206,36 @@ useEffect(() => {
 }, [proyectos, proyectoSeleccionado]);
 
 // Función para seleccionar un proyecto y cargar su código
-const seleccionarProyecto = async (proyecto) => {
-  setProyectoSeleccionado(proyecto);
-  try {
-    const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
-    setContenidoCodigo(response.data.contenido);
-    setLenguaje(proyecto.lenguaje || 'javascript'); // Actualiza el lenguaje al cargar un proyecto
+const seleccionarProyecto = useCallback(
+  async (proyecto) => {
+    setProyectoSeleccionado(proyecto);
+    try {
+      const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
+      setContenidoCodigo(response.data.contenido);
+      setLenguaje(proyecto.lenguaje || 'javascript'); // Actualiza el lenguaje al cargar un proyecto
 
-    // Cargar las pruebas asociadas al proyecto
-    const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/pruebas`);
-    setListaPruebas(responsePruebas.data);
+      // Cargar las pruebas asociadas al proyecto
+      const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/pruebas`);
+      setListaPruebas(responsePruebas.data);
 
-    // Seleccionar la prueba más reciente si existe
-    if (responsePruebas.data.length > 0) {
-      seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
-    } else {
-      setPruebaSeleccionada(null);
-      setResultadosDefectos([]);
+      // Seleccionar la prueba más reciente si existe
+      if (responsePruebas.data.length > 0) {
+        seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
+      } else {
+        setPruebaSeleccionada(null);
+        setResultadosDefectos([]);
+      }
+
+      // Cargar la lista de usuarios para el dropdown de asignación
+      const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
+      setListaUsuarios(responseUsuarios.data);
+
+    } catch (error) {
+      console.error('Error al cargar los datos del proyecto:', error);
     }
-
-    // Cargar la lista de usuarios para el dropdown de asignación
-    const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
-    setListaUsuarios(responseUsuarios.data);
-
-
-  } catch (error) {
-    console.error('Error al cargar los datos del proyecto:', error);
-  }
-};
+  },
+  [setProyectoSeleccionado, setContenidoCodigo, setLenguaje, setListaPruebas, seleccionarPrueba, setPruebaSeleccionada, setResultadosDefectos, setListaUsuarios] // Dependencias
+);
 
 // Función para seleccionar una prueba y cargar sus defectos
 const seleccionarPrueba = async (prueba) => {
