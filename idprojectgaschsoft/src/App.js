@@ -130,20 +130,20 @@ const convertirFecha = (fecha) => {
 
   // Cargar proyectos al inicio
   useEffect(() => {
-    const obtenerProyectos = async () => {
-      try {
-        const response = await axios.get('http://localhost:3001/api/proyectos');
-        setProyectos(response.data);
-        if (response.data.length > 0) {
-          seleccionarProyecto(response.data[0]); // Seleccionar el primer proyecto automáticamente
+    if (proyectoSeleccionado) {
+      const timer = setTimeout(async () => {
+        try {
+          await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/codigo`, {
+            contenido: contenidoCodigo
+          });
+        } catch (error) {
+          console.error('Error al guardar el código:', error);
         }
-      } catch (error) {
-        console.error('Error al obtener los proyectos:', error);
-      }
-    };
-
-    obtenerProyectos();
-  }, []);
+      }, 500); // 500 milisegundos
+  
+      return () => clearTimeout(timer); // Cancela el temporizador si el usuario sigue escribiendo
+    }
+  }, [contenidoCodigo, proyectoSeleccionado, seleccionarProyecto]); // seleccionaProyecto ahora memorizada
 
   // Guardar el código automáticamente después de 0.5 segundos de inactividad
   useEffect(() => {
@@ -205,39 +205,35 @@ useEffect(() => {
 }, [proyectos, proyectoSeleccionado]);
 
 // Función para seleccionar un proyecto y cargar su código
-const seleccionarProyecto = useCallback(
-  async (proyecto) => {
-    setProyectoSeleccionado(proyecto);
-    try {
-      const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
-      setContenidoCodigo(response.data.contenido);
-      setLenguaje(proyecto.lenguaje || 'javascript'); // Actualiza el lenguaje al cargar un proyecto
+const seleccionarProyecto = useCallback(async (proyecto) => {
+  setProyectoSeleccionado(proyecto);
+  try {
+    const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
+    setContenidoCodigo(response.data.contenido);
+    setLenguaje(proyecto.lenguaje || 'javascript'); // Actualiza el lenguaje al cargar un proyecto
 
-      // Cargar las pruebas asociadas al proyecto
-      const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/pruebas`);
-      setListaPruebas(responsePruebas.data);
+    // Cargar las pruebas asociadas al proyecto
+    const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/pruebas`);
+    setListaPruebas(responsePruebas.data);
 
-      // Seleccionar la prueba más reciente si existe
-      if (responsePruebas.data.length > 0) {
-        seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
-      } else {
-        setPruebaSeleccionada(null);
-        setResultadosDefectos([]);
-      }
-
-      // Cargar la lista de usuarios para el dropdown de asignación
-      const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
-      setListaUsuarios(responseUsuarios.data);
-
-    } catch (error) {
-      console.error('Error al cargar los datos del proyecto:', error);
+    // Seleccionar la prueba más reciente si existe
+    if (responsePruebas.data.length > 0) {
+      seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
+    } else {
+      setPruebaSeleccionada(null);
+      setResultadosDefectos([]);
     }
-  },
-  [setProyectoSeleccionado, setContenidoCodigo, setLenguaje, setListaPruebas, seleccionarPrueba, setPruebaSeleccionada, setResultadosDefectos, setListaUsuarios] // Dependencias
-);
 
-// Función para seleccionar una prueba y cargar sus defectos
-const seleccionarPrueba = async (prueba) => {
+    // Cargar la lista de usuarios para el dropdown de asignación
+    const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
+    setListaUsuarios(responseUsuarios.data);
+  } catch (error) {
+    console.error('Error al cargar los datos del proyecto:', error);
+  }
+}, [setProyectoSeleccionado, setContenidoCodigo, setLenguaje, setListaPruebas, seleccionarPrueba, setPruebaSeleccionada, setResultadosDefectos, setListaUsuarios]); // Asegúrate de incluir solo las dependencias necesarias
+
+// Definir seleccionarPrueba también con useCallback
+const seleccionarPrueba = useCallback(async (prueba) => {
   let fechaEjecucionISO = null;
   if (prueba.fechaEjecucion) {
     fechaEjecucionISO = convertirFecha(prueba.fechaEjecucion);
@@ -246,14 +242,15 @@ const seleccionarPrueba = async (prueba) => {
   const pruebaConFechaISO = { ...prueba, fechaEjecucion: fechaEjecucionISO };
 
   setPruebaSeleccionada(pruebaConFechaISO);
-  
+
   try {
     const responseDefectos = await axios.get(`http://localhost:3001/api/pruebas/${prueba.idPrueba}/defectos`);
     setResultadosDefectos(responseDefectos.data);
   } catch (error) {
     console.error('Error al cargar los defectos de la prueba:', error);
   }
-};
+}, [convertirFecha]); // Asegúrate de añadir 'convertirFecha' como dependencia si es una función externa
+
 
 //Función para ejecutar el análisis de código
 const ejecutarNuevaPrueba = async () => {
