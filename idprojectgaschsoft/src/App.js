@@ -111,14 +111,15 @@ const App = () => {
         const response = await axios.get('http://localhost:3001/api/proyectos');
         setProyectos(response.data);
         if (response.data.length > 0) {
-          seleccionarProyecto(response.data[0]); // Seleccionar el primer proyecto automáticamente
+          seleccionarProyecto(response.data[0]);
         }
       } catch (error) {
         console.error('Error al obtener los proyectos:', error);
       }
     };
     obtenerProyectos();
-  }, []);
+  }, [seleccionarProyecto]); // <-- Agrega 'seleccionarProyecto' como dependencia
+  
 
   // Guardar el código automáticamente después de 0.5 segundos de inactividad
   useEffect(() => {
@@ -174,47 +175,64 @@ const App = () => {
   }, [proyectos, proyectoSeleccionado, seleccionarProyecto]);
 
   // Función para seleccionar un proyecto y cargar su código
-  const seleccionarProyecto = useCallback(async (proyecto) => {
-    setProyectoSeleccionado(proyecto);
+  // Función para seleccionar un proyecto y cargar su código
+const seleccionarProyecto = useCallback(async (proyecto) => {
+  setProyectoSeleccionado(proyecto);
+  try {
+    const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
+    setContenidoCodigo(response.data.contenido);
+    setLenguaje(proyecto.lenguaje || 'javascript');
+
+    const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/pruebas`);
+    setListaPruebas(responsePruebas.data);
+
+    if (responsePruebas.data.length > 0) {
+      seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
+    } else {
+      setPruebaSeleccionada(null);
+      setResultadosDefectos([]);
+    }
+
+    const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
+    setListaUsuarios(responseUsuarios.data);
+  } catch (error) {
+    console.error('Error al cargar los datos del proyecto:', error);
+  }
+}, [setProyectoSeleccionado, setContenidoCodigo, setLenguaje, setListaPruebas, seleccionarPrueba, setPruebaSeleccionada, setResultadosDefectos, setListaUsuarios]);
+
+// Llamada a seleccionarProyecto después de su definición
+useEffect(() => {
+  const obtenerProyectos = async () => {
     try {
-      const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
-      setContenidoCodigo(response.data.contenido);
-      setLenguaje(proyecto.lenguaje || 'javascript');
-
-      const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/pruebas`);
-      setListaPruebas(responsePruebas.data);
-
-      if (responsePruebas.data.length > 0) {
-        seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
-      } else {
-        setPruebaSeleccionada(null);
-        setResultadosDefectos([]);
+      const response = await axios.get('http://localhost:3001/api/proyectos');
+      setProyectos(response.data);
+      if (response.data.length > 0) {
+        seleccionarProyecto(response.data[0]);
       }
-
-      const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
-      setListaUsuarios(responseUsuarios.data);
     } catch (error) {
-      console.error('Error al cargar los datos del proyecto:', error);
+      console.error('Error al obtener los proyectos:', error);
     }
-  }, [setProyectoSeleccionado, setContenidoCodigo, setLenguaje, setListaPruebas, seleccionarPrueba, setPruebaSeleccionada, setResultadosDefectos, setListaUsuarios]);
+  };
+  obtenerProyectos();
+}, [seleccionarProyecto]);
+  
+// Función para seleccionar una prueba y cargar sus defectos
+const seleccionarPrueba = useCallback(async (prueba) => {
+  let fechaEjecucionISO = null;
+  if (prueba.fechaEjecucion) {
+    fechaEjecucionISO = convertirFecha(prueba.fechaEjecucion);
+  }
 
-  // Función para seleccionar una prueba y cargar sus defectos
-  const seleccionarPrueba = useCallback(async (prueba) => {
-    let fechaEjecucionISO = null;
-    if (prueba.fechaEjecucion) {
-      fechaEjecucionISO = convertirFecha(prueba.fechaEjecucion);
-    }
-
-    const pruebaConFechaISO = { ...prueba, fechaEjecucion: fechaEjecucionISO };
-    setPruebaSeleccionada(pruebaConFechaISO);
-    
-    try {
-      const responseDefectos = await axios.get(`http://localhost:3001/api/pruebas/${prueba.idPrueba}/defectos`);
-      setResultadosDefectos(responseDefectos.data);
-    } catch (error) {
-      console.error('Error al cargar los defectos de la prueba:', error);
-    }
-  }, [convertirFecha]);
+  const pruebaConFechaISO = { ...prueba, fechaEjecucion: fechaEjecucionISO };
+  setPruebaSeleccionada(pruebaConFechaISO);
+  
+  try {
+    const responseDefectos = await axios.get(`http://localhost:3001/api/pruebas/${prueba.idPrueba}/defectos`);
+    setResultadosDefectos(responseDefectos.data);
+  } catch (error) {
+    console.error('Error al cargar los defectos de la prueba:', error);
+  }
+}, [convertirFecha]);
 
     // Función para ejecutar el análisis de código
     const ejecutarNuevaPrueba = async () => {
@@ -587,7 +605,24 @@ const App = () => {
                     <option value="FINALIZADO">✅ FINALIZADO</option>
                   </select>
                 </p>
-  
+                {/* Barra de lenguajes */}
+<div className="tabs">
+  {nombresLenguajes.map((nombre, index) => (
+    <label key={index} className={`tab ${lenguaje === lenguajes[index] ? 'selected' : ''}`}>
+      <input
+        type="radio"
+        name="tabs"
+        checked={lenguaje === lenguajes[index]}
+        onChange={() => {
+          setLenguaje(lenguajes[index]); // Cambia el lenguaje en la UI
+          actualizarProyecto('lenguaje', lenguajes[index]); // Actualiza el lenguaje en la base de datos
+        }}
+      />
+      {nombre}
+    </label>
+  ))}
+  <span className="slider"></span>
+</div>    
                 {/* Editor de código */}
                 <AceEditor
                   mode={lenguaje}
