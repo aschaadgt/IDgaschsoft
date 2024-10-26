@@ -7,7 +7,15 @@ const { ESLint } = require('eslint'); // Importa ESLint para el análisis de Jav
 const { JSDOM } = require('jsdom'); // Import de módulo necesario para manipular HTML
 const { translationMapping, SEVERITY_LEVELS } = require('./translationMapping'); // Mi propia libreria de traducciones de JavaScrip
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000; //anterior 3001
+
+app.get('/', (req, res) => {
+  res.send('¡Servidor funcionando correctamente!');
+});
+
+app.listen(port, () => {
+  console.log(`Servidor escuchando en el puerto ${port}`);
+});
 
 // Configuración de CORS
 app.use(cors());  // Añade cors al middleware
