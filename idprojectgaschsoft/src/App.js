@@ -27,7 +27,6 @@ import 'ace-builds/src-noconflict/theme-tomorrow_night';
 import ace from 'ace-builds/src-noconflict/ace';
 import { parse, format } from 'date-fns';
 
-
 // Configura la ruta base para los archivos de ace-builds
 ace.config.set('basePath', '/ace');
 
@@ -35,7 +34,6 @@ const App = () => {
   const [proyectos, setProyectos] = useState([]);
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
   const [busqueda, setBusqueda] = useState('');
-  //const [archivoCodigo, setArchivoCodigo] = useState('');
   const [contenidoCodigo, setContenidoCodigo] = useState('');
   const [lenguaje, setLenguaje] = useState('javascript');
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -44,68 +42,53 @@ const App = () => {
     descripcion: '',
   });
 
-  // Estados locales para los campos editables
-  const lenguajes = ['javascript', 'python', 'java', 'c_cpp', 'php', 'csharp', 'html', 'sql', 'ruby']; // lista de lenguajes
-  const nombresLenguajes = ['J.Script', 'Python', 'Java', 'C++', 'PHP', 'C#', 'HTML', 'SQL', 'Ruby']; // nombres visibles de los lenguajes
+  const lenguajes = ['javascript', 'python', 'java', 'c_cpp', 'php', 'csharp', 'html', 'sql', 'ruby'];
+  const nombresLenguajes = ['J.Script', 'Python', 'Java', 'C++', 'PHP', 'C#', 'HTML', 'SQL', 'Ruby'];
 
-  // Estados para confirmacion de eliminacion de proyecto.
   const [mostrarModalConfirmacion, setMostrarModalConfirmacion] = useState(false);
   const [proyectoAEliminar, setProyectoAEliminar] = useState(null);
-
-  // Estados para los resultados de las pruebas
-  const [mostrarModalPrueba, setMostrarModalPrueba] = useState(false); // Estado para mostrar/ocultar el modal de resultados
-  
-  const [pestañaActiva, setPestañaActiva] = useState('Pruebas'); // 'Pruebas' o 'Dashboard'
-
-  // Nuevos estados para manejar pruebas y defectos
+  const [mostrarModalPrueba, setMostrarModalPrueba] = useState(false);
+  const [pestañaActiva, setPestañaActiva] = useState('Pruebas');
   const [listaPruebas, setListaPruebas] = useState([]);
   const [pruebaSeleccionada, setPruebaSeleccionada] = useState(null);
   const [resultadosDefectos, setResultadosDefectos] = useState([]);
   const [listaUsuarios, setListaUsuarios] = useState([]);
+  const [cargando, setCargando] = useState(false);
 
-  // Funcion cargando al crear prueba:
-  const [cargando, setCargando] = useState(false); // Nuevo estado para control del spinner
+  // Función para actualizar el estado de la prueba
+  const actualizarPrueba = async (campo, valor) => {
+    if (pruebaSeleccionada) {
+      try {
+        await axios.put(
+          `http://localhost:3001/api/pruebas/${pruebaSeleccionada.idPrueba}`,
+          { [campo]: valor }
+        );
 
- //Funcion para actualizar estado de prueba
- const actualizarPrueba = async (campo, valor) => {
-  if (pruebaSeleccionada) {
-    try {
-      await axios.put(
-        `http://localhost:3001/api/pruebas/${pruebaSeleccionada.idPrueba}`,
-        {
-          [campo]: valor,
-        }
-      );
-
-      // Actualizar el estado local
-      setPruebaSeleccionada({
-        ...pruebaSeleccionada,
-        [campo]: valor,
-      });
-      setListaPruebas(
-        listaPruebas.map((prueba) =>
-          prueba.idPrueba === pruebaSeleccionada.idPrueba
-            ? { ...prueba, [campo]: valor }
-            : prueba
-        )
-      );
-    } catch (error) {
-      console.error('Error al actualizar la prueba:', error);
+        setPruebaSeleccionada({ ...pruebaSeleccionada, [campo]: valor });
+        setListaPruebas(
+          listaPruebas.map(prueba =>
+            prueba.idPrueba === pruebaSeleccionada.idPrueba
+              ? { ...prueba, [campo]: valor }
+              : prueba
+          )
+        );
+      } catch (error) {
+        console.error('Error al actualizar la prueba:', error);
+      }
     }
-  }
-};
+  };
 
-// Funcion para el tamaño del Dropdowns
-const opcionesPruebas = listaPruebas.map((prueba, index) => ({
-  value: prueba.idPrueba,
-  label: `Prueba ${index + 1}`,
-}));
+  // Opciones para el dropdown de pruebas
+  const opcionesPruebas = listaPruebas.map((prueba, index) => ({
+    value: prueba.idPrueba,
+    label: `Prueba ${index + 1}`,
+  }));
 
-// Función para convertir "DD/MM/YYYY" a "YYYY-MM-DD", envuelta en useCallback
-const convertirFecha = useCallback((fecha) => {
-  const fechaParseada = parse(fecha, 'dd/MM/yyyy', new Date());
-  return format(fechaParseada, 'yyyy-MM-dd');
-}, []);
+  // Función para convertir "DD/MM/YYYY" a "YYYY-MM-DD"
+  const convertirFecha = useCallback((fecha) => {
+    const fechaParseada = parse(fecha, 'dd/MM/yyyy', new Date());
+    return format(fechaParseada, 'yyyy-MM-dd');
+  }, []);
 
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
@@ -113,7 +96,7 @@ const convertirFecha = useCallback((fecha) => {
     
     const date = new Date(fecha);
     date.setHours(date.getHours() + date.getTimezoneOffset() / 60);
-  
+
     if (!isNaN(date.getTime())) {
       const dia = ('0' + date.getDate()).slice(-2);
       const mes = ('0' + (date.getMonth() + 1)).slice(-2);
@@ -125,21 +108,19 @@ const convertirFecha = useCallback((fecha) => {
 
   // Cargar proyectos al inicio
   useEffect(() => {
-    if (proyectoSeleccionado) {
-      const timer = setTimeout(async () => {
-        try {
-          await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/codigo`, {
-            contenido: contenidoCodigo
-          });
-        } catch (error) {
-          console.error('Error al guardar el código:', error);
+    const obtenerProyectos = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/proyectos');
+        setProyectos(response.data);
+        if (response.data.length > 0) {
+          seleccionarProyecto(response.data[0]); // Seleccionar el primer proyecto automáticamente
         }
-      }, 500); // 500 milisegundos
-  
-      return () => clearTimeout(timer); // Cancela el temporizador si el usuario sigue escribiendo
-    }
-  }, [contenidoCodigo, proyectoSeleccionado, seleccionarProyecto]); // seleccionaProyecto ahora memorizada
-
+      } catch (error) {
+        console.error('Error al obtener los proyectos:', error);
+      }
+    };
+    obtenerProyectos();
+  }, []);
   // Guardar el código automáticamente después de 0.5 segundos de inactividad
   useEffect(() => {
     if (proyectoSeleccionado) {
@@ -151,173 +132,148 @@ const convertirFecha = useCallback((fecha) => {
         } catch (error) {
           console.error('Error al guardar el código:', error);
         }
-      }, 500); //500 milisengundos
+      }, 500); // 500 milisengundos
   
       return () => clearTimeout(timer); // Cancela el temporizador si el usuario sigue escribiendo
     }
-  }, [contenidoCodigo, proyectoSeleccionado, seleccionarProyecto]);
+  }, [contenidoCodigo, proyectoSeleccionado]);
 
   // Manejar teclas de navegación
-useEffect(() => {
-  const manejarTeclas = (e) => {
-    if (proyectos.length === 0) return;
+  useEffect(() => {
+    const manejarTeclas = (e) => {
+      if (proyectos.length === 0) return;
 
-    const indexSeleccionado = proyectos.findIndex(
-      (proyecto) => proyecto.idProyecto === proyectoSeleccionado?.idProyecto
-    );
+      const indexSeleccionado = proyectos.findIndex(
+        (proyecto) => proyecto.idProyecto === proyectoSeleccionado?.idProyecto
+      );
 
-    if (e.key === 'ArrowUp' && indexSeleccionado > 0) {
-      const nuevoSeleccionado = proyectos[indexSeleccionado - 1];
-      
-      // Asegura cargar el código del proyecto seleccionado correctamente
-      seleccionarProyecto(nuevoSeleccionado);
+      if (e.key === 'ArrowUp' && indexSeleccionado > 0) {
+        const nuevoSeleccionado = proyectos[indexSeleccionado - 1];
+        
+        seleccionarProyecto(nuevoSeleccionado);
 
-      // Asegura que el proyecto esté visible en el Scrollbar
-      const elemento = document.getElementById(`proyecto-${nuevoSeleccionado.idProyecto}`);
-      if (elemento) {
-        // Usamos "block: 'center'" para que el proyecto se mantenga centrado en la vista
-        elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const elemento = document.getElementById(`proyecto-${nuevoSeleccionado.idProyecto}`);
+        if (elemento) {
+          elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } else if (e.key === 'ArrowDown' && indexSeleccionado < proyectos.length - 1) {
+        const nuevoSeleccionado = proyectos[indexSeleccionado + 1];
+        
+        seleccionarProyecto(nuevoSeleccionado);
+
+        const elemento = document.getElementById(`proyecto-${nuevoSeleccionado.idProyecto}`);
+        if (elemento) {
+          elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
-    } else if (e.key === 'ArrowDown' && indexSeleccionado < proyectos.length - 1) {
-      const nuevoSeleccionado = proyectos[indexSeleccionado + 1];
-      
-      // Asegura cargar el código del proyecto seleccionado correctamente
-      seleccionarProyecto(nuevoSeleccionado);
-      
-      // Asegura que el proyecto esté visible en el Scrollbar
-      const elemento = document.getElementById(`proyecto-${nuevoSeleccionado.idProyecto}`);
-      if (elemento) {
-        // Usamos "block: 'center'" para que el proyecto se mantenga centrado en la vista
-        elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-  };
-
-  window.addEventListener('keydown', manejarTeclas);
-  return () => {
-    window.removeEventListener('keydown', manejarTeclas);
-  };
-}, [proyectos, proyectoSeleccionado]);
-
-// Función para seleccionar un proyecto y cargar su código
-// Define seleccionarProyecto antes de su uso
-const seleccionarProyecto = useCallback(async (proyecto) => {
-  setProyectoSeleccionado(proyecto);
-  try {
-    const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
-    setContenidoCodigo(response.data.contenido);
-    setLenguaje(proyecto.lenguaje || 'javascript'); // Actualiza el lenguaje al cargar un proyecto
-
-    // Cargar las pruebas asociadas al proyecto
-    const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/pruebas`);
-    setListaPruebas(responsePruebas.data);
-
-    // Seleccionar la prueba más reciente si existe
-    if (responsePruebas.data.length > 0) {
-      seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
-    } else {
-      setPruebaSeleccionada(null);
-      setResultadosDefectos([]);
-    }
-
-    // Cargar la lista de usuarios para el dropdown de asignación
-    const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
-    setListaUsuarios(responseUsuarios.data);
-  } catch (error) {
-    console.error('Error al cargar los datos del proyecto:', error);
-  }
-}, [setProyectoSeleccionado, setContenidoCodigo, setLenguaje, setListaPruebas, seleccionarPrueba, setPruebaSeleccionada, setResultadosDefectos, setListaUsuarios]); // Asegúrate de incluir solo las dependencias necesarias
-
-// Usa seleccionarProyecto solo después de haberlo definido
-useEffect(() => {
-  // Lógica para usar seleccionarProyecto
-}, [contenidoCodigo, proyectoSeleccionado, seleccionarProyecto]);
-// Definir seleccionarPrueba también con useCallback
-const seleccionarPrueba = useCallback(async (prueba) => {
-  let fechaEjecucionISO = null;
-  if (prueba.fechaEjecucion) {
-    fechaEjecucionISO = convertirFecha(prueba.fechaEjecucion); // Utiliza la función convertirFecha
-  }
-
-  const pruebaConFechaISO = { ...prueba, fechaEjecucion: fechaEjecucionISO };
-  setPruebaSeleccionada(pruebaConFechaISO);
-  
-  try {
-    const responseDefectos = await axios.get(`http://localhost:3001/api/pruebas/${prueba.idPrueba}/defectos`);
-    setResultadosDefectos(responseDefectos.data);
-  } catch (error) {
-    console.error('Error al cargar los defectos de la prueba:', error);
-  }
-}, [convertirFecha]); // Asegúrate de incluir 'convertirFecha' como dependencia
-
-//Función para ejecutar el análisis de código
-const ejecutarNuevaPrueba = async () => {
-  setCargando(true); // Mostrar spinner
-  try {
-    // Ejecutar el análisis de código
-    const response = await axios.post(
-      `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/analisis`,
-      {
-        contenidoCodigo: contenidoCodigo, // Código que vamos a analizar
-      }
-    );
-
-    const resultadosAnalisis = response.data.resultados || [];
-
-    // Crear una nueva prueba en la base de datos
-    const fechaEjecucion = new Date();
-    fechaEjecucion.setHours(fechaEjecucion.getHours() - fechaEjecucion.getTimezoneOffset() / 60); // Ajustar zona horaria a UTC
-
-    const nuevaPrueba = {
-      nombrePrueba: `Prueba ${listaPruebas.length + 1} ${proyectoSeleccionado.idProyecto}`,
-      descripcion: `Prueba del proyecto ${proyectoSeleccionado.idProyecto}`,
-      fechaEjecucion: fechaEjecucion, // Ajustar la fecha
-      resultado: 'CREADA',
     };
 
-    const responsePrueba = await axios.post(
-      `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`,
-      nuevaPrueba
-    );
+    window.addEventListener('keydown', manejarTeclas);
+    return () => {
+      window.removeEventListener('keydown', manejarTeclas);
+    };
+  }, [proyectos, proyectoSeleccionado, seleccionarProyecto]);
 
-    // Obtener el ID de la prueba creada
-    const idPruebaCreada = responsePrueba.data.idPrueba;
+  // Función para seleccionar un proyecto y cargar su código
+  const seleccionarProyecto = useCallback(async (proyecto) => {
+    setProyectoSeleccionado(proyecto);
+    try {
+      const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
+      setContenidoCodigo(response.data.contenido);
+      setLenguaje(proyecto.lenguaje || 'javascript');
 
-    // Guardar los defectos encontrados en la base de datos
-    for (const defecto of resultadosAnalisis) {
-      const nuevoDefecto = {
-        idPrueba: idPruebaCreada,
-        descripcion: defecto.descripcion,
-        prioridad: defecto.tipo,
-        estado: 'NUEVO',
-        fechaCreacion: new Date(),  // Ajusta la fecha de creación de los defectos
-        fechaResolucion: null,
-        asignado: null,
+      const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/pruebas`);
+      setListaPruebas(responsePruebas.data);
+
+      if (responsePruebas.data.length > 0) {
+        seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
+      } else {
+        setPruebaSeleccionada(null);
+        setResultadosDefectos([]);
+      }
+
+      const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
+      setListaUsuarios(responseUsuarios.data);
+    } catch (error) {
+      console.error('Error al cargar los datos del proyecto:', error);
+    }
+  }, [setProyectoSeleccionado, setContenidoCodigo, setLenguaje, setListaPruebas, seleccionarPrueba, setPruebaSeleccionada, setResultadosDefectos, setListaUsuarios]);
+
+  // Función para seleccionar una prueba y cargar sus defectos
+  const seleccionarPrueba = useCallback(async (prueba) => {
+    let fechaEjecucionISO = null;
+    if (prueba.fechaEjecucion) {
+      fechaEjecucionISO = convertirFecha(prueba.fechaEjecucion);
+    }
+
+    const pruebaConFechaISO = { ...prueba, fechaEjecucion: fechaEjecucionISO };
+    setPruebaSeleccionada(pruebaConFechaISO);
+    
+    try {
+      const responseDefectos = await axios.get(`http://localhost:3001/api/pruebas/${prueba.idPrueba}/defectos`);
+      setResultadosDefectos(responseDefectos.data);
+    } catch (error) {
+      console.error('Error al cargar los defectos de la prueba:', error);
+    }
+  }, [convertirFecha]);
+
+  // Función para ejecutar el análisis de código
+  const ejecutarNuevaPrueba = async () => {
+    setCargando(true); // Mostrar spinner
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/analisis`,
+        { contenidoCodigo: contenidoCodigo }
+      );
+
+      const resultadosAnalisis = response.data.resultados || [];
+      const fechaEjecucion = new Date();
+      fechaEjecucion.setHours(fechaEjecucion.getHours() - fechaEjecucion.getTimezoneOffset() / 60);
+
+      const nuevaPrueba = {
+        nombrePrueba: `Prueba ${listaPruebas.length + 1} ${proyectoSeleccionado.idProyecto}`,
+        descripcion: `Prueba del proyecto ${proyectoSeleccionado.idProyecto}`,
+        fechaEjecucion: fechaEjecucion,
+        resultado: 'CREADA',
       };
-      await axios.post(`http://localhost:3001/api/defectos`, nuevoDefecto);
+
+      const responsePrueba = await axios.post(
+        `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`,
+        nuevaPrueba
+      );
+
+      const idPruebaCreada = responsePrueba.data.idPrueba;
+
+      for (const defecto of resultadosAnalisis) {
+        const nuevoDefecto = {
+          idPrueba: idPruebaCreada,
+          descripcion: defecto.descripcion,
+          prioridad: defecto.tipo,
+          estado: 'NUEVO',
+          fechaCreacion: new Date(),
+          fechaResolucion: null,
+          asignado: null,
+        };
+        await axios.post(`http://localhost:3001/api/defectos`, nuevoDefecto);
+      }
+
+      const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`);
+      setListaPruebas(responsePruebas.data);
+
+      const nuevaPruebaCreada = responsePruebas.data.find(prueba => prueba.idPrueba === idPruebaCreada);
+      if (nuevaPruebaCreada) {
+        seleccionarPrueba(nuevaPruebaCreada);
+      }
+
+    } catch (error) {
+      console.error('Error al ejecutar la prueba:', error);
     }
-
-    // Recargar las pruebas y seleccionar la nueva
-    const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`);
-    setListaPruebas(responsePruebas.data);
-
-    // Seleccionar la nueva prueba creada
-    const nuevaPruebaCreada = responsePruebas.data.find(prueba => prueba.idPrueba === idPruebaCreada);
-    if (nuevaPruebaCreada) {
-      seleccionarPrueba(nuevaPruebaCreada);
-    }
-
-  } catch (error) {
-    console.error('Error al ejecutar la prueba:', error);
-  }
-  setCargando(false); // Ocultar spinner
-};
-
+    setCargando(false); // Ocultar spinner
+  };
 
   // Función para actualizar un defecto específico
   const actualizarDefecto = async (idDefecto, campo, valor) => {
     try {
-      // Obtener el defecto original desde la base de datos
       const response = await axios.get(`http://localhost:3001/api/defectos/${idDefecto}`);
       const defectoActual = response.data;
   
@@ -325,17 +281,13 @@ const ejecutarNuevaPrueba = async () => {
         console.error('Defecto no encontrado en la base de datos.');
         return;
       }
-  
-      // Actualizar el campo específico
+
       const defectoActualizado = {
         ...defectoActual,
         [campo]: valor,
       };
-   
-      // Actualizar el defecto en la base de datos
+
       await axios.put(`http://localhost:3001/api/defectos/${idDefecto}`, defectoActualizado);
-  
-      // Actualizar el estado local
       setResultadosDefectos(
         resultadosDefectos.map((d) => (d.idDefecto === idDefecto ? defectoActualizado : d))
       );
@@ -343,8 +295,6 @@ const ejecutarNuevaPrueba = async () => {
       console.error('Error al actualizar el defecto:', error);
     }
   };
-  
- 
   // Abrir el modal para crear un nuevo proyecto
   const abrirModal = () => {
     setMostrarModal(true);
@@ -407,6 +357,7 @@ const ejecutarNuevaPrueba = async () => {
       console.error('Error al crear el proyecto:', error);
     }
   };
+
   // Actualizar un proyecto
   const actualizarProyecto = async (campo, valor) => {
     if (proyectoSeleccionado) {
@@ -446,54 +397,47 @@ const ejecutarNuevaPrueba = async () => {
       }
     }
   };
-  
 
   // Eliminar un proyecto
-const eliminarProyecto = async () => {
-  if (proyectoSeleccionado) {
-    try {
-      await axios.delete(
-        `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`
-      );
-      const nuevosProyectos = proyectos.filter(
-        (proyecto) => proyecto.idProyecto !== proyectoSeleccionado.idProyecto
-      );
-      
-      if (nuevosProyectos.length > 0) {
-        // Encuentra la posición del proyecto eliminado
-        const indexSeleccionado = proyectos.findIndex(
-          (proyecto) => proyecto.idProyecto === proyectoSeleccionado.idProyecto
+  const eliminarProyecto = async () => {
+    if (proyectoSeleccionado) {
+      try {
+        await axios.delete(
+          `http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}`
+        );
+        const nuevosProyectos = proyectos.filter(
+          (proyecto) => proyecto.idProyecto !== proyectoSeleccionado.idProyecto
         );
         
-        // Selecciona el proyecto anterior, si existe. Si no, selecciona el siguiente.
-        const nuevoSeleccionado = nuevosProyectos[indexSeleccionado - 1] || nuevosProyectos[0];
-        setProyectoSeleccionado(nuevoSeleccionado);
-        
-        // Carga el código del nuevo proyecto seleccionado
-        seleccionarProyecto(nuevoSeleccionado);
-      } else {
-        // Si no quedan proyectos, limpiamos la selección
-        setProyectoSeleccionado(null);
-        setContenidoCodigo('');
-      }
-      
-      setProyectos(nuevosProyectos);
-    } catch (error) {
-      console.error('Error al eliminar el proyecto:', error);
-    }
-  }
-};
+        if (nuevosProyectos.length > 0) {
+          const indexSeleccionado = proyectos.findIndex(
+            (proyecto) => proyecto.idProyecto === proyectoSeleccionado.idProyecto
+          );
 
-  // Funcion de confirmacion de eliminacion
+          const nuevoSeleccionado = nuevosProyectos[indexSeleccionado - 1] || nuevosProyectos[0];
+          setProyectoSeleccionado(nuevoSeleccionado);
+          seleccionarProyecto(nuevoSeleccionado);
+        } else {
+          setProyectoSeleccionado(null);
+          setContenidoCodigo('');
+        }
+        
+        setProyectos(nuevosProyectos);
+      } catch (error) {
+        console.error('Error al eliminar el proyecto:', error);
+      }
+    }
+  };
+
+  // Función de confirmación de eliminación
   const confirmarEliminacionProyecto = async () => {
     try {
-      await eliminarProyecto(); // Utiliza tu función de eliminar existente
+      await eliminarProyecto();
       setMostrarModalConfirmacion(false); // Cierra el modal
     } catch (error) {
       console.error('Error al eliminar el proyecto:', error);
     }
   };
-  
 
   // Guardar el código automáticamente
   const guardarCodigoAutomáticamente = async (nuevoCodigo) => {
@@ -516,7 +460,7 @@ const eliminarProyecto = async () => {
     <div className="container">
       <ResizableBox
         className="resizable-sidebar"
-        width={250} //Espacio izquierda entre borde izquierdo y limite de carpeta de proyectos
+        width={250} // Espacio izquierda entre borde izquierdo y limite de carpeta de proyectos
         height={Infinity}
         axis="x"
         minConstraints={[200, Infinity]}
@@ -533,7 +477,6 @@ const eliminarProyecto = async () => {
           </ul>
         </section>
       </ResizableBox>
-
       <ResizableBox
         className="resizable-project-list"
         width={300}
@@ -574,23 +517,22 @@ const eliminarProyecto = async () => {
       <section className="project-details">
         <header>
           <div className="header-left">
-          <button
-  className="delete-project"
-  onClick={() => {
-    setProyectoAEliminar(proyectoSeleccionado);
-    setMostrarModalConfirmacion(true);
-  }}
-  disabled={!proyectoSeleccionado}
->
-  Eliminar
-</button>
-<button
-  onClick={() => setMostrarModalPrueba(true)}
-  disabled={!proyectoSeleccionado}
->
-  Pruebas
-</button>
-
+            <button
+              className="delete-project"
+              onClick={() => {
+                setProyectoAEliminar(proyectoSeleccionado);
+                setMostrarModalConfirmacion(true);
+              }}
+              disabled={!proyectoSeleccionado}
+            >
+              Eliminar
+            </button>
+            <button
+              onClick={() => setMostrarModalPrueba(true)}
+              disabled={!proyectoSeleccionado}
+            >
+              Pruebas
+            </button>
           </div>
           <button className="new-project" onClick={abrirModal}>+ Crear Proyecto</button>
         </header>
@@ -645,76 +587,57 @@ const eliminarProyecto = async () => {
                   <option value="FINALIZADO">✅ FINALIZADO</option>
                 </select>
               </p>
-                  {/* Barra de lenguajes */}
-<div className="tabs">
-  {nombresLenguajes.map((nombre, index) => (
-    <label key={index} className={`tab ${lenguaje === lenguajes[index] ? 'selected' : ''}`}>
-      <input
-        type="radio"
-        name="tabs"
-        checked={lenguaje === lenguajes[index]}
-        onChange={() => {
-          setLenguaje(lenguajes[index]); // Cambia el lenguaje en la UI
-          actualizarProyecto('lenguaje', lenguajes[index]); // Actualiza el lenguaje en la base de datos
-        }}
-      />
-      {nombre}
-    </label>
-  ))}
-  <span className="slider"></span>
-</div>
-
 
               {/* Editor de código */}
               <AceEditor
-  mode={lenguaje}
-  theme="dracula" //github monokai dracula solarized_light tomorrow_night
-  name="editorCodigo"
-  value={contenidoCodigo}
-  onChange={guardarCodigoAutomáticamente}
-  fontSize={14}
-  width="100%"
-  height="calc(90vh - 200px)" // Ajusta 200px según sea necesario
-  setOptions={{
-    enableBasicAutocompletion: true,
-    enableLiveAutocompletion: true,
-    enableSnippets: true,
-    showLineNumbers: true,
-    tabSize: 4,
-  }}
-/>
+                mode={lenguaje}
+                theme="dracula"
+                name="editorCodigo"
+                value={contenidoCodigo}
+                onChange={guardarCodigoAutomáticamente}
+                fontSize={14}
+                width="100%"
+                height="calc(90vh - 200px)"
+                setOptions={{
+                  enableBasicAutocompletion: true,
+                  enableLiveAutocompletion: true,
+                  enableSnippets: true,
+                  showLineNumbers: true,
+                  tabSize: 4,
+                }}
+              />
             </>
           ) : (
             <p>No hay proyectos seleccionados. Crea uno nuevo para comenzar.</p>
           )}
         </div>
       </section>
+
       {mostrarModalConfirmacion && (
-  <div className="modal-overlay">
-    <div className="modal">
-      <div className="modal-header">
-        <h2>Confirmar Eliminación</h2>
-        <button className="close-button" onClick={() => setMostrarModalConfirmacion(false)}>
-          &times;
-        </button>
-      </div>
-      <div className="modal-body">
-        <p>
-          ¿Está seguro que desea eliminar el proyecto{' '}
-          <strong>{proyectoAEliminar?.nombreProyecto}</strong>?
-        </p>
-      </div>
-      <div className="modal-footer">
-        <button onClick={() => setMostrarModalConfirmacion(false)}>Cancelar</button>
-        <button className="delete-button" onClick={confirmarEliminacionProyecto}>
-          Sí, eliminar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-     
-      {/* Modal de resultados de la prueba */}
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2>Confirmar Eliminación</h2>
+              <button className="close-button" onClick={() => setMostrarModalConfirmacion(false)}>
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>
+                ¿Está seguro que desea eliminar el proyecto{' '}
+                <strong>{proyectoAEliminar?.nombreProyecto}</strong>?
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setMostrarModalConfirmacion(false)}>Cancelar</button>
+              <button className="delete-button" onClick={confirmarEliminacionProyecto}>
+                Sí, eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {mostrarModal && (
         <div className="modal-overlay">
           <div className="modal">
@@ -745,226 +668,184 @@ const eliminarProyecto = async () => {
           </div>
         </div>
       )}
-      {/* Modal de resultados de la prueba */}
+
       {mostrarModalPrueba && (
-  <div className="modal-overlay">
-    <div className="modal modal-large"> {/* Añadimos una clase para ampliar el tamaño */}
-      <div className="modal-header">
-      <h1>{proyectoSeleccionado ? proyectoSeleccionado.nombreProyecto : 'Proyecto'}</h1>
-      {/* Añadimos el Dro */}
+        <div className="modal-overlay">
+          <div className="modal modal-large">
+            <div className="modal-header">
+              <h1>{proyectoSeleccionado ? proyectoSeleccionado.nombreProyecto : 'Proyecto'}</h1>
+              <button className="close-button" onClick={() => setMostrarModalPrueba(false)}>
+                &times;
+              </button>
+            </div>
 
-        <button className="close-button" onClick={() => setMostrarModalPrueba(false)}>
-          &times;
-        </button>
-      </div>
-      {/* Añadimos las pestañas */}
-      <div className="modal-tabs">
-        <button
-          className={`tab-button ${pestañaActiva === 'Pruebas' ? 'active' : ''}`}
-          onClick={() => setPestañaActiva('Pruebas')}
-        >
-          Pruebas
-        </button>
-        <button
-          className={`tab-button ${pestañaActiva === 'Dashboard' ? 'active' : ''}`}
-          onClick={() => setPestañaActiva('Dashboard')}
-        >
-          Dashboard
-        </button>
-      </div>
-      {/* Contenido del modal cambia según la pestaña activa */}
-      <div className="modal-body">
-        {pestañaActiva === 'Pruebas' ? (
-          /* Contenido de la pestaña Pruebas */
-          <div>
-            <div>
-  {/* Encabezado con el título y el dropdown para seleccionar pruebas */}
-  <div className="prueba-header">
-  <div className="titulo-y-estado">
-  <h2>
-  {pruebaSeleccionada
-    ? `Prueba ${listaPruebas.findIndex(p => p.idPrueba === pruebaSeleccionada.idPrueba) + 1} de ${proyectoSeleccionado.nombreProyecto}`
-    : 'Selecciona una prueba'}
-</h2>
+            <div className="modal-tabs">
+              <button
+                className={`tab-button ${pestañaActiva === 'Pruebas' ? 'active' : ''}`}
+                onClick={() => setPestañaActiva('Pruebas')}
+              >
+                Pruebas
+              </button>
+              <button
+                className={`tab-button ${pestañaActiva === 'Dashboard' ? 'active' : ''}`}
+                onClick={() => setPestañaActiva('Dashboard')}
+              >
+                Dashboard
+              </button>
+            </div>
 
-    {pruebaSeleccionada && (
-      <select
-        className="estado-prueba"
-        value={pruebaSeleccionada.resultado}
-        onChange={(e) => actualizarPrueba('resultado', e.target.value)}
-      >
-        <option value="CREADA">🔲 CREADA</option>
-        <option value="EN REVISION">🟪 EN REVISION</option>
-        <option value="CANCELADA">🟩 CANCELADA</option>
-        <option value="DEPURADA">✅ DEPURADA</option>
-      </select>
-    )}
-  </div>
-  {/* Dropdown para seleccionar pruebas en la siguiente línea */}
-  <div className="selector-prueba">
-  <Select
-    value={opcionesPruebas.find((opcion) => opcion.value === pruebaSeleccionada?.idPrueba)}
-    onChange={(selectedOption) => {
-      const prueba = listaPruebas.find((p) => p.idPrueba === selectedOption.value);
-      seleccionarPrueba(prueba);
-    }}
-    options={opcionesPruebas}
-    menuPlacement="auto" /* Controla la posición del menú desplegable */
-    styles={{
-      option: (provided, state) => ({
-        ...provided,
-        backgroundColor: state.isSelected ? '#767676' : '#fff',  // Color gris cuando está seleccionada la opción
-        color: state.isSelected ? '#fff' : '#000',               // Texto blanco cuando está seleccionada
-        padding: '1px 5px',     // Reduce el espacio alrededor del texto
-        outline: 'none',        // Elimina el borde azul del foco
-      }),
-      control: (provided, state) => ({
-        ...provided,
-        width: '118px',  // Ancho del select en estado cerrado
-        borderColor: '#fff',  // Borde personalizado
-        boxShadow: state.isFocused ? 'none' : provided.boxShadow,  // Elimina el borde azul en foco
-        '&:hover': {
-          borderColor: '#none',  // Mantiene el color del borde al pasar el cursor
-        },
-      }),
-      menu: (provided) => ({
-        ...provided,
-        maxHeight: '150px', // Altura del menú desplegable
-        width: '105px',  // Ancho del menú desplegable (lo ajustas según lo que necesites)
-        overflowY: 'auto',  // Scroll solo vertical
-      }),
-      indicatorSeparator: () => ({
-        display: 'none',  // Elimina la línea separadora
-      }),
-      valueContainer: (provided) => ({
-        ...provided,
-        padding: '0px 0px',      // Ajusta el padding interno del contenedor de valor
-      }),
-      menuList: (provided) => ({
-        ...provided,
-        maxHeight: '100px',  // Tamaño máximo de la lista de opciones
-        overflowY: 'auto',   // Habilita el scroll vertical solo en la lista de opciones
-      }),
-    }}
-  />
-</div>
-</div>
+            <div className="modal-body">
+              {pestañaActiva === 'Pruebas' ? (
+                <div>
+                  <div className="prueba-header">
+                    <div className="titulo-y-estado">
+                      <h2>
+                        {pruebaSeleccionada
+                          ? `Prueba ${listaPruebas.findIndex(p => p.idPrueba === pruebaSeleccionada.idPrueba) + 1} de ${proyectoSeleccionado.nombreProyecto}`
+                          : 'Selecciona una prueba'}
+                      </h2>
 
+                      {pruebaSeleccionada && (
+                        <select
+                          className="estado-prueba"
+                          value={pruebaSeleccionada.resultado}
+                          onChange={(e) => actualizarPrueba('resultado', e.target.value)}
+                        >
+                          <option value="CREADA">🔲 CREADA</option>
+                          <option value="EN REVISION">🟪 EN REVISION</option>
+                          <option value="CANCELADA">🟩 CANCELADA</option>
+                          <option value="DEPURADA">✅ DEPURADA</option>
+                        </select>
+                      )}
+                    </div>
+                    <Select
+                      value={opcionesPruebas.find((opcion) => opcion.value === pruebaSeleccionada?.idPrueba)}
+                      onChange={(selectedOption) => {
+                        const prueba = listaPruebas.find((p) => p.idPrueba === selectedOption.value);
+                        seleccionarPrueba(prueba);
+                      }}
+                      options={opcionesPruebas}
+                      menuPlacement="auto"
+                      styles={{
+                        option: (provided, state) => ({
+                          ...provided,
+                          backgroundColor: state.isSelected ? '#767676' : '#fff',
+                          color: state.isSelected ? '#fff' : '#000',
+                          padding: '1px 5px',
+                          outline: 'none',
+                        }),
+                        control: (provided) => ({
+                          ...provided,
+                          width: '118px',
+                          borderColor: '#fff',
+                          boxShadow: 'none',
+                          '&:hover': {
+                            borderColor: '#none',
+                          },
+                        }),
+                        menu: (provided) => ({
+                          ...provided,
+                          maxHeight: '150px',
+                          width: '105px',
+                          overflowY: 'auto',
+                        }),
+                        indicatorSeparator: () => ({
+                          display: 'none',
+                        }),
+                      }}
+                    />
+                  </div>
 
-  {/* Mostrar la fecha de ejecución */}
-  <p>Fecha de Ejecución: {pruebaSeleccionada ? formatearFecha(pruebaSeleccionada.fechaEjecucion) : 'N/A'}</p>
+                  <p>Fecha de Ejecución: {pruebaSeleccionada ? formatearFecha(pruebaSeleccionada.fechaEjecucion) : 'N/A'}</p>
 
-{/* Tabla de defectos */}
-{/* Tabla de defectos */}
-<table className="tabla-defectos">
-  <thead>
-    <tr>
-      <th>Criticidad</th>
-      <th>Descripción</th>
-      <th>Línea</th>
-      <th>Asignado</th>
-      <th>Estado</th>
-      <th>Fecha Límite</th>
-    </tr>
-  </thead>
-  <tbody>
-    {resultadosDefectos.map((defecto) => {
-      // Expresión regular para encontrar el número de línea en la descripción
-      const match = defecto.descripcion.match(/\b(\d+)\b$/);
-      const linea = match ? match[1] : 'N/A';  // Extraer el número de línea o mostrar 'N/A'
-      
-      // Eliminar el número de línea de la descripción
-      const descripcionSinLinea = defecto.descripcion.replace(/\b(\d+)\b$/, '');
+                  <table className="tabla-defectos">
+                    <thead>
+                      <tr>
+                        <th>Criticidad</th>
+                        <th>Descripción</th>
+                        <th>Línea</th>
+                        <th>Asignado</th>
+                        <th>Estado</th>
+                        <th>Fecha Límite</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {resultadosDefectos.map((defecto) => {
+                        const match = defecto.descripcion.match(/\b(\d+)\b$/);
+                        const linea = match ? match[1] : 'N/A';
+                        const descripcionSinLinea = defecto.descripcion.replace(/\b(\d+)\b$/, '');
 
-      return (
-        <tr key={defecto.idDefecto}>
-          <td className={`criticidad ${defecto.prioridad.replace(/\s/g, '-')}`}>
-            {defecto.prioridad}
-          </td>
-          <td>{descripcionSinLinea.trim()}</td> {/* Mostrar la descripción sin el número de línea */}
-          <td>{linea}</td> {/* Mostrar el número de línea extraído */}
-          <td>
-            <select
-              value={defecto.asignado || ''}
-              onChange={(e) => actualizarDefecto(defecto.idDefecto, 'asignado', e.target.value)}
-            >
-              <option value="">Sin asignar</option>
-              {listaUsuarios.map((usuario) => (
-                <option key={usuario.idUsuario} value={usuario.idUsuario}>
-                  {usuario.nombre} {usuario.apellido}
-                </option>
-              ))}
-            </select> 
-          </td>
-          <td>
-            <select
-              value={defecto.estado}
-              onChange={(e) => actualizarDefecto(defecto.idDefecto, 'estado', e.target.value)}
-            >
-              <option value="NUEVO">🔲 NUEVO</option>
-              <option value="EN REVISION">🟪 EN REVISION</option>
-              <option value="OMITIDO">🟩 OMITIDO</option>
-              <option value="RESUELTO">✅ RESUELTO</option>
-            </select>
-          </td>
-          <td>
-            <input
-              type="date"
-              value={defecto.fechaResolucion ? defecto.fechaResolucion.substring(0, 10) : ''}
-              onChange={(e) => actualizarDefecto(defecto.idDefecto, 'fechaResolucion', e.target.value)}
-              className="fecha-limite-input"
-            />
-          </td>
-        </tr>
-      );
-    })}
-  </tbody>
-  <tfoot>
-    <tr>
-      <td colSpan="5">Total de Defectos: {resultadosDefectos.length}</td>
-      <td>
-        Resueltos: {resultadosDefectos.filter((d) => d.estado === 'RESUELTO').length}
-      </td>
-    </tr>
-  </tfoot>
-</table>
+                        return (
+                          <tr key={defecto.idDefecto}>
+                            <td className={`criticidad ${defecto.prioridad.replace(/\s/g, '-')}`}>{defecto.prioridad}</td>
+                            <td>{descripcionSinLinea.trim()}</td>
+                            <td>{linea}</td>
+                            <td>
+                              <select
+                                value={defecto.asignado || ''}
+                                onChange={(e) => actualizarDefecto(defecto.idDefecto, 'asignado', e.target.value)}
+                              >
+                                <option value="">Sin asignar</option>
+                                {listaUsuarios.map((usuario) => (
+                                  <option key={usuario.idUsuario} value={usuario.idUsuario}>
+                                    {usuario.nombre} {usuario.apellido}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+                            <td>
+                              <select
+                                value={defecto.estado}
+                                onChange={(e) => actualizarDefecto(defecto.idDefecto, 'estado', e.target.value)}
+                              >
+                                <option value="NUEVO">🔲 NUEVO</option>
+                                <option value="EN REVISION">🟪 EN REVISION</option>
+                                <option value="OMITIDO">🟩 OMITIDO</option>
+                                <option value="RESUELTO">✅ RESUELTO</option>
+                              </select>
+                            </td>
+                            <td>
+                              <input
+                                type="date"
+                                value={defecto.fechaResolucion ? defecto.fechaResolucion.substring(0, 10) : ''}
+                                onChange={(e) => actualizarDefecto(defecto.idDefecto, 'fechaResolucion', e.target.value)}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colSpan="5">Total de Defectos: {resultadosDefectos.length}</td>
+                        <td>Resueltos: {resultadosDefectos.filter((d) => d.estado === 'RESUELTO').length}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              ) : (
+                <p>Próximamente: Dashboard de métricas.</p>
+              )}
+            </div>
 
-
-
-</div>
-
+            <div className="modal-footer">
+              {cargando && (
+                <div className="spinner-container">
+                  <div className="spinner"></div>
+                </div>
+              )}
+              <button onClick={ejecutarNuevaPrueba} disabled={cargando}>
+                Ejecutar Nueva Prueba
+              </button>
+              <button onClick={() => setMostrarModalPrueba(false)} disabled={cargando}>
+                Cerrar
+              </button>
+            </div>
           </div>
-        ) : (
-          /* Contenido de la pestaña Dashboard */
-          <div>
-            <p>Próximamente: Dashboard de métricas.</p>
-          </div>
-        )}
-      </div>
-      <div className="modal-footer">
-  {/* Spinner centrado */}
-  {cargando && (
-    <div className="spinner-container">
-      <div className="spinner"></div>
-    </div>
-  )}
-
-  {/* Botón para ejecutar nueva prueba */}
-  <button onClick={ejecutarNuevaPrueba} disabled={cargando}>
-    Ejecutar Nueva Prueba
-  </button>
-
-  {/* Botón para cerrar */}
-  <button onClick={() => setMostrarModalPrueba(false)} disabled={cargando}>
-    Cerrar
-  </button>
-</div>
-    </div>
-  </div>
-)}
+        </div>
+      )}
     </div>
   );
 };
 
 export default App;
-//885
