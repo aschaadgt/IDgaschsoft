@@ -1,11 +1,10 @@
 // App.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
 import { ResizableBox } from 'react-resizable';
 import AceEditor from 'react-ace'; // Para incluir el editor de código dentro de la sección de detalles del proyecto.
 import Select from 'react-select';
-import { useCallback, useEffect } from 'react';
 
 // Importar los lenguajes que vamos a usar en el editor de código
 import 'ace-builds/src-noconflict/mode-javascript';
