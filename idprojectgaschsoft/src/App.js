@@ -101,16 +101,11 @@ const opcionesPruebas = listaPruebas.map((prueba, index) => ({
   label: `Prueba ${index + 1}`,
 }));
 
-const opcionesUsuarios = listaUsuarios.map((usuario) => ({
-  value: usuario.idUsuario,
-  label: `${usuario.nombre} ${usuario.apellido}`,
-}));
-
-// Función para convertir "DD/MM/YYYY" a "YYYY-MM-DD"
-const convertirFecha = (fecha) => {
+// Función para convertir "DD/MM/YYYY" a "YYYY-MM-DD", envuelta en useCallback
+const convertirFecha = useCallback((fecha) => {
   const fechaParseada = parse(fecha, 'dd/MM/yyyy', new Date());
   return format(fechaParseada, 'yyyy-MM-dd');
-};
+}, []);
 
   // Función para formatear fecha en DD/MM/AAAA
   const formatearFecha = (fecha) => {
@@ -205,6 +200,7 @@ useEffect(() => {
 }, [proyectos, proyectoSeleccionado]);
 
 // Función para seleccionar un proyecto y cargar su código
+// Define seleccionarProyecto antes de su uso
 const seleccionarProyecto = useCallback(async (proyecto) => {
   setProyectoSeleccionado(proyecto);
   try {
@@ -232,25 +228,27 @@ const seleccionarProyecto = useCallback(async (proyecto) => {
   }
 }, [setProyectoSeleccionado, setContenidoCodigo, setLenguaje, setListaPruebas, seleccionarPrueba, setPruebaSeleccionada, setResultadosDefectos, setListaUsuarios]); // Asegúrate de incluir solo las dependencias necesarias
 
+// Usa seleccionarProyecto solo después de haberlo definido
+useEffect(() => {
+  // Lógica para usar seleccionarProyecto
+}, [contenidoCodigo, proyectoSeleccionado, seleccionarProyecto]);
 // Definir seleccionarPrueba también con useCallback
 const seleccionarPrueba = useCallback(async (prueba) => {
   let fechaEjecucionISO = null;
   if (prueba.fechaEjecucion) {
-    fechaEjecucionISO = convertirFecha(prueba.fechaEjecucion);
+    fechaEjecucionISO = convertirFecha(prueba.fechaEjecucion); // Utiliza la función convertirFecha
   }
 
   const pruebaConFechaISO = { ...prueba, fechaEjecucion: fechaEjecucionISO };
-
   setPruebaSeleccionada(pruebaConFechaISO);
-
+  
   try {
     const responseDefectos = await axios.get(`http://localhost:3001/api/pruebas/${prueba.idPrueba}/defectos`);
     setResultadosDefectos(responseDefectos.data);
   } catch (error) {
     console.error('Error al cargar los defectos de la prueba:', error);
   }
-}, [convertirFecha]); // Asegúrate de añadir 'convertirFecha' como dependencia si es una función externa
-
+}, [convertirFecha]); // Asegúrate de incluir 'convertirFecha' como dependencia
 
 //Función para ejecutar el análisis de código
 const ejecutarNuevaPrueba = async () => {
