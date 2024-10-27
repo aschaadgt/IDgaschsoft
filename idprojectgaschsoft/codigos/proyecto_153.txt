@@ -1,0 +1,67 @@
+//Sistema de Gestión de Notas
+<?php
+// Inicializar el array de estudiantes
+$estudiantes = [];
+
+// Función para mostrar el menú
+function mostrar_menu() {
+    echo "\n--- Sistema de Gestión de Notas ---\n";
+    echo "1. Añadir estudiante\n";
+    echo "2. Ver estudiantes\n";
+    echo "3. Buscar estudiante\n";
+    echo "4. Salir\n";
+}
+
+// Función para añadir un estudiante
+function añadir_estudiante(&$estudiantes) {
+    $nombre = readline("Nombre del estudiante: ");
+    $nota = readline("Nota del estudiante: ");
+    $estudiantes[$nombre] = $nota;
+    echo "Estudiante $nombre añadido con nota $nota.\n";
+}
+
+// Función para ver todos los estudiantes
+function ver_estudiantes($estudiantes) {
+    if (!empty($estudiantes)) {
+        echo "\n--- Lista de Estudiantes ---\n";
+        foreach ($estudiantes as $nombre => $nota) {
+            echo "Nombre: $nombre, Nota: $nota\n";
+        }
+    } else {
+        echo "No hay estudiantes registrados.\n";
+    }
+}
+
+// Función para buscar un estudiante por nombre
+function buscar_estudiante($estudiantes) {
+    $nombre = readline("Nombre del estudiante a buscar: ");
+    if (isset($estudiantes[$nombre])) {
+        echo "Nombre: $nombre, Nota: " . $estudiantes[$nombre] . "\n";
+    } else {
+        echo "Estudiante no encontrado.\n";
+    }
+}
+
+// Ciclo principal
+while (true) {
+    mostrar_menu();
+    $opcion = readline("Elige una opción: ");
+    
+    switch ($opcion) {
+        case 1:
+            añadir_estudiante($estudiantes);
+            break;
+        case 2:
+            ver_estudiantes($estudiantes);
+            break;
+        case 3:
+            buscar_estudiante($estudiantes);
+            break;
+        case 4:
+            echo "Saliendo del sistema.\n";
+            exit;
+        default:
+            echo "Opción no válida.\n";
+    }
+}
+?>

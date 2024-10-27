@@ -1,0 +1,122 @@
+//Sistema para Call Center
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+// Clase que representa una llamada
+class Llamada {
+private:
+    string nombre_cliente;
+    string motivo;
+    string estado;
+
+public:
+    Llamada(string nombre_cliente, string motivo) {
+        this->nombre_cliente = nombre_cliente;
+        this->motivo = motivo;
+        this->estado = "Pendiente";
+    }
+
+    void mostrarDetalles() {
+        cout << "Cliente: " << nombre_cliente << endl;
+        cout << "Motivo: " << motivo << endl;
+        cout << "Estado: " << estado << endl;
+    }
+
+    void completarLlamada() {
+        estado = "Completada";
+    }
+
+    string obtenerEstado() {
+        return estado;
+    }
+};
+
+// Clase para gestionar las llamadas del call center
+class CallCenter {
+private:
+    vector<Llamada> llamadas;
+
+public:
+    void agregarLlamada() {
+        string nombre, motivo;
+        cout << "Ingrese el nombre del cliente: ";
+        getline(cin, nombre);
+        cout << "Ingrese el motivo de la llamada: ";
+        getline(cin, motivo);
+
+        Llamada nueva_llamada(nombre, motivo);
+        llamadas.push_back(nueva_llamada);
+        cout << "Llamada agregada exitosamente.\n";
+    }
+
+    void verLlamadasPendientes() {
+        bool hay_pendientes = false;
+        cout << "\n--- Llamadas Pendientes ---" << endl;
+        for (size_t i = 0; i < llamadas.size(); i++) {
+            if (llamadas[i].obtenerEstado() == "Pendiente") {
+                cout << "Llamada " << i + 1 << ": " << endl;
+                llamadas[i].mostrarDetalles();
+                cout << endl;
+                hay_pendientes = true;
+            }
+        }
+        if (!hay_pendientes) {
+            cout << "No hay llamadas pendientes.\n";
+        }
+    }
+
+    void completarLlamada() {
+        int indice;
+        verLlamadasPendientes();
+        cout << "Ingrese el número de la llamada a completar: ";
+        cin >> indice;
+        cin.ignore(); // Limpiar el buffer de entrada
+
+        if (indice > 0 && indice <= llamadas.size() && llamadas[indice - 1].obtenerEstado() == "Pendiente") {
+            llamadas[indice - 1].completarLlamada();
+            cout << "Llamada completada.\n";
+        } else {
+            cout << "Índice no válido o la llamada ya fue completada.\n";
+        }
+    }
+};
+
+// Función principal que muestra el menú y gestiona las llamadas
+int main() {
+    CallCenter callCenter;
+    int opcion;
+
+    do {
+        cout << "\n--- Sistema para Call Center ---\n";
+        cout << "1. Agregar nueva llamada\n";
+        cout << "2. Ver llamadas pendientes\n";
+        cout << "3. Completar llamada\n";
+        cout << "4. Salir\n";
+        cout << "Seleccione una opción: ";
+        cin >> opcion;
+        cin.ignore(); // Limpiar el buffer de entrada
+
+        switch (opcion) {
+            case 1:
+                callCenter.agregarLlamada();
+                break;
+            case 2:
+                callCenter.verLlamadasPendientes();
+                break;
+            case 3:
+                callCenter.completarLlamada();
+                break;
+            case 4:
+                cout << "Saliendo del sistema...\n";
+                break;
+            default:
+                cout << "Opción no válida.\n";
+        }
+
+    } while (opcion != 4);
+
+    return 0;
+}

@@ -1,0 +1,124 @@
+//Sistema de Gestión de Almacén de Ropa
+import java.util.ArrayList;
+import java.util.Scanner;
+
+class Prenda {
+    private String nombre;
+    private String talla;
+    private int cantidad;
+
+    public Prenda(String nombre, String talla, int cantidad) {
+        this.nombre = nombre;
+        this.talla = talla;
+        this.cantidad = cantidad;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public String getTalla() {
+        return talla;
+    }
+
+    public int getCantidad() {
+        return cantidad;
+    }
+
+    public void setCantidad(int cantidad) {
+        this.cantidad = cantidad;
+    }
+
+    @Override
+    public String toString() {
+        return "Prenda: " + nombre + ", Talla: " + talla + ", Cantidad: " + cantidad;
+    }
+}
+
+public class GestionAlmacen {
+    private static ArrayList<Prenda> inventario = new ArrayList<>();
+    private static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        int opcion;
+
+        do {
+            mostrarMenu();
+            opcion = scanner.nextInt();
+            scanner.nextLine();  // Limpiar buffer
+
+            switch (opcion) {
+                case 1:
+                    añadirPrenda();
+                    break;
+                case 2:
+                    verInventario();
+                    break;
+                case 3:
+                    actualizarCantidad();
+                    break;
+                case 4:
+                    System.out.println("Saliendo del sistema.");
+                    break;
+                default:
+                    System.out.println("Opción no válida.");
+            }
+        } while (opcion != 4);
+    }
+
+    public static void mostrarMenu() {
+        System.out.println("\n--- Sistema de Gestión de Almacén de Ropa ---");
+        System.out.println("1. Añadir prenda");
+        System.out.println("2. Ver inventario");
+        System.out.println("3. Actualizar cantidad de una prenda");
+        System.out.println("4. Salir");
+        System.out.print("Elige una opción: ");
+    }
+
+    public static void añadirPrenda() {
+        System.out.print("Nombre de la prenda: ");
+        String nombre = scanner.nextLine();
+
+        System.out.print("Talla de la prenda: ");
+        String talla = scanner.nextLine();
+
+        System.out.print("Cantidad en stock: ");
+        int cantidad = scanner.nextInt();
+
+        Prenda prenda = new Prenda(nombre, talla, cantidad);
+        inventario.add(prenda);
+        System.out.println("Prenda añadida al inventario.");
+    }
+
+    public static void verInventario() {
+        if (inventario.isEmpty()) {
+            System.out.println("El inventario está vacío.");
+        } else {
+            System.out.println("\n--- Inventario ---");
+            for (Prenda prenda : inventario) {
+                System.out.println(prenda);
+            }
+        }
+    }
+
+    public static void actualizarCantidad() {
+        System.out.print("Nombre de la prenda para actualizar: ");
+        String nombre = scanner.nextLine();
+
+        boolean encontrada = false;
+        for (Prenda prenda : inventario) {
+            if (prenda.getNombre().equalsIgnoreCase(nombre)) {
+                System.out.print("Nueva cantidad: ");
+                int nuevaCantidad = scanner.nextInt();
+                prenda.setCantidad(nuevaCantidad);
+                System.out.println("Cantidad actualizada.");
+                encontrada = true;
+                break;
+            }
+        }
+
+        if (!encontrada) {
+            System.out.println("Prenda no encontrada en el inventario.");
+        }
+    }
+}

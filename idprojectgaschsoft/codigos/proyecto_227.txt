@@ -1,0 +1,85 @@
+
+<!-- global convertir -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Metadatos del documento -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de Monedas</title>
+</head>
+<body>
+    <!-- Título principal de la aplicación -->
+    <h2>Conversor de Monedas</h2>
+
+    <!-- Campo para ingresar la cantidad a convertir -->
+    <label for="cantidad">Cantidad:</label>
+    <input type="number" id="cantidad" placeholder="Ingresa la cantidad">
+
+    <!-- Selección de la moneda de origen -->
+    <label for="monedaOrigen">De:</label>
+    <select id="monedaOrigen">
+        <option value="USD">Dólares (USD)</option>
+        <option value="EUR">Euros (EUR)</option>
+        <option value="GTQ">Quetzales (GTQ)</option>
+    </select>
+
+    <!-- Selección de la moneda de destino -->
+    <label for="monedaDestino">A:</label>
+    <select id="monedaDestino">
+        <option value="USD">Dólares (USD)</option>
+        <option value="EUR">Euros (EUR)</option>
+        <option value="GTQ">Quetzales (GTQ)</option>
+    </select>
+
+    <!-- Botón que llama a la función 'convertir' al hacer clic -->
+    <button onclick="convertir()">Convertir</button>
+    
+    <!-- Elemento donde se mostrará el resultado de la conversión -->
+    <h3 id="resultado"></h3>
+
+    <script>
+        // Tasas de conversión simples para ejemplo
+
+        // Error 1: Uso de 'var' en lugar de 'const' o 'let'
+        var tasas = {
+            USD: { EUR: 0.85, GTQ: 7.75 },
+            EUR: { USD: 1.18, GTQ: 9.10 },
+            GTQ: { USD: 0.13, EUR: 0.11 },
+        };
+
+        // Error 2: Función 'convertir' mal definida (falta 'function' o hay un error tipográfico)
+        function   convertir() {
+            // Error 3: Declaración de variable sin 'let' o 'const'
+            let cantidad = document.getElementById('cantidad').value;
+
+            // Error 4: Uso de comparación no estricta '==' en lugar de '==='
+            let monedaOrigen = document.getElementById('monedaOrigen').value;
+            let monedaDestino = document.getElementById('monedaDestino').value;
+
+            if (monedaOrigen === monedaDestino) {
+                document.getElementById('resultado').innerText = 'No necesitas convertir.';
+                return;
+            }
+
+            // Error 5: Variable mal escrita o no definida 'monedaDestinoe'
+            let tasaConversion = tasas[monedaOrigen][monedaDestinoe];
+
+            // Error 6: Uso de variable no definida 'cantida' en lugar de 'cantidad'
+            let resultado = cantida * tasaConversion;
+
+            // Error 7: Falta de punto y coma y uso inconsistente de comillas
+            document.getElementById("resultado").innerText = '${cantidad} ${monedaOrigen} son ${resultado.toFixed(2)} ${monedaDestino}'
+
+            // Error 8: Función definida pero no utilizada
+            function funcionNoUsada() {
+                console.log('Esta función no se usa.');
+            }
+        }
+
+        // Adjuntamos la función al objeto global para que ESLint reconozca su uso
+        window.convertir = convertir;
+    </script>
+</body>
+</html>

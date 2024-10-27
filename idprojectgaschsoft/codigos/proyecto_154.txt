@@ -1,0 +1,79 @@
+<!-- Conversor de Monedas SIP -->
+<!-- Declaramos que la función 'convertir' es global para que ESLint la reconozca -->
+<!-- global convertir -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Metadatos del documento -->
+    <meta charset="UTF-8"> <!-- Codificación de caracteres -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Configuración para dispositivos móviles -->
+    <title>Conversor de Monedas</title> <!-- Título de la página -->
+</head>
+<body>
+    <!-- Título principal de la aplicación -->
+    <h2>Conversor de Monedas</h2>
+
+    <!-- Campo para ingresar la cantidad a convertir -->
+    <label for="cantidad">Cantidad:</label>
+    <input type="number" id="cantidad" placeholder="Ingresa la cantidad">
+
+    <!-- Selección de la moneda de origen -->
+    <label for="monedaOrigen">De:</label>
+    <select id="monedaOrigen">
+        <option value="USD">Dólares (USD)</option>
+        <option value="EUR">Euros (EUR)</option>
+        <option value="GTQ">Quetzales (GTQ)</option>
+    </select>
+
+    <!-- Selección de la moneda de destino -->
+    <label for="monedaDestino">A:</label>
+    <select id="monedaDestino">
+        <option value="USD">Dólares (USD)</option>
+        <option value="EUR">Euros (EUR)</option>
+        <option value="GTQ">Quetzales (GTQ)</option>
+    </select>
+
+    <!-- Botón que llama a la función 'convertir' al hacer clic -->
+    <button onclick="convertir()">Convertir</button>
+    
+    <!-- Elemento donde se mostrará el resultado de la conversión -->
+    <h3 id="resultado"></h3>
+
+    <script>
+        // Tasas de conversión simples para ejemplo
+        const tasas = {
+            USD: { EUR: 0.85, GTQ: 7.75 }, // 1 USD equivale a 0.85 EUR y 7.75 GTQ
+            EUR: { USD: 1.18, GTQ: 9.1 },  // 1 EUR equivale a 1.18 USD y 9.1 GTQ
+            GTQ: { USD: 0.13, EUR: 0.11 }, // 1 GTQ equivale a 0.13 USD y 0.11 EUR
+        };
+
+        // Función que realiza la conversión de moneda
+        function convertir() {
+            // Obtenemos la cantidad ingresada por el usuario
+            let cantidad = document.getElementById('cantidad').value;
+            // Obtenemos la moneda de origen seleccionada
+            let monedaOrigen = document.getElementById('monedaOrigen').value;
+            // Obtenemos la moneda de destino seleccionada
+            let monedaDestino = document.getElementById('monedaDestino').value;
+
+            // Si la moneda de origen y destino son iguales, no es necesaria la conversión
+            if (monedaOrigen === monedaDestino) {
+                document.getElementById('resultado').innerText = `No necesitas convertir.`;
+                return;
+            }
+
+            // Obtenemos la tasa de conversión correspondiente
+            let tasaConversion = tasas[monedaOrigen][monedaDestino];
+            // Calculamos el resultado de la conversión
+            let resultado = cantidad * tasaConversion;
+
+            // Mostramos el resultado con dos decimales
+            document.getElementById('resultado').innerText = `${cantidad} ${monedaOrigen} son ${resultado.toFixed(2)} ${monedaDestino}`;
+        }
+        
+        // Adjuntamos la función al objeto global para que ESLint reconozca su uso
+        window.convertir = convertir;
+    </script>
+</body>
+</html>

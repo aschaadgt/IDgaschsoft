@@ -1,0 +1,48 @@
+//Agenda de Contactos
+def mostrar_menu():
+    print("\n--- Agenda de Contactos ---")
+    print("1. Añadir contacto")
+    print("2. Ver contactos")
+    print("3. Buscar contacto")
+    print("4. Salir")
+
+def añadir_contacto(agenda):
+    nombre = input("Nombre: ")
+    telefono = input("Teléfono: ")
+    agenda[nombre] = telefono
+    print(f"Contacto {nombre} añadido.")
+
+def ver_contactos(agenda):
+    if agenda:
+        print("\n--- Contactos ---")
+        for nombre, telefono in agenda.items():
+            print(f"Nombre: {nombre}, Teléfono: {telefono}")
+    else:
+        print("La agenda está vacía.")
+
+def buscar_contacto(agenda):
+    nombre = input("Nombre a buscar: ")
+    if nombre in agenda:
+        print(f"Nombre: {nombre}, Teléfono: {agenda[nombre]}")
+    else:
+        print("Contacto no encontrado.")
+
+def main():
+    agenda = {}
+    while True:
+        mostrar_menu()
+        opcion = input("Elige una opción: ")
+        if opcion == "1":
+            añadir_contacto(agenda)
+        elif opcion == "2":
+            ver_contactos(agenda)
+        elif opcion == "3":
+            buscar_contacto(agenda)
+        elif opcion == "4":
+            print("Saliendo de la agenda.")
+            break
+        else:
+            print("Opción no válida.")
+
+if __name__ == "__main__":
+    main()

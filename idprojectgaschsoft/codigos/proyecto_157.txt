@@ -1,0 +1,80 @@
+//#include <iostream>
+#include <thread>
+#include <mutex>
+#include <string>
+#include <queue>
+#include <condition_variable>
+
+using namespace std;
+
+// Variables globales
+queue<string> mensajesUsuario1;
+queue<string> mensajesUsuario2;
+mutex mtx;
+condition_variable cv;
+
+// Función para enviar mensajes
+void enviarMensaje(int usuario) {
+    string mensaje;
+    while (true) {
+        cout << "Usuario " << usuario << ": ";
+        getline(cin, mensaje);
+        
+        if (mensaje == "salir") {
+            lock_guard<mutex> lock(mtx);
+            if (usuario == 1) {
+                mensajesUsuario1.push("Usuario 1 ha salido del chat.");
+            } else {
+                mensajesUsuario2.push("Usuario 2 ha salido del chat.");
+            }
+            cv.notify_all();
+            break;
+        }
+
+        lock_guard<mutex> lock(mtx);
+        if (usuario == 1) {
+            mensajesUsuario1.push("Usuario 1: " + mensaje);
+        } else {
+            mensajesUsuario2.push("Usuario 2: " + mensaje);
+        }
+        cv.notify_all();
+    }
+}
+
+// Función para recibir mensajes
+void recibirMensaje(int usuario) {
+    while (true) {
+        unique_lock<mutex> lock(mtx);
+        cv.wait(lock, [&] { return !mensajesUsuario1.empty() || !mensajesUsuario2.empty(); });
+
+        // Mostrar mensajes del otro usuario
+        if (usuario == 1 && !mensajesUsuario2.empty()) {
+            cout << "\n" << mensajesUsuario2.front() << endl;
+            if (mensajesUsuario2.front() == "Usuario 2 ha salido del chat.") break;
+            mensajesUsuario2.pop();
+        } else if (usuario == 2 && !mensajesUsuario1.empty()) {
+            cout << "\n" << mensajesUsuario1.front() << endl;
+            if (mensajesUsuario1.front() == "Usuario 1 ha salido del chat.") break;
+            mensajesUsuario1.pop();
+        }
+    }
+}
+
+int main() {
+    cout << "Simulación de Chat en C++ (Escribe 'salir' para terminar el chat)" << endl;
+
+    // Crear hilos para manejar a los dos usuarios
+    thread hiloEnviar1(enviarMensaje, 1);
+    thread hiloRecibir1(recibirMensaje, 1);
+    thread hiloEnviar2(enviarMensaje, 2);
+    thread hiloRecibir2(recibirMensaje, 2);
+
+    // Esperar a que ambos hilos terminen
+    hiloEnviar1.join();
+    hiloRecibir1.join();
+    hiloEnviar2.join();
+    hiloRecibir2.join();
+
+    cout << "Chat terminado. ¡Hasta pronto!" << endl;
+    return 0;
+}
