@@ -389,8 +389,6 @@ app.post('/api/proyectos/:id/pruebas', async (req, res) => {
   }
 });
 
-
-// Ruta PUT para actualizar una prueba existente con formato de fechas
 // Ruta PUT para actualizar una prueba existente
 app.put('/api/pruebas/:id', async (req, res) => {
   try {
@@ -440,7 +438,6 @@ app.put('/api/pruebas/:id', async (req, res) => {
       res.status(500).send({ message: err.message });
   }
 });
-
 
 // Ruta DELETE para eliminar una prueba y sus defectos relacionados
 app.delete('/api/pruebas/:idPrueba', async (req, res) => {
@@ -566,6 +563,40 @@ app.get('/api/pruebas/:idPrueba/defectos', async (req, res) => {
     res.json(result.recordset);
   } catch (err) {
     res.status(500).send({ message: err.message });
+  }
+});
+
+// Ruta GET para obtener todos los defectos de un proyecto específico
+app.get('/api/proyectos/:idProyecto/defectos', async (req, res) => {
+  try {
+    const { idProyecto } = req.params;
+
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('idProyecto', sql.Int, idProyecto)
+      .query(`
+        SELECT 
+          Defectos.idDefecto,
+          Defectos.idPrueba,
+          Defectos.descripcion,
+          Defectos.prioridad,
+          Defectos.estado,
+          Defectos.fechaCreacion,
+          Defectos.fechaResolucion,
+          Defectos.Asignado AS asignado
+        FROM Defectos
+        INNER JOIN Pruebas ON Defectos.idPrueba = Pruebas.idPrueba
+        WHERE Pruebas.idProyecto = @idProyecto
+      `);
+
+    if (result.recordset.length === 0) {
+      return res.status(404).send({ message: 'No se encontraron defectos para este proyecto.' });
+    }
+
+    res.json(result.recordset);
+  } catch (err) {
+    console.error('Error al obtener defectos del proyecto:', err);
+    res.status(500).send({ message: 'Error al obtener los defectos del proyecto.' });
   }
 });
 

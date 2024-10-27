@@ -1,5 +1,5 @@
 // App.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import './App.css';
 import { ResizableBox } from 'react-resizable';
@@ -58,8 +58,6 @@ const App = () => {
     descripcion: '',
   });
 
-  
-
   // Estados locales para los campos editables
   const lenguajes = ['javascript', 'python', 'java', 'c_cpp', 'php', 'csharp', 'html', 'sql', 'ruby']; // lista de lenguajes
   const nombresLenguajes = ['J.Script', 'Python', 'Java', 'C++', 'PHP', 'C#', 'HTML', 'SQL', 'Ruby']; // nombres visibles de los lenguajes
@@ -84,35 +82,48 @@ const App = () => {
   // Funcion cargando al crear prueba:
   const [cargando, setCargando] = useState(false); // Nuevo estado para control del spinner
 
+  const [defectosProyecto, setDefectosProyecto] = useState([]); // Todos los defectos del proyecto
+  const [defectosPruebaSeleccionada, setDefectosPruebaSeleccionada] = useState([]); // Defectos de la prueba seleccionada
+
+
 //////////
 // Datos para la gráfica de defectos por prueba
-const dataLineChart = {
-  labels: listaPruebas.map((prueba, index) => `Prueba ${index + 1}`), // Etiquetas en el eje X para todas las pruebas
-  datasets: [
-    {
-      label: 'Defectos por prueba',
-      data: listaPruebas.map((prueba) => 
-        resultadosDefectos.filter((defecto) => defecto.idPrueba === prueba.idPrueba).length
-      ),
-      borderColor: 'rgba(75,192,192,1)',
-      backgroundColor: 'rgba(75,192,192,0.2)',
-    },
-  ],
-};
+// Utilizar useMemo para optimizar el cálculo del gráfico
+const dataLineChart = useMemo(() => {
+  const labels = listaPruebas.map((prueba) => prueba.nombrePrueba);
+  const data = listaPruebas.map((prueba) =>
+    defectosProyecto.filter((defecto) => defecto.idPrueba === prueba.idPrueba).length
+  );
 
-// Opciones para la gráfica
-const optionsLineChart = {
-  responsive: true,
-  plugins: {
-    legend: {
-      position: 'top',
+  return {
+    labels,
+    datasets: [
+      {
+        label: 'Defectos por prueba',
+        data,
+        borderColor: 'rgba(75,192,192,1)',
+        backgroundColor: 'rgba(75,192,192,0.2)',
+      },
+    ],
+  };
+}, [listaPruebas, defectosProyecto]);
+
+
+
+
+  // Opciones para la gráfica
+  const optionsLineChart = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Número de Defectos por Prueba',
+      },
     },
-    title: {
-      display: true,
-      text: 'Número de Defectos por Prueba',
-    },
-  },
-};
+  };
 
  //Funcion para actualizar estado de prueba
  const actualizarPrueba = async (campo, valor) => {
@@ -264,23 +275,29 @@ const seleccionarProyecto = async (proyecto) => {
     const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/pruebas`);
     setListaPruebas(responsePruebas.data);
 
+    // Cargar todos los defectos de todas las pruebas del proyecto seleccionado
+    const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/defectos`);
+    setDefectosProyecto(responseDefectos.data);
+
     // Seleccionar la prueba más reciente si existe
     if (responsePruebas.data.length > 0) {
-      seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
+      const ultimaPrueba = responsePruebas.data[responsePruebas.data.length - 1];
+      seleccionarPrueba(ultimaPrueba);
     } else {
       setPruebaSeleccionada(null);
-      setResultadosDefectos([]);
+      setDefectosPruebaSeleccionada([]);
     }
 
     // Cargar la lista de usuarios para el dropdown de asignación
     const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
     setListaUsuarios(responseUsuarios.data);
 
-
   } catch (error) {
     console.error('Error al cargar los datos del proyecto:', error);
   }
 };
+
+
 
 // Función para seleccionar una prueba y cargar sus defectos
 const seleccionarPrueba = async (prueba) => {
@@ -295,11 +312,12 @@ const seleccionarPrueba = async (prueba) => {
   
   try {
     const responseDefectos = await axios.get(`http://localhost:3001/api/pruebas/${prueba.idPrueba}/defectos`);
-    setResultadosDefectos(responseDefectos.data);
+    setDefectosPruebaSeleccionada(responseDefectos.data);
   } catch (error) {
     console.error('Error al cargar los defectos de la prueba:', error);
   }
 };
+
 
 //Función para ejecutar el análisis de código
 const ejecutarNuevaPrueba = async () => {
@@ -320,8 +338,8 @@ const ejecutarNuevaPrueba = async () => {
     fechaEjecucion.setHours(fechaEjecucion.getHours() - fechaEjecucion.getTimezoneOffset() / 60); // Ajustar zona horaria a UTC
 
     const nuevaPrueba = {
-      nombrePrueba: `Prueba ${listaPruebas.length + 1} ${proyectoSeleccionado.idProyecto}`,
-      descripcion: `Prueba del proyecto ${proyectoSeleccionado.idProyecto}`,
+      nombrePrueba: `Prueba ${listaPruebas.length + 1} `,
+      descripcion: `Prueba del proyecto `,
       fechaEjecucion: fechaEjecucion, // Ajustar la fecha
       resultado: 'CREADA',
     };
