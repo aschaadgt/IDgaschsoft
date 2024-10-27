@@ -5,7 +5,7 @@ const config = {
     user: 'idprojectgaschsofff@idprojectgaschsofttt', 
     password: 'RiskHundred2024.', 
     server: 'idprojectgaschsofttt.database.windows.net', // Cambia por el nombre de tu servidor en Azure
-    database: 'IDProjectGASCHSOFT', // Nombre de la base de datos en Azure
+    database: 'idprojectgaschsofttt', // Nombre de la base de datos en Azure
     options: {
         encrypt: true, // Esto debe estar en true para conexiones a Azure
         trustServerCertificate: false // Para Azure, debe estar en false
