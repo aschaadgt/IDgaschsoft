@@ -27,6 +27,20 @@ import 'ace-builds/src-noconflict/theme-tomorrow_night';
 import ace from 'ace-builds/src-noconflict/ace';
 import { parse, format } from 'date-fns';
 
+// Importar Chart.js y react-chartjs-2
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+
+// Inicializar Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 // Configura la ruta base para los archivos de ace-builds
 ace.config.set('basePath', '/ace');
@@ -43,6 +57,8 @@ const App = () => {
     nombreProyecto: '',
     descripcion: '',
   });
+
+  
 
   // Estados locales para los campos editables
   const lenguajes = ['javascript', 'python', 'java', 'c_cpp', 'php', 'csharp', 'html', 'sql', 'ruby']; // lista de lenguajes
@@ -64,8 +80,39 @@ const App = () => {
   const [resultadosDefectos, setResultadosDefectos] = useState([]);
   const [listaUsuarios, setListaUsuarios] = useState([]);
 
+
   // Funcion cargando al crear prueba:
   const [cargando, setCargando] = useState(false); // Nuevo estado para control del spinner
+
+//////////
+// Datos para la gráfica de defectos por prueba
+const dataLineChart = {
+  labels: listaPruebas.map((prueba, index) => `Prueba ${index + 1}`), // Etiquetas en el eje X para todas las pruebas
+  datasets: [
+    {
+      label: 'Defectos por prueba',
+      data: listaPruebas.map((prueba) => 
+        resultadosDefectos.filter((defecto) => defecto.idPrueba === prueba.idPrueba).length
+      ),
+      borderColor: 'rgba(75,192,192,1)',
+      backgroundColor: 'rgba(75,192,192,0.2)',
+    },
+  ],
+};
+
+// Opciones para la gráfica
+const optionsLineChart = {
+  responsive: true,
+  plugins: {
+    legend: {
+      position: 'top',
+    },
+    title: {
+      display: true,
+      text: 'Número de Defectos por Prueba',
+    },
+  },
+};
 
  //Funcion para actualizar estado de prueba
  const actualizarPrueba = async (campo, valor) => {
@@ -941,8 +988,17 @@ const eliminarProyecto = async () => {
         ) : (
           /* Contenido de la pestaña Dashboard */
           <div>
-            <p>Próximamente: Dashboard de métricas.</p>
-          </div>
+  {pestañaActiva === 'Dashboard' && (
+    <div className="modal-grid">
+      <div className="chart-container">
+        <Line data={dataLineChart} options={optionsLineChart} />
+      </div>
+      <div className="empty-container"> {/* Espacio en blanco superior derecho */}</div>
+      <div className="empty-container"> {/* Espacio en blanco inferior izquierdo */}</div>
+      <div className="empty-container"> {/* Espacio en blanco inferior derecho */}</div>
+    </div>
+  )}
+</div>
         )}
       </div>
       <div className="modal-footer">
