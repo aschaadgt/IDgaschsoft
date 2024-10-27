@@ -2,9 +2,9 @@ const sql = require('mssql');
 
 // Configuración de la conexión a SQL Server
 const config = {
-    user: 'idprojectgaschsofff@idprojectgaschsofttt', 
+    user: 'idprojectgaschsofff', // No incluyas @idprojectgaschsofttt
     password: 'RiskHundred2024.', 
-    server: 'idprojectgaschsofttt.database.windows.net', // Cambia por el nombre de tu servidor en Azure
+    server: 'idprojectgaschsofttt.database.windows.net', // Nombre de tu servidor en Azure
     database: 'idprojectgaschsofttt', // Nombre de la base de datos en Azure
     options: {
         encrypt: true, // Esto debe estar en true para conexiones a Azure
@@ -26,4 +26,3 @@ const poolPromise = new sql.ConnectionPool(config)
 module.exports = {
     sql, poolPromise
 };
-//29
