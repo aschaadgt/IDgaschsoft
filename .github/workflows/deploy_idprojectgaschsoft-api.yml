@@ -1,3 +1,6 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
 name: Build and deploy Node.js app to Azure Web App - idprojectgaschsoft-api
 
 on:
@@ -19,17 +22,17 @@ jobs:
           node-version: '20.x'
 
       # Cambio de directorio a 'idprojectgaschsoft' antes de ejecutar npm
-      - name: npm install and build
+      - name: npm install
         run: |
           cd idprojectgaschsoft
           npm install
-          npm run build --if-present  # Eliminamos npm run test para no ejecutar las pruebas
           
+      # No ejecutamos npm run build porque no es necesario para un backend
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: ./idprojectgaschsoft  # Cambia la ruta para asegurarte que suba el contenido de la subcarpeta
+          path: ./idprojectgaschsoft  # Nos aseguramos de que esté apuntando a la carpeta del proyecto backend
 
   deploy:
     runs-on: ubuntu-latest
@@ -59,4 +62,4 @@ jobs:
         with:
           app-name: 'idprojectgaschsoft-api'
           slot-name: 'Production'
-          package: './idprojectgaschsoft'  # Cambia la ruta para que apunte a la subcarpeta correcta
+          package: './idprojectgaschsoft'  # Asegúrate de que apunte a la carpeta del backend correctamente
