@@ -58,8 +58,6 @@ const App = () => {
     descripcion: '',
   });
 
-  
-
   // Estados locales para los campos editables
   const lenguajes = ['javascript', 'python', 'java', 'c_cpp', 'php', 'csharp', 'html', 'sql', 'ruby']; // lista de lenguajes
   const nombresLenguajes = ['J.Script', 'Python', 'Java', 'C++', 'PHP', 'C#', 'HTML', 'SQL', 'Ruby']; // nombres visibles de los lenguajes
@@ -80,25 +78,33 @@ const App = () => {
   const [resultadosDefectos, setResultadosDefectos] = useState([]);
   const [listaUsuarios, setListaUsuarios] = useState([]);
 
-
   // Funcion cargando al crear prueba:
   const [cargando, setCargando] = useState(false); // Nuevo estado para control del spinner
 
+  // Estado para graficos
+  const [defectosProyecto, setDefectosProyecto] = useState([]);
+
 //
 // Datos para la gráfica de defectos por prueba
+// Datos para la gráfica de defectos por prueba
 const dataLineChart = {
-  labels: listaPruebas.map((prueba, index) => `Prueba ${index + 1}`), // Etiquetas en el eje X para todas las pruebas
+  labels: listaPruebas.map((prueba, index) => `Prueba ${index + 1}`), // Etiquetas para las pruebas
   datasets: [
     {
       label: 'Defectos por prueba',
-      data: listaPruebas.map((prueba) => 
-        resultadosDefectos.filter((defecto) => defecto.idPrueba === prueba.idPrueba).length
-      ),
+      data: listaPruebas.map((prueba) => {
+        // Contar defectos por prueba usando defectosProyecto
+        const defectosPorPrueba = defectosProyecto.filter(
+          (defecto) => defecto.idPrueba === prueba.idPrueba
+        );
+        return defectosPorPrueba.length;
+      }),
       borderColor: 'rgba(75,192,192,1)',
       backgroundColor: 'rgba(75,192,192,0.2)',
     },
   ],
 };
+
 
 // Opciones para la gráfica
 const optionsLineChart = {
@@ -264,6 +270,10 @@ const seleccionarProyecto = async (proyecto) => {
     const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/pruebas`);
     setListaPruebas(responsePruebas.data);
 
+    // Aquí cargamos todos los defectos de todas las pruebas del proyecto seleccionado
+    const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/defectos`);
+    setDefectosProyecto(responseDefectos.data); // Almacenar en defectosProyecto
+
     // Seleccionar la prueba más reciente si existe
     if (responsePruebas.data.length > 0) {
       seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
@@ -275,7 +285,6 @@ const seleccionarProyecto = async (proyecto) => {
     // Cargar la lista de usuarios para el dropdown de asignación
     const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
     setListaUsuarios(responseUsuarios.data);
-
 
   } catch (error) {
     console.error('Error al cargar los datos del proyecto:', error);
@@ -300,6 +309,7 @@ const seleccionarPrueba = async (prueba) => {
     console.error('Error al cargar los defectos de la prueba:', error);
   }
 };
+
 
 //Función para ejecutar el análisis de código
 const ejecutarNuevaPrueba = async () => {
@@ -347,6 +357,10 @@ const ejecutarNuevaPrueba = async () => {
       };
       await axios.post(`http://localhost:3001/api/defectos`, nuevoDefecto);
     }
+
+    // Re-fecth los defectos del proyecto para actualizar defectosProyecto
+    const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/defectos`);
+    setDefectosProyecto(responseDefectos.data);
 
     // Recargar las pruebas y seleccionar la nueva
     const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`);
