@@ -106,7 +106,6 @@ const dataLineChart = {
 };
 
 
-// Opciones para la gráfica
 const optionsLineChart = {
   responsive: true,
   plugins: {
@@ -118,7 +117,27 @@ const optionsLineChart = {
       text: 'Número de Defectos por Prueba',
     },
   },
+  scales: {
+    y: {
+      beginAtZero: true, // Asegura que el eje Y comience en cero
+      ticks: {
+        stepSize: 1, // Define el intervalo entre ticks como 1
+        callback: function(value) {
+          if (Number.isInteger(value)) {
+            return value; // Muestra solo valores enteros
+          }
+          return null; // Oculta los valores no enteros
+        },
+      },
+      // Opcional: Define el mínimo del eje Y para evitar valores negativos
+      min: 0,
+    },
+    x: {
+      // Configuraciones adicionales para el eje X si es necesario
+    },
+  },
 };
+
 
  //Funcion para actualizar estado de prueba
  const actualizarPrueba = async (campo, valor) => {
@@ -1061,4 +1080,4 @@ const eliminarProyecto = async () => {
 };
 
 export default App;
-//885
+//1083
