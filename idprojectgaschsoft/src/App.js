@@ -261,10 +261,6 @@ useEffect(() => {
 // Función para seleccionar un proyecto y cargar su código
 const seleccionarProyecto = async (proyecto) => {
   setProyectoSeleccionado(proyecto);
-  setDefectosProyecto([]); // Resetear defectos antes de la nueva carga
-  setPruebaSeleccionada(null); // Resetear prueba seleccionada
-  setResultadosDefectos([]); // Resetear resultados de defectos
-
   try {
     const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
     setContenidoCodigo(response.data.contenido);
@@ -277,7 +273,6 @@ const seleccionarProyecto = async (proyecto) => {
     // Aquí cargamos todos los defectos de todas las pruebas del proyecto seleccionado
     const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/defectos`);
     setDefectosProyecto(responseDefectos.data); // Almacenar en defectosProyecto
-    console.log('Defectos del proyecto:', responseDefectos.data); // Log para depuración
 
     // Seleccionar la prueba más reciente si existe
     if (responsePruebas.data.length > 0) {
@@ -285,7 +280,6 @@ const seleccionarProyecto = async (proyecto) => {
     } else {
       setPruebaSeleccionada(null);
       setResultadosDefectos([]);
-      setDefectosProyecto([]); // Asegura que defectosProyecto está vacío
     }
 
     // Cargar la lista de usuarios para el dropdown de asignación
@@ -296,7 +290,6 @@ const seleccionarProyecto = async (proyecto) => {
     console.error('Error al cargar los datos del proyecto:', error);
   }
 };
-
 
 // Función para seleccionar una prueba y cargar sus defectos
 const seleccionarPrueba = async (prueba) => {
@@ -368,7 +361,6 @@ const ejecutarNuevaPrueba = async () => {
     // Re-fecth los defectos del proyecto para actualizar defectosProyecto
     const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/defectos`);
     setDefectosProyecto(responseDefectos.data);
-    console.log('Defectos del proyecto después de nueva prueba:', responseDefectos.data); // Log para depuración
 
     // Recargar las pruebas y seleccionar la nueva
     const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`);
@@ -385,6 +377,7 @@ const ejecutarNuevaPrueba = async () => {
   }
   setCargando(false); // Ocultar spinner
 };
+
 
   // Función para actualizar un defecto específico
   const actualizarDefecto = async (idDefecto, campo, valor) => {
@@ -405,22 +398,16 @@ const ejecutarNuevaPrueba = async () => {
       };
    
       // Actualizar el defecto en la base de datos
-      await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/defectos/${idDefecto}`, defectoActualizado);
+      await axios.put(`http://localhost:3001/api/defectos/${idDefecto}`, defectoActualizado);
   
       // Actualizar el estado local
       setResultadosDefectos(
         resultadosDefectos.map((d) => (d.idDefecto === idDefecto ? defectoActualizado : d))
       );
-  
-      // También actualizar defectosProyecto si el defecto pertenece al proyecto
-      setDefectosProyecto(
-        defectosProyecto.map((d) => (d.idDefecto === idDefecto ? defectoActualizado : d))
-      );
     } catch (error) {
       console.error('Error al actualizar el defecto:', error);
     }
   };
-  
   
  
   // Abrir el modal para crear un nuevo proyecto
@@ -463,35 +450,28 @@ const ejecutarNuevaPrueba = async () => {
         estado: 'PENDIENTE',
         lenguaje: 'javascript',
       };
-  
+
       const response = await axios.post('http://localhost:3001/api/proyectos', nuevoProyectoDatos);
       if (response.status === 201) {
-        // Limpiar estados previos
-        setPruebaSeleccionada(null);
-        setResultadosDefectos([]);
-        setDefectosProyecto([]);
-  
         const responseProyectos = await axios.get('http://localhost:3001/api/proyectos');
         setProyectos(responseProyectos.data);
-  
+
         // Seleccionar automáticamente el nuevo proyecto creado
         const nuevoProyectoCreado = responseProyectos.data.find(
           (proyecto) => proyecto.nombreProyecto === nuevoProyectoDatos.nombreProyecto &&
                         proyecto.descripcion === nuevoProyectoDatos.descripcion
         );
-  
+
         if (nuevoProyectoCreado) {
           seleccionarProyecto(nuevoProyectoCreado); // Seleccionar el nuevo proyecto automáticamente
         }
-  
+
         cerrarModal();
       }
     } catch (error) {
       console.error('Error al crear el proyecto:', error);
     }
   };
-  
-
   // Actualizar un proyecto
   const actualizarProyecto = async (campo, valor) => {
     if (proyectoSeleccionado) {
@@ -585,13 +565,13 @@ const eliminarProyecto = async () => {
     setContenidoCodigo(nuevoCodigo);
     try {
       await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/codigo`, {
-        contenido: nuevoCodigo, // Asegúrate de que la API espera 'contenido' y no 'codigo'
+        codigo: nuevoCodigo,
       });
     } catch (error) {
       console.error('Error al guardar el código:', error);
     }
   };
-  
+
   // Filtrar proyectos según el término de búsqueda
   const proyectosFiltrados = proyectos.filter((proyecto) =>
     proyecto.nombreProyecto.toLowerCase().includes(busqueda.toLowerCase())
