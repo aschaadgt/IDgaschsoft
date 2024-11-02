@@ -27,6 +27,20 @@ import 'ace-builds/src-noconflict/theme-tomorrow_night';
 import ace from 'ace-builds/src-noconflict/ace';
 import { parse, format } from 'date-fns';
 
+// Importar Chart.js y react-chartjs-2
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+
+// Inicializar Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 // Configura la ruta base para los archivos de ace-builds
 ace.config.set('basePath', '/ace');
@@ -66,6 +80,76 @@ const App = () => {
 
   // Funcion cargando al crear prueba:
   const [cargando, setCargando] = useState(false); // Nuevo estado para control del spinner
+
+  // Estado para graficos
+  const [defectosProyecto, setDefectosProyecto] = useState([]);
+
+  const severidades = ['Critical', 'High', 'Medium', 'Low', 'Best-Practice', 'Information'];
+
+  const coloresSeveridades = {
+  'Critical': 'red',
+  'High': 'orange',
+  'Medium': 'gold',
+  'Low': 'green',
+  'Best-Practice': 'blue',
+  'Information': 'gray',
+  };
+
+  const [dataSeverityChart, setDataSeverityChart] = useState({});
+
+  
+  // Datos para la gráfica de defectos por prueba
+  const dataLineChart = {
+  labels: listaPruebas.map((prueba, index) => `Prueba ${index + 1}`), // Etiquetas para las pruebas
+  datasets: [
+    {
+      label: 'Defectos por prueba',
+      data: listaPruebas.map((prueba) => {
+        // Contar defectos por prueba usando defectosProyecto
+        const defectosPorPrueba = defectosProyecto.filter(
+          (defecto) => defecto.idPrueba === prueba.idPrueba
+        );
+        return defectosPorPrueba.length;
+      }),
+      borderColor: 'rgba(75,192,192,1)',
+      backgroundColor: 'rgba(75,192,192,0.2)',
+    },
+  ],
+};
+
+
+const optionsLineChart = {
+  responsive: true,
+  plugins: {
+    legend: {
+      position: 'top',
+    },
+    title: {
+      display: true,
+      text: 'Número de Defectos por Prueba',
+    },
+  },
+  scales: {
+    y: {
+      beginAtZero: true, // Asegura que el eje Y comience en cero
+      ticks: {
+        stepSize: 1, // Define el intervalo entre ticks como 1
+        callback: function(value) {
+          if (Number.isInteger(value)) {
+            return value; // Muestra solo valores enteros
+          }
+          return null; // Oculta los valores no enteros
+        },
+      },
+      // Opcional: Define el mínimo del eje Y para evitar valores negativos
+      min: 0,
+    },
+    x: {
+      // Configuraciones adicionales para el eje X si es necesario
+    },
+  },
+};
+
 
  //Funcion para actualizar estado de prueba
  const actualizarPrueba = async (campo, valor) => {
@@ -146,6 +230,76 @@ const convertirFecha = (fecha) => {
     obtenerProyectos();
   }, []);
 
+  // Para grficos por criticidad
+  useEffect(() => {
+    // Generar los datos para el gráfico de criticidades
+    const labels = listaPruebas.map((prueba, index) => `Prueba ${index + 1}`);
+  
+    // Inicializar los datos para cada severidad
+    const datosPorSeveridad = severidades.reduce((acc, severidad) => {
+      acc[severidad] = [];
+      return acc;
+    }, {});
+  
+    // Recorrer las pruebas y contar defectos por severidad
+    listaPruebas.forEach((prueba) => {
+      const defectosEnPrueba = defectosProyecto.filter(
+        (defecto) => defecto.idPrueba === prueba.idPrueba
+      );
+  
+      severidades.forEach((severidad) => {
+        const conteo = defectosEnPrueba.filter(
+          (defecto) => defecto.prioridad === severidad
+        ).length;
+        datosPorSeveridad[severidad].push(conteo);
+      });
+    });
+  
+    // Crear los datasets para el gráfico
+    const datasets = severidades.map((severidad) => ({
+      label: severidad,
+      data: datosPorSeveridad[severidad],
+      borderColor: coloresSeveridades[severidad],
+      backgroundColor: coloresSeveridades[severidad],
+      fill: false,
+    }));
+  
+    // Actualizar el estado con los datos del gráfico
+    setDataSeverityChart({
+      labels,
+      datasets,
+    });
+  }, [defectosProyecto, listaPruebas]);
+  
+  // Configurar Grafico
+  const optionsSeverityChart = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Defectos por Nivel de Criticidad',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        min: 0,
+        ticks: {
+          stepSize: 1,
+          callback: function(value) {
+            if (Number.isInteger(value)) {
+              return value;
+            }
+            return null;
+          },
+        },
+      },
+    },
+  };
+
   // Guardar el código automáticamente después de 0.5 segundos de inactividad
   useEffect(() => {
     if (proyectoSeleccionado) {
@@ -208,6 +362,10 @@ useEffect(() => {
 // Función para seleccionar un proyecto y cargar su código
 const seleccionarProyecto = async (proyecto) => {
   setProyectoSeleccionado(proyecto);
+  setDefectosProyecto([]); // Resetear defectos antes de la nueva carga
+  setPruebaSeleccionada(null); // Resetear prueba seleccionada
+  setResultadosDefectos([]); // Resetear resultados de defectos
+
   try {
     const response = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/codigo`);
     setContenidoCodigo(response.data.contenido);
@@ -217,23 +375,29 @@ const seleccionarProyecto = async (proyecto) => {
     const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/pruebas`);
     setListaPruebas(responsePruebas.data);
 
+    // Aquí cargamos todos los defectos de todas las pruebas del proyecto seleccionado
+    const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/defectos`);
+    setDefectosProyecto(responseDefectos.data); // Almacenar en defectosProyecto
+    console.log('Defectos del proyecto:', responseDefectos.data); // Log para depuración
+
     // Seleccionar la prueba más reciente si existe
     if (responsePruebas.data.length > 0) {
       seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
     } else {
       setPruebaSeleccionada(null);
       setResultadosDefectos([]);
+      setDefectosProyecto([]); // Asegura que defectosProyecto está vacío
     }
 
     // Cargar la lista de usuarios para el dropdown de asignación
     const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
     setListaUsuarios(responseUsuarios.data);
 
-
   } catch (error) {
     console.error('Error al cargar los datos del proyecto:', error);
   }
 };
+
 
 // Función para seleccionar una prueba y cargar sus defectos
 const seleccionarPrueba = async (prueba) => {
@@ -301,6 +465,11 @@ const ejecutarNuevaPrueba = async () => {
       await axios.post(`http://localhost:3001/api/defectos`, nuevoDefecto);
     }
 
+    // Re-fecth los defectos del proyecto para actualizar defectosProyecto
+    const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/defectos`);
+    setDefectosProyecto(responseDefectos.data);
+    console.log('Defectos del proyecto después de nueva prueba:', responseDefectos.data); // Log para depuración
+
     // Recargar las pruebas y seleccionar la nueva
     const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`);
     setListaPruebas(responsePruebas.data);
@@ -316,7 +485,6 @@ const ejecutarNuevaPrueba = async () => {
   }
   setCargando(false); // Ocultar spinner
 };
-
 
   // Función para actualizar un defecto específico
   const actualizarDefecto = async (idDefecto, campo, valor) => {
@@ -337,17 +505,22 @@ const ejecutarNuevaPrueba = async () => {
       };
    
       // Actualizar el defecto en la base de datos
-      await axios.put(`http://localhost:3001/api/defectos/${idDefecto}`, defectoActualizado);
+      await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/defectos/${idDefecto}`, defectoActualizado);
   
       // Actualizar el estado local
       setResultadosDefectos(
         resultadosDefectos.map((d) => (d.idDefecto === idDefecto ? defectoActualizado : d))
       );
+  
+      // También actualizar defectosProyecto si el defecto pertenece al proyecto
+      setDefectosProyecto(
+        defectosProyecto.map((d) => (d.idDefecto === idDefecto ? defectoActualizado : d))
+      );
     } catch (error) {
       console.error('Error al actualizar el defecto:', error);
     }
   };
-  
+   
  
   // Abrir el modal para crear un nuevo proyecto
   const abrirModal = () => {
@@ -389,28 +562,35 @@ const ejecutarNuevaPrueba = async () => {
         estado: 'PENDIENTE',
         lenguaje: 'javascript',
       };
-
+  
       const response = await axios.post('http://localhost:3001/api/proyectos', nuevoProyectoDatos);
       if (response.status === 201) {
+        // Limpiar estados previos
+        setPruebaSeleccionada(null);
+        setResultadosDefectos([]);
+        setDefectosProyecto([]);
+  
         const responseProyectos = await axios.get('http://localhost:3001/api/proyectos');
         setProyectos(responseProyectos.data);
-
+  
         // Seleccionar automáticamente el nuevo proyecto creado
         const nuevoProyectoCreado = responseProyectos.data.find(
           (proyecto) => proyecto.nombreProyecto === nuevoProyectoDatos.nombreProyecto &&
                         proyecto.descripcion === nuevoProyectoDatos.descripcion
         );
-
+  
         if (nuevoProyectoCreado) {
           seleccionarProyecto(nuevoProyectoCreado); // Seleccionar el nuevo proyecto automáticamente
         }
-
+  
         cerrarModal();
       }
     } catch (error) {
       console.error('Error al crear el proyecto:', error);
     }
   };
+  
+
   // Actualizar un proyecto
   const actualizarProyecto = async (campo, valor) => {
     if (proyectoSeleccionado) {
@@ -504,13 +684,13 @@ const eliminarProyecto = async () => {
     setContenidoCodigo(nuevoCodigo);
     try {
       await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/codigo`, {
-        codigo: nuevoCodigo,
+        contenido: nuevoCodigo, // Asegúrate de que la API espera 'contenido' y no 'codigo'
       });
     } catch (error) {
       console.error('Error al guardar el código:', error);
     }
   };
-
+  
   // Filtrar proyectos según el término de búsqueda
   const proyectosFiltrados = proyectos.filter((proyecto) =>
     proyecto.nombreProyecto.toLowerCase().includes(busqueda.toLowerCase())
@@ -941,8 +1121,22 @@ const eliminarProyecto = async () => {
         ) : (
           /* Contenido de la pestaña Dashboard */
           <div>
-            <p>Próximamente: Dashboard de métricas.</p>
-          </div>
+  {pestañaActiva === 'Dashboard' && (
+    <div className="modal-grid">
+      <div className="chart-container">
+        <Line data={dataLineChart} options={optionsLineChart} />
+      </div>
+      
+      <div className="chart-container">
+    {dataSeverityChart && dataSeverityChart.labels && (
+      <Line data={dataSeverityChart} options={optionsSeverityChart} />
+    )}
+  </div>
+      <div className="empty-container"> {/* Espacio en blanco inferior izquierdo */}</div>
+      <div className="empty-container"> {/* Espacio en blanco inferior derecho */}</div>
+    </div>
+  )}
+</div>
         )}
       </div>
       <div className="modal-footer">
@@ -971,4 +1165,4 @@ const eliminarProyecto = async () => {
 };
 
 export default App;
-//885
+//1083
