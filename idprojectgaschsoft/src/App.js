@@ -84,10 +84,22 @@ const App = () => {
   // Estado para graficos
   const [defectosProyecto, setDefectosProyecto] = useState([]);
 
-//
-// Datos para la gráfica de defectos por prueba
-// Datos para la gráfica de defectos por prueba
-const dataLineChart = {
+  const severidades = ['Critical', 'High', 'Medium', 'Low', 'Best-Practice', 'Information'];
+
+  const coloresSeveridades = {
+  'Critical': 'red',
+  'High': 'orange',
+  'Medium': 'gold',
+  'Low': 'green',
+  'Best-Practice': 'blue',
+  'Information': 'gray',
+  };
+
+  const [dataSeverityChart, setDataSeverityChart] = useState({});
+
+  
+  // Datos para la gráfica de defectos por prueba
+  const dataLineChart = {
   labels: listaPruebas.map((prueba, index) => `Prueba ${index + 1}`), // Etiquetas para las pruebas
   datasets: [
     {
@@ -218,6 +230,76 @@ const convertirFecha = (fecha) => {
     obtenerProyectos();
   }, []);
 
+  // Para grficos por criticidad
+  useEffect(() => {
+    // Generar los datos para el gráfico de criticidades
+    const labels = listaPruebas.map((prueba, index) => `Prueba ${index + 1}`);
+  
+    // Inicializar los datos para cada severidad
+    const datosPorSeveridad = severidades.reduce((acc, severidad) => {
+      acc[severidad] = [];
+      return acc;
+    }, {});
+  
+    // Recorrer las pruebas y contar defectos por severidad
+    listaPruebas.forEach((prueba) => {
+      const defectosEnPrueba = defectosProyecto.filter(
+        (defecto) => defecto.idPrueba === prueba.idPrueba
+      );
+  
+      severidades.forEach((severidad) => {
+        const conteo = defectosEnPrueba.filter(
+          (defecto) => defecto.prioridad === severidad
+        ).length;
+        datosPorSeveridad[severidad].push(conteo);
+      });
+    });
+  
+    // Crear los datasets para el gráfico
+    const datasets = severidades.map((severidad) => ({
+      label: severidad,
+      data: datosPorSeveridad[severidad],
+      borderColor: coloresSeveridades[severidad],
+      backgroundColor: coloresSeveridades[severidad],
+      fill: false,
+    }));
+  
+    // Actualizar el estado con los datos del gráfico
+    setDataSeverityChart({
+      labels,
+      datasets,
+    });
+  }, [defectosProyecto, listaPruebas]);
+  
+  // Configurar Grafico
+  const optionsSeverityChart = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Defectos por Nivel de Criticidad',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        min: 0,
+        ticks: {
+          stepSize: 1,
+          callback: function(value) {
+            if (Number.isInteger(value)) {
+              return value;
+            }
+            return null;
+          },
+        },
+      },
+    },
+  };
+
   // Guardar el código automáticamente después de 0.5 segundos de inactividad
   useEffect(() => {
     if (proyectoSeleccionado) {
@@ -336,7 +418,6 @@ const seleccionarPrueba = async (prueba) => {
   }
 };
 
-
 //Función para ejecutar el análisis de código
 const ejecutarNuevaPrueba = async () => {
   setCargando(true); // Mostrar spinner
@@ -439,8 +520,7 @@ const ejecutarNuevaPrueba = async () => {
       console.error('Error al actualizar el defecto:', error);
     }
   };
-  
-  
+   
  
   // Abrir el modal para crear un nuevo proyecto
   const abrirModal = () => {
@@ -1046,7 +1126,12 @@ const eliminarProyecto = async () => {
       <div className="chart-container">
         <Line data={dataLineChart} options={optionsLineChart} />
       </div>
-      <div className="empty-container"> {/* Espacio en blanco superior derecho */}</div>
+      
+      <div className="chart-container">
+    {dataSeverityChart && dataSeverityChart.labels && (
+      <Line data={dataSeverityChart} options={optionsSeverityChart} />
+    )}
+  </div>
       <div className="empty-container"> {/* Espacio en blanco inferior izquierdo */}</div>
       <div className="empty-container"> {/* Espacio en blanco inferior derecho */}</div>
     </div>
