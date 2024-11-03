@@ -28,11 +28,12 @@ import ace from 'ace-builds/src-noconflict/ace';
 import { parse, format } from 'date-fns';
 
 // Importar Chart.js y react-chartjs-2
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Line, Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
 // Inicializar Chart.js
 ChartJS.register(
+  ArcElement,
   CategoryScale,
   LinearScale,
   PointElement,
@@ -82,6 +83,7 @@ const App = () => {
   const [cargando, setCargando] = useState(false); // Nuevo estado para control del spinner
 
   // Estado para graficos
+  const [dataDonutChart, setDataDonutChart] = useState({});
   const [defectosProyecto, setDefectosProyecto] = useState([]);
 
   const severidades = ['Critical', 'High', 'Medium', 'Low', 'Best-Practice', 'Information'];
@@ -271,6 +273,57 @@ const convertirFecha = (fecha) => {
     });
   }, [defectosProyecto, listaPruebas]);
   
+  //Para graficos de asignado
+  useEffect(() => {
+    // Filtrar defectos que están asignados a usuarios
+    const defectosAsignados = defectosProyecto.filter(defecto => defecto.asignado);
+  
+    // Obtener una lista única de usuarios asignados
+    const usuariosAsignados = [...new Set(defectosAsignados.map(defecto => defecto.asignado))];
+  
+    // Contar defectos por usuario
+    const defectosPorUsuario = usuariosAsignados.map(usuario => {
+      const usuarioInfo = listaUsuarios.find(u => u.idUsuario === usuario);
+      const nombreUsuario = usuarioInfo ? `${usuarioInfo.nombre} ${usuarioInfo.apellido}` : usuario;
+      const conteo = defectosAsignados.filter(defecto => defecto.asignado === usuario).length;
+      return { usuario: nombreUsuario, conteo };
+    });
+  
+    // Preparar los datos para el gráfico
+    setDataDonutChart({
+      labels: defectosPorUsuario.map(item => item.usuario),
+      datasets: [
+        {
+          data: defectosPorUsuario.map(item => item.conteo),
+          backgroundColor: [
+            '#FF6384',
+            '#36A2EB',
+            '#FFCE56',
+            '#4BC0C0',
+            '#9966FF',
+            '#FF9F40',
+            // Añade más colores si hay más usuarios
+          ],
+        },
+      ],
+    });
+  }, [defectosProyecto, listaUsuarios]);
+  
+  const optionsDonutChart = {
+    responsive: true,
+    maintainAspectRatio: false, // Permite ajustar la altura del gráfico
+    plugins: {
+      legend: {
+        position: 'right',
+      },
+      title: {
+        display: true,
+        text: 'Defectos Asignados por Usuario',
+      },
+    },
+  };
+  
+
   // Configurar Grafico
   const optionsSeverityChart = {
     responsive: true,
@@ -505,7 +558,7 @@ const ejecutarNuevaPrueba = async () => {
       };
    
       // Actualizar el defecto en la base de datos
-      await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/defectos/${idDefecto}`, defectoActualizado);
+      await axios.put(`http://localhost:3001/api/defectos/${idDefecto}`, defectoActualizado);
   
       // Actualizar el estado local
       setResultadosDefectos(
@@ -520,6 +573,7 @@ const ejecutarNuevaPrueba = async () => {
       console.error('Error al actualizar el defecto:', error);
     }
   };
+   
  
   // Abrir el modal para crear un nuevo proyecto
   const abrirModal = () => {
@@ -1131,7 +1185,11 @@ const eliminarProyecto = async () => {
       <Line data={dataSeverityChart} options={optionsSeverityChart} />
     )}
   </div>
-      <div className="empty-container"> {/* Espacio en blanco inferior izquierdo */}</div>
+  <div className="chart-container">
+      {dataDonutChart && dataDonutChart.labels && (
+        <Doughnut data={dataDonutChart} options={optionsDonutChart} />
+      )}
+    </div>
       <div className="empty-container"> {/* Espacio en blanco inferior derecho */}</div>
     </div>
   )}
