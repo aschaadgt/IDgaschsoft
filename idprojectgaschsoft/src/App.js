@@ -520,6 +520,7 @@ const ejecutarNuevaPrueba = async () => {
       console.error('Error al actualizar el defecto:', error);
     }
   };
+<<<<<<< HEAD
    
  
   // Abrir el modal para crear un nuevo proyecto
