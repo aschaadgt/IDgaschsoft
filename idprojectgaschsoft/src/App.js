@@ -28,8 +28,8 @@ import ace from 'ace-builds/src-noconflict/ace';
 import { parse, format } from 'date-fns';
 
 // Importar Chart.js y react-chartjs-2
-import { Line, Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Line, Doughnut, Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, BarElement, BarController } from 'chart.js';
 
 // Inicializar Chart.js
 ChartJS.register(
@@ -38,6 +38,8 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,       
+  BarController,    
   Title,
   Tooltip,
   Legend
@@ -85,7 +87,7 @@ const App = () => {
   // Estado para graficos
   const [dataDonutChart, setDataDonutChart] = useState({});
   const [defectosProyecto, setDefectosProyecto] = useState([]);
-
+  const estadosPrueba = ['CREADA', 'EN REVISION', 'CANCELADA', 'DEPURADA'];
   const severidades = ['Critical', 'High', 'Medium', 'Low', 'Best-Practice', 'Information'];
 
   const coloresSeveridades = {
@@ -273,7 +275,7 @@ const convertirFecha = (fecha) => {
     });
   }, [defectosProyecto, listaPruebas]);
   
-  //Para graficos de asignado
+  // Funcioni Para graficos de asignado
   useEffect(() => {
     // Filtrar defectos que están asignados a usuarios
     const defectosAsignados = defectosProyecto.filter(defecto => defecto.asignado);
@@ -352,6 +354,52 @@ const convertirFecha = (fecha) => {
       },
     },
   };
+
+  //Funcion para Graficos de estado de pruebas
+  // Contar pruebas por estado
+  const conteoPruebasPorEstado = estadosPrueba.map((estado) => {
+  return listaPruebas.filter((prueba) => prueba.resultado === estado).length;
+  });
+
+  // Datos para el gráfico de estado de pruebas
+  const dataEstadoPruebas = {
+  labels: estadosPrueba,
+  datasets: [
+    {
+      label: 'Número de Pruebas',
+      data: conteoPruebasPorEstado,
+      backgroundColor: [
+        '#FF6384', // Color para 'CREADA'
+        '#36A2EB', // Color para 'EN REVISION'
+        '#FFCE56', // Color para 'CANCELADA'
+        '#4BC0C0', // Color para 'DEPURADA'
+        ],
+      },
+    ],
+  };
+
+  const optionsEstadoPruebas = {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: false, // Ocultamos la leyenda si solo hay un dataset
+      },
+      title: {
+        display: true,
+        text: 'Estado de las Pruebas del Proyecto',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1,
+        },
+      },
+    },
+  };
+  
+
 
   // Guardar el código automáticamente después de 0.5 segundos de inactividad
   useEffect(() => {
@@ -1190,7 +1238,9 @@ const eliminarProyecto = async () => {
         <Doughnut data={dataDonutChart} options={optionsDonutChart} />
       )}
     </div>
-      <div className="empty-container"> {/* Espacio en blanco inferior derecho */}</div>
+    <div className="chart-container">
+    <Bar data={dataEstadoPruebas} options={optionsEstadoPruebas} />
+  </div>
     </div>
   )}
 </div>
