@@ -100,7 +100,6 @@ const App = () => {
   };
 
   const [dataSeverityChart, setDataSeverityChart] = useState({});
-
   
   // Datos para la gráfica de defectos por prueba
   const dataLineChart = {
@@ -120,7 +119,6 @@ const App = () => {
     },
   ],
 };
-
 
 const optionsLineChart = {
   responsive: true,
@@ -277,39 +275,95 @@ const convertirFecha = (fecha) => {
   
   // Funcioni Para graficos de asignado
   useEffect(() => {
-    // Filtrar defectos que están asignados a usuarios
-    const defectosAsignados = defectosProyecto.filter(defecto => defecto.asignado);
+    // Considerar todos los defectos del proyecto actual
+    const todosLosDefectos = defectosProyecto;
   
-    // Obtener una lista única de usuarios asignados
-    const usuariosAsignados = [...new Set(defectosAsignados.map(defecto => defecto.asignado))];
+    // Contar defectos por usuario, incluyendo "Sin asignar"
+    const conteoDefectosPorUsuario = {};
   
-    // Contar defectos por usuario
-    const defectosPorUsuario = usuariosAsignados.map(usuario => {
-      const usuarioInfo = listaUsuarios.find(u => u.idUsuario === usuario);
-      const nombreUsuario = usuarioInfo ? `${usuarioInfo.nombre} ${usuarioInfo.apellido}` : usuario;
-      const conteo = defectosAsignados.filter(defecto => defecto.asignado === usuario).length;
-      return { usuario: nombreUsuario, conteo };
+    todosLosDefectos.forEach(defecto => {
+      const asignado = defecto.asignado || 'Sin asignar';
+      if (conteoDefectosPorUsuario[asignado]) {
+        conteoDefectosPorUsuario[asignado]++;
+      } else {
+        conteoDefectosPorUsuario[asignado] = 1;
+      }
     });
   
-    // Preparar los datos para el gráfico
+    // Preparar las etiquetas y los datos para el gráfico
+    const labels = [];
+    const data = [];
+    const backgroundColors = [];
+  
+    for (const asignado in conteoDefectosPorUsuario) {
+      let nombreUsuario = asignado;
+      if (asignado !== 'Sin asignar') {
+        const usuarioInfo = listaUsuarios.find(u => u.idUsuario === asignado);
+        nombreUsuario = usuarioInfo ? `${usuarioInfo.nombre} ${usuarioInfo.apellido}` : asignado;
+      }
+      labels.push(nombreUsuario);
+      data.push(conteoDefectosPorUsuario[asignado]);
+  
+      // Asignar colores
+      if (asignado === 'Sin asignar') {
+        backgroundColors.push('#C9CBCF'); // Color gris para "Sin asignar"
+      } else {
+        const coloresDisponibles = [
+          '#FF6384',
+          '#36A2EB',
+          '#FFCE56',
+          '#4BC0C0',
+          '#9966FF',
+          '#FF9F40',
+          // Añade más colores aquí si tienes más usuarios
+        ];
+        backgroundColors.push(coloresDisponibles[labels.length % coloresDisponibles.length]);
+      }
+    }
+  
+    // Actualizar el estado del gráfico
     setDataDonutChart({
-      labels: defectosPorUsuario.map(item => item.usuario),
+      labels,
       datasets: [
         {
-          data: defectosPorUsuario.map(item => item.conteo),
-          backgroundColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56',
-            '#4BC0C0',
-            '#9966FF',
-            '#FF9F40',
-            // Añade más colores si hay más usuarios
-          ],
+          data,
+          backgroundColor: backgroundColors,
         },
       ],
     });
+  
   }, [defectosProyecto, listaUsuarios]);
+
+  useEffect(() => {
+    // Cargar defectos del proyecto seleccionado
+    const obtenerDefectosProyecto = async () => {
+      if (proyectoSeleccionado) {
+        try {
+          const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/defectos`);
+          setDefectosProyecto(responseDefectos.data);
+        } catch (error) {
+          console.error('Error al cargar los defectos del proyecto:', error);
+        }
+      }
+    };
+  
+    obtenerDefectosProyecto();
+  }, [proyectoSeleccionado]);
+  
+  useEffect(() => {
+    // Cargar la lista de usuarios
+    const obtenerUsuarios = async () => {
+      try {
+        const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
+        setListaUsuarios(responseUsuarios.data);
+      } catch (error) {
+        console.error('Error al cargar la lista de usuarios:', error);
+      }
+    };
+  
+    obtenerUsuarios();
+  }, []);
+  
   
   const optionsDonutChart = {
     responsive: true,
