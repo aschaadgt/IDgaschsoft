@@ -70,7 +70,6 @@ const App = () => {
   const [proyectoAEliminar, setProyectoAEliminar] = useState(null);
 
   // Estados para los resultados de las pruebas
-  const [resultadosPrueba, setResultadosPrueba] = useState([]); // Inicializamos como un array vacío
   const [mostrarModalPrueba, setMostrarModalPrueba] = useState(false); // Estado para mostrar/ocultar el modal de resultados
   
   const [pestañaActiva, setPestañaActiva] = useState('Pruebas'); // 'Pruebas' o 'Dashboard'
@@ -152,7 +151,6 @@ const optionsLineChart = {
   },
 };
 
-
  //Funcion para actualizar estado de prueba
  const actualizarPrueba = async (campo, valor) => {
   if (pruebaSeleccionada) {
@@ -186,11 +184,6 @@ const optionsLineChart = {
 const opcionesPruebas = listaPruebas.map((prueba, index) => ({
   value: prueba.idPrueba,
   label: `Prueba ${index + 1}`,
-}));
-
-const opcionesUsuarios = listaUsuarios.map((usuario) => ({
-  value: usuario.idUsuario,
-  label: `${usuario.nombre} ${usuario.apellido}`,
 }));
 
 // Función para convertir "DD/MM/YYYY" a "YYYY-MM-DD"
@@ -364,7 +357,6 @@ const convertirFecha = (fecha) => {
     obtenerUsuarios();
   }, []);
   
-  
   const optionsDonutChart = {
     responsive: true,
     maintainAspectRatio: false, // Permite ajustar la altura del gráfico
@@ -379,7 +371,6 @@ const convertirFecha = (fecha) => {
     },
   };
   
-
   // Configurar Grafico
   const optionsSeverityChart = {
     responsive: true,
@@ -452,8 +443,6 @@ const convertirFecha = (fecha) => {
       },
     },
   };
-  
-
 
   // Guardar el código automáticamente después de 0.5 segundos de inactividad
   useEffect(() => {
@@ -533,8 +522,7 @@ const seleccionarProyecto = async (proyecto) => {
     // Aquí cargamos todos los defectos de todas las pruebas del proyecto seleccionado
     const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/defectos`);
     setDefectosProyecto(responseDefectos.data); // Almacenar en defectosProyecto
-    console.log('Defectos del proyecto:', responseDefectos.data); // Log para depuración
-
+    
     // Seleccionar la prueba más reciente si existe
     if (responsePruebas.data.length > 0) {
       seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
@@ -623,7 +611,6 @@ const ejecutarNuevaPrueba = async () => {
     // Re-fecth los defectos del proyecto para actualizar defectosProyecto
     const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/defectos`);
     setDefectosProyecto(responseDefectos.data);
-    console.log('Defectos del proyecto después de nueva prueba:', responseDefectos.data); // Log para depuración
 
     // Recargar las pruebas y seleccionar la nueva
     const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`);
@@ -845,12 +832,12 @@ const eliminarProyecto = async () => {
       console.error('Error al guardar el código:', error);
     }
   };
-  
+ 
   // Filtrar proyectos según el término de búsqueda
   const proyectosFiltrados = proyectos.filter((proyecto) =>
     proyecto.nombreProyecto.toLowerCase().includes(busqueda.toLowerCase())
   );
-
+  
   return (
     <div className="container">
       <ResizableBox
@@ -872,7 +859,6 @@ const eliminarProyecto = async () => {
           </ul>
         </section>
       </ResizableBox>
-
       <ResizableBox
         className="resizable-project-list"
         width={300}
@@ -909,7 +895,6 @@ const eliminarProyecto = async () => {
           </div>
         </section>
       </ResizableBox>
-
       <section className="project-details">
         <header>
           <div className="header-left">
@@ -929,7 +914,6 @@ const eliminarProyecto = async () => {
 >
   Pruebas
 </button>
-
           </div>
           <button className="new-project" onClick={abrirModal}>+ Crear Proyecto</button>
         </header>
@@ -1002,22 +986,20 @@ const eliminarProyecto = async () => {
   ))}
   <span className="slider"></span>
 </div>
-
-
               {/* Editor de código */}
               <AceEditor
   mode={lenguaje}
-  theme="dracula" //github monokai dracula solarized_light tomorrow_night
+  theme="dracula" // Tema que estás utilizando, tambien: github monokai dracula solarized_light tomorrow_night
   name="editorCodigo"
   value={contenidoCodigo}
   onChange={guardarCodigoAutomáticamente}
   fontSize={14}
   width="100%"
-  height="calc(90vh - 200px)" // Ajusta 200px según sea necesario
+  height="calc(90vh - 200px)" // Ajusta este valor según tus necesidades
+  enableBasicAutocompletion={true}     // Propiedad directa
+  enableLiveAutocompletion={true}      // Propiedad directa
+  enableSnippets={true}                // Propiedad directa
   setOptions={{
-    enableBasicAutocompletion: true,
-    enableLiveAutocompletion: true,
-    enableSnippets: true,
     showLineNumbers: true,
     tabSize: 4,
   }}
@@ -1051,8 +1033,7 @@ const eliminarProyecto = async () => {
       </div>
     </div>
   </div>
-)}
-     
+)}  
       {/* Modal de resultados de la prueba */}
       {mostrarModal && (
         <div className="modal-overlay">
@@ -1091,7 +1072,6 @@ const eliminarProyecto = async () => {
       <div className="modal-header">
       <h1>{proyectoSeleccionado ? proyectoSeleccionado.nombreProyecto : 'Proyecto'}</h1>
       {/* Añadimos el Dro */}
-
         <button className="close-button" onClick={() => setMostrarModalPrueba(false)}>
           &times;
         </button>
@@ -1125,7 +1105,6 @@ const eliminarProyecto = async () => {
     ? `Prueba ${listaPruebas.findIndex(p => p.idPrueba === pruebaSeleccionada.idPrueba) + 1} de ${proyectoSeleccionado.nombreProyecto}`
     : 'Selecciona una prueba'}
 </h2>
-
     {pruebaSeleccionada && (
       <select
         className="estado-prueba"
@@ -1188,11 +1167,8 @@ const eliminarProyecto = async () => {
   />
 </div>
 </div>
-
-
   {/* Mostrar la fecha de ejecución */}
   <p>Fecha de Ejecución: {pruebaSeleccionada ? formatearFecha(pruebaSeleccionada.fechaEjecucion) : 'N/A'}</p>
-
 {/* Tabla de defectos */}
 {/* Tabla de defectos */}
 <table className="tabla-defectos">
@@ -1211,10 +1187,8 @@ const eliminarProyecto = async () => {
       // Expresión regular para encontrar el número de línea en la descripción
       const match = defecto.descripcion.match(/\b(\d+)\b$/);
       const linea = match ? match[1] : 'N/A';  // Extraer el número de línea o mostrar 'N/A'
-      
       // Eliminar el número de línea de la descripción
       const descripcionSinLinea = defecto.descripcion.replace(/\b(\d+)\b$/, '');
-
       return (
         <tr key={defecto.idDefecto}>
           <td className={`criticidad ${defecto.prioridad.replace(/\s/g, '-')}`}>
@@ -1267,11 +1241,7 @@ const eliminarProyecto = async () => {
     </tr>
   </tfoot>
 </table>
-
-
-
 </div>
-
           </div>
         ) : (
           /* Contenido de la pestaña Dashboard */
@@ -1281,7 +1251,6 @@ const eliminarProyecto = async () => {
       <div className="chart-container">
         <Line data={dataLineChart} options={optionsLineChart} />
       </div>
-      
       <div className="chart-container">
     {dataSeverityChart && dataSeverityChart.labels && (
       <Line data={dataSeverityChart} options={optionsSeverityChart} />
@@ -1307,12 +1276,10 @@ const eliminarProyecto = async () => {
       <div className="spinner"></div>
     </div>
   )}
-
   {/* Botón para ejecutar nueva prueba */}
   <button onClick={ejecutarNuevaPrueba} disabled={cargando}>
     Ejecutar Nueva Prueba
   </button>
-
   {/* Botón para cerrar */}
   <button onClick={() => setMostrarModalPrueba(false)} disabled={cargando}>
     Cerrar
@@ -1326,4 +1293,4 @@ const eliminarProyecto = async () => {
 };
 
 export default App;
-//1083
+//1296
