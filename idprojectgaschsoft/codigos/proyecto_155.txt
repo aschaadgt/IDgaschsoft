@@ -1,0 +1,97 @@
+//Aplicación de Tareas
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+// Estructura para representar una tarea
+struct Tarea {
+    string descripcion;
+    bool completada;
+};
+
+// Función para mostrar el menú
+void mostrarMenu() {
+    cout << "\n--- Aplicación de Tareas ---\n";
+    cout << "1. Añadir tarea\n";
+    cout << "2. Ver tareas\n";
+    cout << "3. Marcar tarea como completada\n";
+    cout << "4. Salir\n";
+    cout << "Elige una opción: ";
+}
+
+// Función para añadir una nueva tarea
+void añadirTarea(vector<Tarea>& tareas) {
+    Tarea nuevaTarea;
+    cout << "Descripción de la tarea: ";
+    cin.ignore(); // Limpiar el buffer
+    getline(cin, nuevaTarea.descripcion);
+    nuevaTarea.completada = false;
+    tareas.push_back(nuevaTarea);
+    cout << "Tarea añadida.\n";
+}
+
+// Función para ver todas las tareas
+void verTareas(const vector<Tarea>& tareas) {
+    if (tareas.empty()) {
+        cout << "No hay tareas.\n";
+    } else {
+        cout << "\n--- Lista de Tareas ---\n";
+        for (size_t i = 0; i < tareas.size(); ++i) {
+            cout << i + 1 << ". " << tareas[i].descripcion;
+            if (tareas[i].completada) {
+                cout << " [Completada]";
+            }
+            cout << endl;
+        }
+    }
+}
+
+// Función para marcar una tarea como completada
+void completarTarea(vector<Tarea>& tareas) {
+    if (tareas.empty()) {
+        cout << "No hay tareas para completar.\n";
+        return;
+    }
+    
+    int numTarea;
+    cout << "Número de la tarea a completar: ";
+    cin >> numTarea;
+    
+    if (numTarea > 0 && numTarea <= tareas.size()) {
+        tareas[numTarea - 1].completada = true;
+        cout << "Tarea marcada como completada.\n";
+    } else {
+        cout << "Número de tarea no válido.\n";
+    }
+}
+
+int main() {
+    vector<Tarea> tareas;
+    int opcion;
+
+    while (true) {
+        mostrarMenu();
+        cin >> opcion;
+
+        switch (opcion) {
+            case 1:
+                añadirTarea(tareas);
+                break;
+            case 2:
+                verTareas(tareas);
+                break;
+            case 3:
+                completarTarea(tareas);
+                break;
+            case 4:
+                cout << "Saliendo de la aplicación.\n";
+                return 0;
+            default:
+                cout << "Opción no válida.\n";
+        }
+    }
+
+    return 0;
+}

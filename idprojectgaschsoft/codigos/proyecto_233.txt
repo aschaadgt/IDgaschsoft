@@ -1,0 +1,98 @@
+//Editor de codigo
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+
+public class EditorCodigo extends JFrame implements ActionListener {
+    JTextArea areaTexto;
+    JScrollPane scrollPane;
+    JMenuBar barraMenu;
+    JMenu menuArchivo;
+    JMenuItem abrir, guardar, salir;
+
+    public EditorCodigo() {
+        // Configuración del frame principal
+        setTitle("Editor de Código");
+        setSize(600, 400);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        // Crear área de texto
+        areaTexto = new JTextArea();
+        scrollPane = new JScrollPane(areaTexto);
+        add(scrollPane);
+
+        // Crear la barra de menú
+        barraMenu = new JMenuBar();
+        menuArchivo = new JMenu("Archivo");
+
+        abrir = new JMenuItem("Abrir");
+        guardar = new JMenuItem("Guardar");
+        salir = new JMenuItem("Salir");
+
+        abrir.addActionListener(this);
+        guardar.addActionListener(this);
+        salir.addActionListener(this);
+
+        menuArchivo.add(abrir);
+        menuArchivo.add(guardar);
+        menuArchivo.addSeparator();
+        menuArchivo.add(salir);
+
+        barraMenu.add(menuArchivo);
+        setJMenuBar(barraMenu);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == abrir) {
+            abrirArchivo();
+        } else if (e.getSource() == guardar) {
+            guardarArchivo();
+        } else if (e.getSource() == salir) {
+            System.exit(0);
+        }
+    }
+
+    // Método para abrir un archivo
+    private void abrirArchivo() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos de texto (*.txt)", "txt"));
+        int opcion = fileChooser.showOpenDialog(this);
+        if (opcion == JFileChooser.APPROVE_OPTION) {
+            File archivo = fileChooser.getSelectedFile();
+            try {
+                BufferedReader lector = new BufferedReader(new FileReader(archivo));
+                areaTexto.read(lector, null);
+                lector.close();
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Error al abrir el archivo", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    // Método para guardar un archivo
+    private void guardarArchivo() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos de texto (*.txt)", "txt"));
+        int opcion = fileChooser.showSaveDialog(this);
+        if (opcion == JFileChooser.APPROVE_OPTION) {
+            File archivo = fileChooser.getSelectedFile();
+            try {
+                BufferedWriter escritor = new BufferedWriter(new FileWriter(archivo));
+                areaTexto.write(escritor);
+                escritor.close();
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Error al guardar el archivo", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            EditorCodigo editor = new EditorCodigo();
+            editor.setVisible(true);
+        });
+    }
+}

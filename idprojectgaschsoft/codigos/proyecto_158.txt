@@ -1,0 +1,95 @@
+//Blog Personal
+import java.util.ArrayList;
+import java.util.Scanner;
+
+class EntradaBlog {
+    private String titulo;
+    private String contenido;
+    private String autor;
+
+    public EntradaBlog(String titulo, String contenido, String autor) {
+        this.titulo = titulo;
+        this.contenido = contenido;
+        this.autor = autor;
+    }
+
+    public String getTitulo() {
+        return titulo;
+    }
+
+    public String getContenido() {
+        return contenido;
+    }
+
+    public String getAutor() {
+        return autor;
+    }
+
+    @Override
+    public String toString() {
+        return "Título: " + titulo + "\nAutor: " + autor + "\nContenido:\n" + contenido + "\n";
+    }
+}
+
+public class BlogPersonal {
+    private static ArrayList<EntradaBlog> entradas = new ArrayList<>();
+    private static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        int opcion;
+
+        do {
+            mostrarMenu();
+            opcion = Integer.parseInt(scanner.nextLine());
+
+            switch (opcion) {
+                case 1:
+                    agregarEntrada();
+                    break;
+                case 2:
+                    verEntradas();
+                    break;
+                case 3:
+                    System.out.println("Saliendo del blog.");
+                    break;
+                default:
+                    System.out.println("Opción no válida.");
+            }
+        } while (opcion != 3);
+    }
+
+    private static void mostrarMenu() {
+        System.out.println("\n--- Blog Personal ---");
+        System.out.println("1. Agregar nueva entrada");
+        System.out.println("2. Ver todas las entradas");
+        System.out.println("3. Salir");
+        System.out.print("Elige una opción: ");
+    }
+
+    private static void agregarEntrada() {
+        System.out.print("Título de la entrada: ");
+        String titulo = scanner.nextLine();
+
+        System.out.print("Autor: ");
+        String autor = scanner.nextLine();
+
+        System.out.print("Contenido de la entrada: ");
+        String contenido = scanner.nextLine();
+
+        EntradaBlog nuevaEntrada = new EntradaBlog(titulo, contenido, autor);
+        entradas.add(nuevaEntrada);
+
+        System.out.println("Entrada añadida al blog.");
+    }
+
+    private static void verEntradas() {
+        if (entradas.isEmpty()) {
+            System.out.println("No hay entradas en el blog.");
+        } else {
+            System.out.println("\n--- Entradas del Blog ---");
+            for (EntradaBlog entrada : entradas) {
+                System.out.println(entrada);
+            }
+        }
+    }
+}

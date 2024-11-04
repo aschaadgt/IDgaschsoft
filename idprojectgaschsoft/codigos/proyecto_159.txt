@@ -1,0 +1,61 @@
+//Galería de Fotos
+import os
+from tkinter import *
+from tkinter import filedialog
+from PIL import Image, ImageTk
+
+class GaleriaFotos:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Galería de Fotos")
+        
+        # Lista de imágenes
+        self.imagenes = []
+        self.index_actual = 0
+        
+        # Etiqueta para mostrar la imagen
+        self.label_imagen = Label(self.root)
+        self.label_imagen.pack()
+
+        # Botones para navegación
+        self.btn_anterior = Button(self.root, text="Anterior", command=self.mostrar_anterior)
+        self.btn_anterior.pack(side=LEFT, padx=20)
+
+        self.btn_siguiente = Button(self.root, text="Siguiente", command=self.mostrar_siguiente)
+        self.btn_siguiente.pack(side=RIGHT, padx=20)
+
+        # Botón para cargar imágenes
+        self.btn_cargar = Button(self.root, text="Cargar Imágenes", command=self.cargar_imagenes)
+        self.btn_cargar.pack(side=BOTTOM, pady=10)
+
+    def cargar_imagenes(self):
+        directorio = filedialog.askdirectory()
+        if directorio:
+            for archivo in os.listdir(directorio):
+                if archivo.endswith(('jpg', 'png', 'jpeg', 'gif')):
+                    ruta_imagen = os.path.join(directorio, archivo)
+                    imagen = Image.open(ruta_imagen)
+                    imagen = imagen.resize((500, 400), Image.ANTIALIAS)
+                    self.imagenes.append(ImageTk.PhotoImage(imagen))
+
+            if self.imagenes:
+                self.mostrar_imagen()
+
+    def mostrar_imagen(self):
+        if self.imagenes:
+            self.label_imagen.config(image=self.imagenes[self.index_actual])
+
+    def mostrar_anterior(self):
+        if self.imagenes:
+            self.index_actual = (self.index_actual - 1) % len(self.imagenes)
+            self.mostrar_imagen()
+
+    def mostrar_siguiente(self):
+        if self.imagenes:
+            self.index_actual = (self.index_actual + 1) % len(self.imagenes)
+            self.mostrar_imagen()
+
+if __name__ == "__main__":
+    root = Tk()
+    galeria = GaleriaFotos(root)
+    root.mainloop()

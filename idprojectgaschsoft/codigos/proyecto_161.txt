@@ -1,0 +1,141 @@
+<!-- WEB Marca Personal-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Marca Personal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        nav {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: #333;
+            font-size: 18px;
+        }
+
+        nav a:hover {
+            color: #4CAF50;
+        }
+
+        .section {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .section h2 {
+            margin-bottom: 20px;
+        }
+
+        .about-me {
+            background-color: #f4f4f4;
+        }
+
+        .projects {
+            background-color: #fff;
+        }
+
+        .projects img {
+            width: 200px;
+            height: 150px;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+
+        .projects img:hover {
+            transform: scale(1.1);
+        }
+
+        .contact {
+            background-color: #f4f4f4;
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        form input, form textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        form input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        form input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Mi Marca Personal</h1>
+        <p>Desarrollador Web | Diseñador Gráfico | Emprendedor</p>
+    </header>
+
+    <nav>
+        <a href="#about">Sobre mí</a>
+        <a href="#projects">Proyectos</a>
+        <a href="#contact">Contacto</a>
+    </nav>
+
+    <section id="about" class="section about-me">
+        <h2>Sobre mí</h2>
+        <p>Hola, soy [Tu Nombre], un desarrollador apasionado por crear aplicaciones web innovadoras y fáciles de usar. Mi enfoque principal es el desarrollo frontend, pero también tengo experiencia en backend.</p>
+        <p>Además de mi pasión por la programación, también disfruto del diseño gráfico, lo que me permite combinar creatividad con la funcionalidad en mis proyectos.</p>
+    </section>
+
+    <section id="projects" class="section projects">
+        <h2>Mis Proyectos</h2>
+        <div>
+            <img src="proyecto1.jpg" alt="Proyecto 1">
+            <img src="proyecto2.jpg" alt="Proyecto 2">
+            <img src="proyecto3.jpg" alt="Proyecto 3">
+        </div>
+    </section>
+
+    <section id="contact" class="section contact">
+        <h2>Contacto</h2>
+        <form action="enviar_correo.php" method="post">
+            <input type="text" name="nombre" placeholder="Tu Nombre" required>
+            <input type="email" name="correo" placeholder="Tu Correo" required>
+            <textarea name="mensaje" placeholder="Tu Mensaje" rows="5" required></textarea>
+            <input type="submit" value="Enviar">
+        </form>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Mi Marca Personal - Todos los derechos reservados</p>
+    </footer>
+
+</body>
+</html>

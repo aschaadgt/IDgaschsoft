@@ -1,0 +1,55 @@
+//Juego del Ahorcado
+import java.util.Scanner;
+
+public class Ahorcado {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        
+        // Palabra a adivinar
+        String palabra = "JAVA";
+        palabra = palabra.toUpperCase(); // Convertir a mayúsculas por si el usuario escribe en minúsculas
+        
+        // Estado del juego
+        char[] progreso = new char[palabra.length()];
+        for (int i = 0; i < progreso.length; i++) {
+            progreso[i] = '_';
+        }
+        
+        int intentosRestantes = 6;
+        boolean juegoTerminado = false;
+        
+        // Ciclo del juego
+        while (intentosRestantes > 0 && !juegoTerminado) {
+            System.out.println("Palabra: " + String.valueOf(progreso));
+            System.out.println("Intentos restantes: " + intentosRestantes);
+            System.out.print("Introduce una letra: ");
+            char letra = scanner.nextLine().toUpperCase().charAt(0);
+            
+            boolean acierto = false;
+            for (int i = 0; i < palabra.length(); i++) {
+                if (palabra.charAt(i) == letra) {
+                    progreso[i] = letra;
+                    acierto = true;
+                }
+            }
+            
+            if (!acierto) {
+                intentosRestantes--;
+            }
+            
+            // Verificar si el jugador ha ganado
+            if (String.valueOf(progreso).equals(palabra)) {
+                juegoTerminado = true;
+            }
+        }
+        
+        // Resultado del juego
+        if (juegoTerminado) {
+            System.out.println("¡Felicidades! Has adivinado la palabra: " + palabra);
+        } else {
+            System.out.println("Lo siento, te has quedado sin intentos. La palabra era: " + palabra);
+        }
+        
+        scanner.close();
+    }
+}
