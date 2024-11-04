@@ -28,15 +28,18 @@ import ace from 'ace-builds/src-noconflict/ace';
 import { parse, format } from 'date-fns';
 
 // Importar Chart.js y react-chartjs-2
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Line, Doughnut, Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, BarElement, BarController } from 'chart.js';
 
 // Inicializar Chart.js
 ChartJS.register(
+  ArcElement,
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,       
+  BarController,    
   Title,
   Tooltip,
   Legend
@@ -67,7 +70,6 @@ const App = () => {
   const [proyectoAEliminar, setProyectoAEliminar] = useState(null);
 
   // Estados para los resultados de las pruebas
-  const [resultadosPrueba, setResultadosPrueba] = useState([]); // Inicializamos como un array vacío
   const [mostrarModalPrueba, setMostrarModalPrueba] = useState(false); // Estado para mostrar/ocultar el modal de resultados
   
   const [pestañaActiva, setPestañaActiva] = useState('Pruebas'); // 'Pruebas' o 'Dashboard'
@@ -82,8 +84,9 @@ const App = () => {
   const [cargando, setCargando] = useState(false); // Nuevo estado para control del spinner
 
   // Estado para graficos
+  const [dataDonutChart, setDataDonutChart] = useState({});
   const [defectosProyecto, setDefectosProyecto] = useState([]);
-
+  const estadosPrueba = ['CREADA', 'EN REVISION', 'CANCELADA', 'DEPURADA'];
   const severidades = ['Critical', 'High', 'Medium', 'Low', 'Best-Practice', 'Information'];
 
   const coloresSeveridades = {
@@ -96,7 +99,6 @@ const App = () => {
   };
 
   const [dataSeverityChart, setDataSeverityChart] = useState({});
-
   
   // Datos para la gráfica de defectos por prueba
   const dataLineChart = {
@@ -116,7 +118,6 @@ const App = () => {
     },
   ],
 };
-
 
 const optionsLineChart = {
   responsive: true,
@@ -149,7 +150,6 @@ const optionsLineChart = {
     },
   },
 };
-
 
  //Funcion para actualizar estado de prueba
  const actualizarPrueba = async (campo, valor) => {
@@ -184,11 +184,6 @@ const optionsLineChart = {
 const opcionesPruebas = listaPruebas.map((prueba, index) => ({
   value: prueba.idPrueba,
   label: `Prueba ${index + 1}`,
-}));
-
-const opcionesUsuarios = listaUsuarios.map((usuario) => ({
-  value: usuario.idUsuario,
-  label: `${usuario.nombre} ${usuario.apellido}`,
 }));
 
 // Función para convertir "DD/MM/YYYY" a "YYYY-MM-DD"
@@ -271,6 +266,111 @@ const convertirFecha = (fecha) => {
     });
   }, [defectosProyecto, listaPruebas]);
   
+  // Funcioni Para graficos de asignado
+  useEffect(() => {
+    // Considerar todos los defectos del proyecto actual
+    const todosLosDefectos = defectosProyecto;
+  
+    // Contar defectos por usuario, incluyendo "Sin asignar"
+    const conteoDefectosPorUsuario = {};
+  
+    todosLosDefectos.forEach(defecto => {
+      const asignado = defecto.asignado || 'Sin asignar';
+      if (conteoDefectosPorUsuario[asignado]) {
+        conteoDefectosPorUsuario[asignado]++;
+      } else {
+        conteoDefectosPorUsuario[asignado] = 1;
+      }
+    });
+  
+    // Preparar las etiquetas y los datos para el gráfico
+    const labels = [];
+    const data = [];
+    const backgroundColors = [];
+  
+    for (const asignado in conteoDefectosPorUsuario) {
+      let nombreUsuario = asignado;
+      if (asignado !== 'Sin asignar') {
+        const usuarioInfo = listaUsuarios.find(u => u.idUsuario === asignado);
+        nombreUsuario = usuarioInfo ? `${usuarioInfo.nombre} ${usuarioInfo.apellido}` : asignado;
+      }
+      labels.push(nombreUsuario);
+      data.push(conteoDefectosPorUsuario[asignado]);
+  
+      // Asignar colores
+      if (asignado === 'Sin asignar') {
+        backgroundColors.push('#C9CBCF'); // Color gris para "Sin asignar"
+      } else {
+        const coloresDisponibles = [
+          '#FF6384',
+          '#36A2EB',
+          '#FFCE56',
+          '#4BC0C0',
+          '#9966FF',
+          '#FF9F40',
+          // Añade más colores aquí si tienes más usuarios
+        ];
+        backgroundColors.push(coloresDisponibles[labels.length % coloresDisponibles.length]);
+      }
+    }
+  
+    // Actualizar el estado del gráfico
+    setDataDonutChart({
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor: backgroundColors,
+        },
+      ],
+    });
+  
+  }, [defectosProyecto, listaUsuarios]);
+
+  useEffect(() => {
+    // Cargar defectos del proyecto seleccionado
+    const obtenerDefectosProyecto = async () => {
+      if (proyectoSeleccionado) {
+        try {
+          const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/defectos`);
+          setDefectosProyecto(responseDefectos.data);
+        } catch (error) {
+          console.error('Error al cargar los defectos del proyecto:', error);
+        }
+      }
+    };
+  
+    obtenerDefectosProyecto();
+  }, [proyectoSeleccionado]);
+  
+  useEffect(() => {
+    // Cargar la lista de usuarios
+    const obtenerUsuarios = async () => {
+      try {
+        const responseUsuarios = await axios.get('http://localhost:3001/api/usuarios');
+        setListaUsuarios(responseUsuarios.data);
+      } catch (error) {
+        console.error('Error al cargar la lista de usuarios:', error);
+      }
+    };
+  
+    obtenerUsuarios();
+  }, []);
+  
+  const optionsDonutChart = {
+    responsive: true,
+    maintainAspectRatio: false, // Permite ajustar la altura del gráfico
+    plugins: {
+      legend: {
+        position: 'right',
+      },
+      title: {
+        display: true,
+        text: 'Defectos Asignados por Usuario',
+      },
+    },
+  };
+  
   // Configurar Grafico
   const optionsSeverityChart = {
     responsive: true,
@@ -295,6 +395,50 @@ const convertirFecha = (fecha) => {
             }
             return null;
           },
+        },
+      },
+    },
+  };
+
+  //Funcion para Graficos de estado de pruebas
+  // Contar pruebas por estado
+  const conteoPruebasPorEstado = estadosPrueba.map((estado) => {
+  return listaPruebas.filter((prueba) => prueba.resultado === estado).length;
+  });
+
+  // Datos para el gráfico de estado de pruebas
+  const dataEstadoPruebas = {
+  labels: estadosPrueba,
+  datasets: [
+    {
+      label: 'Número de Pruebas',
+      data: conteoPruebasPorEstado,
+      backgroundColor: [
+        '#FF6384', // Color para 'CREADA'
+        '#36A2EB', // Color para 'EN REVISION'
+        '#FFCE56', // Color para 'CANCELADA'
+        '#4BC0C0', // Color para 'DEPURADA'
+        ],
+      },
+    ],
+  };
+
+  const optionsEstadoPruebas = {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: false, // Ocultamos la leyenda si solo hay un dataset
+      },
+      title: {
+        display: true,
+        text: 'Estado de las Pruebas del Proyecto',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1,
         },
       },
     },
@@ -378,8 +522,7 @@ const seleccionarProyecto = async (proyecto) => {
     // Aquí cargamos todos los defectos de todas las pruebas del proyecto seleccionado
     const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyecto.idProyecto}/defectos`);
     setDefectosProyecto(responseDefectos.data); // Almacenar en defectosProyecto
-    console.log('Defectos del proyecto:', responseDefectos.data); // Log para depuración
-
+    
     // Seleccionar la prueba más reciente si existe
     if (responsePruebas.data.length > 0) {
       seleccionarPrueba(responsePruebas.data[responsePruebas.data.length - 1]);
@@ -468,7 +611,6 @@ const ejecutarNuevaPrueba = async () => {
     // Re-fecth los defectos del proyecto para actualizar defectosProyecto
     const responseDefectos = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/defectos`);
     setDefectosProyecto(responseDefectos.data);
-    console.log('Defectos del proyecto después de nueva prueba:', responseDefectos.data); // Log para depuración
 
     // Recargar las pruebas y seleccionar la nueva
     const responsePruebas = await axios.get(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/pruebas`);
@@ -505,7 +647,7 @@ const ejecutarNuevaPrueba = async () => {
       };
    
       // Actualizar el defecto en la base de datos
-      await axios.put(`http://localhost:3001/api/proyectos/${proyectoSeleccionado.idProyecto}/defectos/${idDefecto}`, defectoActualizado);
+      await axios.put(`http://localhost:3001/api/defectos/${idDefecto}`, defectoActualizado);
   
       // Actualizar el estado local
       setResultadosDefectos(
@@ -690,12 +832,12 @@ const eliminarProyecto = async () => {
       console.error('Error al guardar el código:', error);
     }
   };
-  
+ 
   // Filtrar proyectos según el término de búsqueda
   const proyectosFiltrados = proyectos.filter((proyecto) =>
     proyecto.nombreProyecto.toLowerCase().includes(busqueda.toLowerCase())
   );
-
+  
   return (
     <div className="container">
       <ResizableBox
@@ -717,7 +859,6 @@ const eliminarProyecto = async () => {
           </ul>
         </section>
       </ResizableBox>
-
       <ResizableBox
         className="resizable-project-list"
         width={300}
@@ -754,7 +895,6 @@ const eliminarProyecto = async () => {
           </div>
         </section>
       </ResizableBox>
-
       <section className="project-details">
         <header>
           <div className="header-left">
@@ -774,7 +914,6 @@ const eliminarProyecto = async () => {
 >
   Pruebas
 </button>
-
           </div>
           <button className="new-project" onClick={abrirModal}>+ Crear Proyecto</button>
         </header>
@@ -847,22 +986,20 @@ const eliminarProyecto = async () => {
   ))}
   <span className="slider"></span>
 </div>
-
-
               {/* Editor de código */}
               <AceEditor
   mode={lenguaje}
-  theme="dracula" //github monokai dracula solarized_light tomorrow_night
+  theme="dracula" // Tema que estás utilizando, tambien: github monokai dracula solarized_light tomorrow_night
   name="editorCodigo"
   value={contenidoCodigo}
   onChange={guardarCodigoAutomáticamente}
   fontSize={14}
   width="100%"
-  height="calc(90vh - 200px)" // Ajusta 200px según sea necesario
+  height="calc(90vh - 200px)" // Ajusta este valor según tus necesidades
+  enableBasicAutocompletion={true}     // Propiedad directa
+  enableLiveAutocompletion={true}      // Propiedad directa
+  enableSnippets={true}                // Propiedad directa
   setOptions={{
-    enableBasicAutocompletion: true,
-    enableLiveAutocompletion: true,
-    enableSnippets: true,
     showLineNumbers: true,
     tabSize: 4,
   }}
@@ -896,8 +1033,7 @@ const eliminarProyecto = async () => {
       </div>
     </div>
   </div>
-)}
-     
+)}  
       {/* Modal de resultados de la prueba */}
       {mostrarModal && (
         <div className="modal-overlay">
@@ -936,7 +1072,6 @@ const eliminarProyecto = async () => {
       <div className="modal-header">
       <h1>{proyectoSeleccionado ? proyectoSeleccionado.nombreProyecto : 'Proyecto'}</h1>
       {/* Añadimos el Dro */}
-
         <button className="close-button" onClick={() => setMostrarModalPrueba(false)}>
           &times;
         </button>
@@ -970,7 +1105,6 @@ const eliminarProyecto = async () => {
     ? `Prueba ${listaPruebas.findIndex(p => p.idPrueba === pruebaSeleccionada.idPrueba) + 1} de ${proyectoSeleccionado.nombreProyecto}`
     : 'Selecciona una prueba'}
 </h2>
-
     {pruebaSeleccionada && (
       <select
         className="estado-prueba"
@@ -1033,11 +1167,8 @@ const eliminarProyecto = async () => {
   />
 </div>
 </div>
-
-
   {/* Mostrar la fecha de ejecución */}
   <p>Fecha de Ejecución: {pruebaSeleccionada ? formatearFecha(pruebaSeleccionada.fechaEjecucion) : 'N/A'}</p>
-
 {/* Tabla de defectos */}
 {/* Tabla de defectos */}
 <table className="tabla-defectos">
@@ -1056,10 +1187,8 @@ const eliminarProyecto = async () => {
       // Expresión regular para encontrar el número de línea en la descripción
       const match = defecto.descripcion.match(/\b(\d+)\b$/);
       const linea = match ? match[1] : 'N/A';  // Extraer el número de línea o mostrar 'N/A'
-      
       // Eliminar el número de línea de la descripción
       const descripcionSinLinea = defecto.descripcion.replace(/\b(\d+)\b$/, '');
-
       return (
         <tr key={defecto.idDefecto}>
           <td className={`criticidad ${defecto.prioridad.replace(/\s/g, '-')}`}>
@@ -1112,11 +1241,7 @@ const eliminarProyecto = async () => {
     </tr>
   </tfoot>
 </table>
-
-
-
 </div>
-
           </div>
         ) : (
           /* Contenido de la pestaña Dashboard */
@@ -1126,14 +1251,19 @@ const eliminarProyecto = async () => {
       <div className="chart-container">
         <Line data={dataLineChart} options={optionsLineChart} />
       </div>
-      
       <div className="chart-container">
     {dataSeverityChart && dataSeverityChart.labels && (
       <Line data={dataSeverityChart} options={optionsSeverityChart} />
     )}
   </div>
-      <div className="empty-container"> {/* Espacio en blanco inferior izquierdo */}</div>
-      <div className="empty-container"> {/* Espacio en blanco inferior derecho */}</div>
+  <div className="chart-container">
+      {dataDonutChart && dataDonutChart.labels && (
+        <Doughnut data={dataDonutChart} options={optionsDonutChart} />
+      )}
+    </div>
+    <div className="chart-container">
+    <Bar data={dataEstadoPruebas} options={optionsEstadoPruebas} />
+  </div>
     </div>
   )}
 </div>
@@ -1146,12 +1276,10 @@ const eliminarProyecto = async () => {
       <div className="spinner"></div>
     </div>
   )}
-
   {/* Botón para ejecutar nueva prueba */}
   <button onClick={ejecutarNuevaPrueba} disabled={cargando}>
     Ejecutar Nueva Prueba
   </button>
-
   {/* Botón para cerrar */}
   <button onClick={() => setMostrarModalPrueba(false)} disabled={cargando}>
     Cerrar
@@ -1165,4 +1293,4 @@ const eliminarProyecto = async () => {
 };
 
 export default App;
-//1083
+//1296
