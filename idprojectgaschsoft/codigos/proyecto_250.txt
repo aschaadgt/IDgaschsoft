@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Fábrica de Desarrollo - Proyecto con Samuel</title>
+</head>
+<body>
+  <h1>Proyecto con Samuel: Fábrica de Desarrollo en JavaScript</h1>
+  <p>Abre la consola del navegador para ver mensajes.</p>
+
+  <script>
+    function crearDesarrollador(nombre, lenguaje) {
+      return {
+        nombre: nombre,
+        lenguaje: lenguaje,
+        saludar: function() {
+          console.log("Hola, soy " + this.nombre + " y programo en " + this.lenguaje);
+        }
+      };
+    }
+
+    let desarrolladorSamuel = crearDesarrollador("Samuel", "JavaScript");
+    desarrolladorSamuel.saludar();
+
+    // Declaramos la variable y la utilizamos
+    let numeroProyectos = 0;
+    console.log("Proyectos al inicio:", numeroProyectos);
+
+    // Actualizamos el número de proyectos
+    numeroProyectos = numeroProyectos + 3; 
+    console.log("Ahora hay", numeroProyectos, "proyectos en desarrollo.");
+
+    // Definimos la función antes de usarla
+    function iniciarFabricaDesarrollo() {
+      console.log("Fábrica de desarrollo iniciada...");
+    }
+    iniciarFabricaDesarrollo();
+
+    console.log("Este es un proyecto sencillo con Samuel para una fábrica de desarrollo (versión con uso de la variable).");
+  </script>
+</body>
+</html>
